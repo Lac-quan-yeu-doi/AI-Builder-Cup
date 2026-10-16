@@ -1,0 +1,211 @@
+########################################
+# minder-agent -> GKE, Phase 0 Node host
+#
+# This pipeline builds the native TypeScript image, injects runtime values from
+# Secret Manager, configures the Gemini provider, and deploys the matching
+# environment overlay. Reject mixed dev/prod substitutions before building.
+########################################
+
+steps:
+  - name: node:22.19.0-bookworm-slim
+    id: node-tests
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        TARGET="${_ENV}:${PROJECT_ID}:${_AR_HOST}:${_AR_REPO}:${_CLUSTER}:${_CLUSTER_LOCATION_TYPE}:${_CLUSTER_LOCATION}:${_NAMESPACE}:${_MOVING_TAG}"
+        case "$$TARGET" in
+          gcp-dev:cosmos3-mmad-research:asia-southeast1-docker.pkg.dev:celesnity-gcp-dev-apps:celesnity-gcp-dev:zone:asia-southeast1-a:minder:development-latest|gcp-prod:celesnity-minder-platform:europe-west2-docker.pkg.dev:celesnity-gcp-prod-apps:celesnity-gcp-prod:region:europe-west2:minder-prod:production-latest)
+            ;;
+          *)
+            echo "ERROR: Cloud Build target substitutions do not match an approved environment."
+            exit 1
+            ;;
+        esac
+        npm ci --ignore-scripts
+        DATABASE_URL=postgresql://minder:minder@127.0.0.1:5433/minder_test \
+          npx prisma generate --schema src/infrastructure/prisma/schema.prisma
+        npm run test:compat
+        npm run test:phase-0 -- src/tests/presentation/http
+        npm run test:phase-0 -- src/tests/phase-0/cloudbuild.test.ts src/tests/phase-0/sandbox-deployment.test.ts
+        npm ci --ignore-scripts --prefix sandbox-runner
+        npm test --prefix sandbox-runner
+        npm run check
+        npm run build
+
+  - name: gcr.io/cloud-builders/docker
+    id: build-and-push
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        TAG="${SHORT_SHA}"
+        if [ -z "$$TAG" ]; then
+          TAG="manual-${BUILD_ID}"
+          echo "==> no SHORT_SHA; deploying unique manual tag $$TAG"
+        fi
+        printf '%s' "$$TAG" > /workspace/.image-tag
+        IMAGE="${_AR_HOST}/${PROJECT_ID}/${_AR_REPO}/minder-serve"
+        docker build --pull --tag "$$IMAGE:$$TAG" --tag "$$IMAGE:${_MOVING_TAG}" -f Dockerfile .
+        RUNNER_IMAGE="${_AR_HOST}/${PROJECT_ID}/${_AR_REPO}/minder-sandbox-runner"
+        docker build --pull --tag "$$RUNNER_IMAGE:$$TAG" --tag "$$RUNNER_IMAGE:${_MOVING_TAG}" -f sandbox-runner/Dockerfile .
+        bash src/tests/phase-0/container-smoke.sh "$$IMAGE:$$TAG"
+        bash src/tests/phase-0/sandbox-container-smoke.sh "$$RUNNER_IMAGE:$$TAG"
+        docker push "$$IMAGE:$$TAG"
+        docker push "$$IMAGE:${_MOVING_TAG}"
+        docker push "$$RUNNER_IMAGE:$$TAG"
+        docker push "$$RUNNER_IMAGE:${_MOVING_TAG}"
+
+  # ---------------------------------------------------------------------------
+  # Fill in k8s/overlays/gcp-dev/secret.yaml from Secret Manager.
+  #
+  # The committed file carries __PLACEHOLDER__ markers, so no sensitive value
+  # enters git or the build log. The generated manifest only exists in the
+  # shared Cloud Build workspace and is applied by the next step.
+  # ---------------------------------------------------------------------------
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: inject-secrets
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        cd k8s/overlays/${_ENV}
+
+        MAPPINGS=(
+          "LLM_BASE_URL|minder-llm-base-url"
+          "LLM_API_KEY|minder-llm-api-key"
+          "MINDER_ASSERTION_PUBLIC_KEYS_JSON|minder-assertion-public-keys-json"
+          "DATABASE_URL|minder-database-url"
+          "GCS_HMAC_ACCESS_KEY|gcs-hmac-access-key"
+          "GCS_HMAC_SECRET_KEY|gcs-hmac-secret-key"
+          "MCP_SHARED_SECRET|mcp-shared-secret"
+        )
+
+        for mapping in "$${MAPPINGS[@]}"; do
+          placeholder="$${mapping%%|*}"
+          secret="${_ENV}-$${mapping##*|}"
+          if ! grep -q "__$${placeholder}__" secret.yaml; then
+            echo "ERROR: placeholder __$${placeholder}__ is not in secret.yaml"
+            exit 1
+          fi
+          if ! raw=$$(gcloud secrets versions access latest --secret="$$secret" 2>/dev/null); then
+            echo "ERROR: cannot read Secret Manager secret '$$secret'."
+            echo "       Grant this build service account roles/secretmanager.secretAccessor."
+            exit 1
+          fi
+          encoded=$$(printf '%s' "$$raw" | tr -d '\r\n' | base64 -w 0)
+          if [ -z "$$encoded" ]; then
+            echo "ERROR: secret '$$secret' resolved to an empty value"
+            exit 1
+          fi
+          sed -i "s|__$${placeholder}__|$$encoded|g" secret.yaml
+        done
+
+        if grep -q '__[A-Z_]*__' secret.yaml; then
+          echo "ERROR: unreplaced placeholders remain in secret.yaml"
+          exit 1
+        fi
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy-and-smoke
+    entrypoint: bash
+    env:
+      - USE_GKE_GCLOUD_AUTH_PLUGIN=True
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        TAG=$$(cat /workspace/.image-tag)
+        LOCATION_FLAG="--${_CLUSTER_LOCATION_TYPE}"
+        gcloud container clusters get-credentials "${_CLUSTER}" \
+          "$$LOCATION_FLAG" "${_CLUSTER_LOCATION}" --project "${PROJECT_ID}"
+
+        kubectl get namespace "${_NAMESPACE}" >/dev/null
+        kubectl -n "${_NAMESPACE}" get serviceaccount celesnity-agent >/dev/null
+        kubectl get customresourcedefinition/podmonitorings.monitoring.googleapis.com >/dev/null
+
+        CONFIGMAP="k8s/overlays/${_ENV}/configmap.yaml"
+        if grep -q '^  LLM_PROVIDER:' "$$CONFIGMAP"; then
+          sed -i "s|^  LLM_PROVIDER:.*|  LLM_PROVIDER: \"${_LLM_PROVIDER}\"|" "$$CONFIGMAP"
+        else
+          sed -i "/^  LLM_MODEL:/a\\  LLM_PROVIDER: \"${_LLM_PROVIDER}\"" "$$CONFIGMAP"
+        fi
+        KUSTOMIZATION="k8s/overlays/${_ENV}/kustomization.yaml"
+        sed -i -E "s|^    newTag:.*|    newTag: \"$$TAG\"|" "$$KUSTOMIZATION"
+
+        # Verify the runner under the rendered pod policy before changing Agent
+        # configuration or rollout. This Job uses only disposable emptyDirs.
+        kubectl kustomize "k8s/overlays/${_ENV}" > /workspace/minder-rendered.yaml
+        awk -f k8s/ci/extract-deployment.awk /workspace/minder-rendered.yaml > /workspace/minder-deployment.yaml
+        kubectl create --dry-run=client --validate=false -f /workspace/minder-deployment.yaml \
+          -o json > /workspace/minder-resources.json
+        sandbox_job="minder-sandbox-$$(printf '%s' '${BUILD_ID}' | cut -c1-8)"
+        python3 -m unittest discover -s k8s/ci -p '*_test.py'
+        python3 k8s/ci/render-sandbox-verification-job.py "$$sandbox_job" \
+          < /workspace/minder-resources.json > /workspace/minder-sandbox-job.json
+        kubectl create -f /workspace/minder-sandbox-job.json
+        if ! kubectl -n "${_NAMESPACE}" wait --for=condition=complete \
+          "job/$$sandbox_job" --timeout=150s; then
+          bash k8s/ci/deployment-diagnostics.sh "${_NAMESPACE}" "job-name=$$sandbox_job"
+          echo "ERROR: Sandbox verification failed; Agent configuration and rollout were not applied."
+          exit 1
+        fi
+        kubectl -n "${_NAMESPACE}" logs "job/$$sandbox_job" --all-containers=true
+
+        # Core is deployed first. The Job discovers all active organization
+        # bindings through its workload-authenticated inventory endpoint.
+        kubectl -n "${_NAMESPACE}" apply -f "$$CONFIGMAP"
+        kubectl -n "${_NAMESPACE}" apply -f "k8s/overlays/${_ENV}/secret.yaml"
+        job_name="minder-manifests-$$(printf '%s' '${BUILD_ID}' | cut -c1-8)"
+        sed -e "s|__JOB_NAME__|$$job_name|g" \
+          -e "s|__NAMESPACE__|${_NAMESPACE}|g" \
+          -e "s|__AGENT_IMAGE__|${_AR_HOST}/${PROJECT_ID}/${_AR_REPO}/minder-serve:$$TAG|g" \
+          k8s/ci/manifest-workspace-migrations-job.yaml | kubectl apply -f -
+        if ! kubectl -n "${_NAMESPACE}" wait --for=condition=complete \
+          "job/$$job_name" --timeout=300s; then
+          kubectl -n "${_NAMESPACE}" logs "job/$$job_name" --all-containers=true || true
+          echo "ERROR: Agent manifest migration failed; rollout was not applied."
+          exit 1
+        fi
+        kubectl -n "${_NAMESPACE}" logs "job/$$job_name" --all-containers=true
+        kubectl apply -f /workspace/minder-rendered.yaml
+        if ! kubectl -n "${_NAMESPACE}" rollout status deployment/minder-serve --timeout=600s; then
+          bash k8s/ci/deployment-diagnostics.sh "${_NAMESPACE}" "app.kubernetes.io/name=minder-serve"
+          exit 1
+        fi
+
+        kubectl -n "${_NAMESPACE}" port-forward deployment/minder-serve 18080:8080 > /tmp/minder-port-forward.log 2>&1 &
+        PORT_FORWARD_PID=$$!
+        trap 'kill "$$PORT_FORWARD_PID" >/dev/null 2>&1 || true; wait "$$PORT_FORWARD_PID" >/dev/null 2>&1 || true' EXIT
+        ready=0
+        for _ in $$(seq 1 30); do
+          if curl --fail --silent --show-error http://127.0.0.1:18080/api/v1/healthz > /tmp/minder-health.json; then
+            ready=1
+            break
+          fi
+          sleep 2
+        done
+        test "$$ready" = 1
+        test "$(cat /tmp/minder-health.json)" = '{"status":"ok"}'
+        curl --fail --silent --show-error http://127.0.0.1:18080/api/v1/metrics | grep -F 'http_server_active_requests'
+        echo "==> Phase 0 deployed and smoke-tested: $$TAG"
+
+substitutions:
+  _AR_HOST: asia-southeast1-docker.pkg.dev
+  _AR_REPO: celesnity-gcp-dev-apps
+  _CLUSTER: celesnity-gcp-dev
+  _CLUSTER_LOCATION_TYPE: zone
+  _CLUSTER_LOCATION: asia-southeast1-a
+  _NAMESPACE: minder
+  _ENV: gcp-dev
+  _LLM_PROVIDER: gemini
+  _MOVING_TAG: development-latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+timeout: 1800s

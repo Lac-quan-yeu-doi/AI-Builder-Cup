@@ -1,0 +1,12 @@
+# Run with scripts/m1/run-http-negative-matrix.sh after replacing placeholders.
+# Tenant A token must never retrieve or mutate Tenant B identifiers.
+tenant-b-database-by-id	GET	https://api.example.invalid/api/v1/catalog/databases/TENANT_B_DATABASE_ID	TENANT_A_TOKEN	-	403,404	-
+tenant-b-table-by-id	GET	https://api.example.invalid/api/v1/catalog/tables/TENANT_B_TABLE_ID	TENANT_A_TOKEN	-	403,404	-
+tenant-b-pipeline-by-id	GET	https://api.example.invalid/api/v1/pipelines/TENANT_B_PIPELINE_ID	TENANT_A_TOKEN	-	403,404	-
+tenant-b-execution-by-id	GET	https://api.example.invalid/api/v1/executions/TENANT_B_EXECUTION_ID	TENANT_A_TOKEN	-	403,404	-
+tenant-b-document-by-id	GET	https://api.example.invalid/api/v1/documents/TENANT_B_DOCUMENT_ID	TENANT_A_TOKEN	-	403,404	-
+tenant-b-chart-by-id	GET	https://api.example.invalid/api/v1/charts/TENANT_B_CHART_ID	TENANT_A_TOKEN	-	403,404	-
+tenant-b-membership-by-id	PATCH	https://api.example.invalid/api/v1/administration/memberships/TENANT_B_MEMBERSHIP_ID	TENANT_A_TOKEN	-	403,404	examples/membership-update.json
+tenant-b-room-bind	POST	https://app.example.invalid/api/agent/rooms/TENANT_B_ROOM_ID/bind	TENANT_A_TOKEN	https://app.example.invalid	403,404	examples/room-bind.json
+tenant-b-cookie-replay	GET	https://app.example.invalid/api/core/administration/me	TENANT_A_WITH_B_COOKIE_TOKEN	https://app.example.invalid	401,403	-
+tenant-header-override	GET	https://api.example.invalid/api/v1/catalog/databases	TENANT_A_WITH_B_HEADER_TOKEN	-	401,403	-

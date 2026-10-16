@@ -1,0 +1,27 @@
+name: celesnity-infra-development
+description: >-
+  Apply Celesnity development infrastructure on pushes to development; disabled
+  until remote state adoption completes.
+disabled: true
+repositoryEventConfig:
+  repository: projects/cosmos3-mmad-research/locations/asia-southeast1/connections/celesnity/repositories/celesnity-celesnity-infra
+  repositoryType: GITHUB
+  push:
+    branch: ^development$
+filename: cloudbuild.yaml
+serviceAccount: projects/cosmos3-mmad-research/serviceAccounts/celesnity-infra-cloud-build@cosmos3-mmad-research.iam.gserviceaccount.com
+approvalConfig:
+  approvalRequired: false
+includeBuildLogs: INCLUDE_BUILD_LOGS_WITH_STATUS
+substitutions:
+  _ACTION: apply
+  _CONFIRM_TARGET: celesnity-gcp-dev
+  _REQUIRE_RELEASE_TAG: "false"
+  _ENV: gcp-dev
+  _REGION: asia-southeast1
+  _CLUSTER: celesnity-gcp-dev
+  _CLUSTER_LOCATION_TYPE: zone
+  _CLUSTER_LOCATION: asia-southeast1-a
+  _NAMESPACE: celesnity
+  _STATE_BUCKET: celesnity-gcp-dev-tfstate-cosmos3-mmad-research
+  _SPARK_REPOSITORY: asia-southeast1-docker.pkg.dev/cosmos3-mmad-research/celesnity-gcp-dev-spark/spark

@@ -1,0 +1,172 @@
+[
+  {
+    "id": "01-browse",
+    "title": "Browse — a collection of saved questions",
+    "note": "Three charts generated from the same table on the same day. The list is the first thing anyone sees.",
+    "path": "/analytics",
+    "settleRole": {
+      "role": "button",
+      "name": {}
+    },
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "01b-browse-recents",
+    "title": "Browse — a browser that has been here before",
+    "note": "The same library once this browser has opened a few things.",
+    "path": "/analytics",
+    "settleRole": {
+      "role": "button",
+      "name": {}
+    },
+    "seedRecents": true,
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "01c-browse-scoped",
+    "title": "Browse — narrowed to one collection",
+    "note": "Choosing a collection filters the list; it does not become a different page.",
+    "path": "/analytics/collections/c-ops",
+    "settle": "Cycle count by line",
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "02-builder-entry",
+    "title": "Ask — choosing how to start",
+    "note": "The first screen of a new chart.",
+    "path": "/analytics/charts/new",
+    "settle": "New question",
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "03-builder-data",
+    "title": "Ask — picking the starting table",
+    "note": "The data picker, before anything is chosen.",
+    "path": "/analytics/charts/new?entry=question",
+    "settle": "iceberg",
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "04-builder-browse-dialog",
+    "title": "Ask — browsing the whole catalog",
+    "note": "Browsing the catalog.",
+    "path": "/analytics/charts/new?entry=question",
+    "settle": "iceberg",
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "05-builder-notebook",
+    "title": "Ask — the query notebook",
+    "note": "A source is chosen; the steps are open for filtering and summarising.",
+    "path": "/analytics/charts/new?entry=question",
+    "settle": "iceberg",
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "05b-builder-start-recents",
+    "title": "Ask — a browser that has queried before",
+    "note": "Recent tables, for the common case of asking another question of one you already use.",
+    "path": "/analytics/charts/new?entry=question",
+    "settle": "iceberg",
+    "seedRecents": true,
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "06-builder-results",
+    "title": "See — the result of the query",
+    "note": "After Visualize: the rows, and the controls that decide how they are drawn.",
+    "path": "/analytics/charts/new?entry=question",
+    "settle": "iceberg",
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "07-saved-chart",
+    "title": "Read — a saved chart",
+    "note": "Opening a chart someone else saved.",
+    "path": "/analytics/charts/chart-manual-1",
+    "settle": "Revenue by region",
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "08-dashboard",
+    "title": "Assemble — a dashboard",
+    "note": "A dashboard with cards, tabs and a filter.",
+    "path": "/analytics/dashboards/d0000000-0000-4000-8000-000000000001",
+    "settle": "Shift operations",
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "09-dashboard-editor",
+    "title": "Assemble — editing a dashboard",
+    "note": "Edit mode, and the toolbar that adds things to it.",
+    "path": "/analytics/dashboards/d0000000-0000-4000-8000-000000000001/edit",
+    "settleRole": {
+      "role": "button",
+      "name": "Save"
+    },
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "10-browse-mobile",
+    "title": "Browse at 390px",
+    "note": "The same collection on a phone.",
+    "path": "/analytics",
+    "settleRole": {
+      "role": "button",
+      "name": {}
+    },
+    "width": 390,
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  {
+    "id": "11-builder-notebook-mobile",
+    "title": "The notebook at 390px",
+    "note": "The query steps on a phone.",
+    "path": "/analytics/charts/new?entry=question",
+    "settle": "iceberg",
+    "width": 390,
+    "ok": {
+      "before": true,
+      "after": true
+    }
+  }
+]

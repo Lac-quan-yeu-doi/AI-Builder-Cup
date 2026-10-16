@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Cloud-neutral. An overlay supplies the namespace, environment configuration,
+# runtime secrets, and autoscaling bounds — every cloud-specific or
+# environment-specific field lives there, not here.
+#
+#   kubectl kustomize k8s/overlays/gcp-dev
+
+resources:
+  - deployment.yaml
+  - pod-monitoring.yaml
+
+# minder/minder-serve is a placeholder, not a pullable reference. The overlay
+# rewrites it to the real Artifact Registry image; a rendered manifest still
+# carrying the bare name has skipped that step and fails the pull instead of
+# quietly running something unexpected.
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: minder-agent
+    includeSelectors: false

@@ -1,0 +1,38 @@
+{
+  "people": [
+    {
+      "name": "Nguyễn Đăng Mạnh Tú",
+      "github": "manhtu227",
+      "emails": ["106653553+manhtu227@users.noreply.github.com"]
+    },
+    {
+      "name": "daobathanhh",
+      "emails": ["daobathanh@DaoBaThanh.localdomain"]
+    },
+    {
+      "name": "An Luong",
+      "emails": ["an.luong@celesnity.com"]
+    },
+    {
+      "name": "Lương Nguyễn Minh An",
+      "github": "luongnguyenminhan",
+      "emails": ["142677268+luongnguyenminhan@users.noreply.github.com"]
+    },
+    {
+      "name": "Dat Pham",
+      "emails": ["pvdat.cyan@gmail.com"]
+    },
+    {
+      "name": "Sog1n",
+      "emails": ["siuace492@gmail.com", "brian.nguyen@celesnity.com"]
+    },
+    {
+      "name": "Hung",
+      "emails": ["quanghungnguyen2004@gmail.com"]
+    },
+    {
+      "name": "dien-tran",
+      "emails": ["sol.tran@celesnity.com"]
+    }
+  ]
+}

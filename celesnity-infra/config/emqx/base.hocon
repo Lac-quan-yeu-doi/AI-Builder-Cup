@@ -1,0 +1,18 @@
+api_key.bootstrap_file = "/opt/emqx/etc/default_api_key.conf"
+
+authentication = [{
+  mechanism = password_based
+  backend = built_in_database
+  user_id_type = username
+  bootstrap_file = "/opt/emqx/etc/auth-built-in-db-bootstrap.csv"
+  bootstrap_type = plain
+}]
+
+authorization {
+  no_match = deny
+  deny_action = ignore
+  sources = [
+    { type = built_in_database, enable = true },
+    { type = file, enable = true, path = "/opt/emqx/etc/acl.conf" }
+  ]
+}

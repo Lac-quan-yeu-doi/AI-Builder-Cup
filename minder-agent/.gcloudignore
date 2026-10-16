@@ -1,0 +1,7 @@
+.gcloudignore
+.git
+#!include:.gitignore
+.env*
+!.env.example
+**/.env*
+!**/.env.example

@@ -1,0 +1,50 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: celesnity-web
+spec:
+  parentRefs:
+    - name: celesnity
+      sectionName: https
+  hostnames:
+    - app.celesnity.com
+  rules:
+    # GKE does not support method matching. The application validates GET, the path, and identity.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/core/rooms
+          headers:
+            - type: Exact
+              name: Accept
+              value: text/event-stream
+      backendRefs:
+        - name: celesnity-web-message-block-stream
+          port: 3000
+    # Agent events use cursor replay after a finite connection deadline.
+    # Prefix/header matching selects transport policy; the app still authenticates and authorizes.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/agent/rooms
+          headers:
+            - type: Exact
+              name: Accept
+              value: text/event-stream
+        - path:
+            type: PathPrefix
+            value: /api/agent/runs
+          headers:
+            - type: Exact
+              name: Accept
+              value: text/event-stream
+      backendRefs:
+        - name: celesnity-web-agent-stream
+          port: 3000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: celesnity-web
+          port: 3000

@@ -1,0 +1,20 @@
+export const MetadataCrawlerMessage = {
+  invalidCrawlerId: 'Metadata crawler ID must be a valid UUID.',
+  invalidDatabaseServiceId: 'Database service ID must be a valid UUID.',
+  invalidRunId: 'Metadata crawler run ID must be a valid UUID.',
+  nameRequired: 'Metadata crawler name is required.',
+  nameTooLong: 'Metadata crawler name must not exceed 160 characters.',
+  scheduleRequired: 'Metadata crawler schedule is required.',
+  timezoneInvalid: 'Metadata crawler schedule timezone is invalid.',
+  dateInvalid: (label: string): string => `${label} must be a valid date.`,
+  timeoutInvalid: 'Metadata crawler timeout must be a positive integer.',
+  workerRequired: 'Metadata crawler worker ID is required.',
+  leaseMustBeFuture: 'Metadata crawler lease expiry must be in the future.',
+  countersInvalid: 'Metadata crawler run counters must be non-negative integers.',
+  transition: (from: string, to: string): string =>
+    `A metadata crawler run cannot transition from ${from} to ${to}.`,
+  heartbeatRejected: 'Metadata crawler heartbeat was rejected for this worker or run state.',
+  leaseNotExpired: 'Metadata crawler run lease has not expired.',
+  assignmentConflict: 'The database service is already assigned to a metadata crawler.',
+  activeRunConflict: 'The metadata crawler already has an active run.',
+} as const;

@@ -1,0 +1,62 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Must match var.workload_namespace in infra/environments/gcp-dev. Terraform
+# creates the namespace, the celesnity ServiceAccount (annotated for Workload
+# Identity), the celesnity-database Secret, and the celesnity-storage ConfigMap.
+# Apply Terraform before this.
+namespace: celesnity
+
+resources:
+  - ../../base
+
+  # External load balancer, via Gateway API rather than Ingress. All GCP-only.
+  #
+  # Split by ownership on purpose:
+  #   gateway/    platform-owned. One load balancer, one address, one certificate.
+  # Trino and MCP-Trino are deliberately cluster-private. Only application edge
+  # routes from the Web repository may attach to this Gateway.
+  #
+  # Adding a second service means one more HTTPRoute alongside its own policies,
+  # sharing this address. Under Ingress that was impossible without a second load
+  # balancer, because GKE gives every Ingress its own IP and has no equivalent of
+  # the AWS ALB group.name annotation.
+  #
+  # Requires enable_external_lb = true in infra/environments/gcp-dev, which
+  # reserves the address, issues the trino-lb-tls certificate, and creates the
+  # Cloud Armor policy these reference by name.
+  - gateway/gateway.yaml
+  - pdb.yaml
+  - networkpolicy.yaml
+
+# The GCS-flavoured Iceberg catalog. The base deliberately omits it so the MinIO,
+# S3, and GCS variants stay side by side and comparable.
+configMapGenerator:
+  - name: trino-catalog
+    files:
+      - iceberg.properties=catalog/iceberg.properties
+
+# Replaced at render time by `make deploy CLOUD=gcp` from the spark_repository
+# Terraform output, which resolves to
+#   <region>-docker.pkg.dev/<project>/<name>-spark/spark
+images:
+  - name: celesnity/spark
+    newName: asia-southeast1-docker.pkg.dev/cosmos3-mmad-research/celesnity-gcp-dev-spark/spark
+    newTag: 3.5.7-iceberg-1.11.0
+
+# Per-environment worker counts. When raising trino-worker, also raise
+# TRINO_QUERY_MAX_MEMORY in deploy/base/trino/{coordinator,worker}.yaml: it is the
+# cluster-wide budget, so it should be replicas x TRINO_QUERY_MAX_MEMORY_PER_NODE.
+#
+# e2-standard-2 nodes have 8 GiB against t4g.medium's 4 GiB, so there is more room
+# here than on AWS if you want to scale up.
+replicas:
+  - name: trino-worker
+    count: 1
+  - name: spark-worker
+    count: 2
+
+patches:
+  - path: trino-capacity-patch.yaml
+  - path: streaming-interval-patch.yaml
+  - path: maintenance-resources-patch.yaml

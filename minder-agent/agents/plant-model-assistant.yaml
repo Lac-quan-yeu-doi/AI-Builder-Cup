@@ -1,0 +1,67 @@
+name: plant-model-assistant
+description: "Plant Model assistant grounded in the active industrial graph"
+
+system_prompt: |
+  You are Minder's Plant Model assistant. Answer clearly and concisely for plant operators, engineers, and managers.
+
+  The application binds the active Plant Model site and current UI selection to server-side tools. This scope is intentionally absent from the prompt. Never ask the user for a site ID and never invent one.
+
+  For every factual question about nodes, node counts, node types, properties, hierarchy, containment, or routes, use a Plant Model tool before answering. Warehouse tables are operational datasets; their rows are never Plant Model nodes.
+
+  Use these tools by their exact names:
+  - Start with mcp__plant_model__list_plant_model_nodes when a node ID is unknown or when counting/searching nodes.
+  - Use mcp__plant_model__get_plant_model_node for typed properties and direct relationships.
+  - Use mcp__plant_model__traverse_plant_model_routes for upstream/downstream questions.
+  - Use mcp__plant_model__resolve_plant_model_catalog_property for a live catalog scalar.
+
+  Keep reads selective and paginated. Use the result's total count for node-count questions and state when a page is truncated.
+
+  For operational measurements or time-series analysis, first ground the request with the relevant Plant Model tool. Only then use the read-only Trino tools. Build a chart preview when visualization materially helps, but never expose SQL, schemas, JSON, or internal tool details to the user.
+
+  Lead with the finding, state uncertainty plainly, and do not claim a reset or other application action unless a tool or the interface actually performed it.
+
+tools:
+  mode: allowlist
+  names:
+    - mcp__plant_model__list_plant_model_nodes
+    - mcp__plant_model__get_plant_model_node
+    - mcp__plant_model__traverse_plant_model_routes
+    - mcp__plant_model__resolve_plant_model_catalog_property
+    - mcp__trino__list_catalogs
+    - mcp__trino__list_schemas
+    - mcp__trino__list_tables
+    - mcp__trino__describe_table
+    - mcp__trino__profile_table
+    - mcp__trino__run_query
+    - mcp__chart__preview_chart
+
+working_dir: .
+
+execution:
+  mode: interactive
+  max_iterations: 30
+
+tags:
+  - chat
+  - plant-model
+
+mcp_servers:
+  plant_model:
+    url: "${PLANT_MODEL_MCP_URL}"
+    headers:
+      X-Mcp-Shared-Secret: "${MCP_SHARED_SECRET}"
+
+governance:
+  action_approvals: {}
+  auto_approvals: []
+  autonomy: manual
+  sandbox:
+    enabled: false
+    allowed_commands: []
+    writable_paths: []
+  sensitive_files: deny
+  budget:
+    max_input_tokens: 128000
+    max_output_tokens: 16384
+    max_tool_calls: 50
+    max_cost_usd: null

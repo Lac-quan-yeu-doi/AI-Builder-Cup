@@ -1,0 +1,29 @@
+node_modules
+.next
+.git
+*.log
+.DS_Store
+
+# Every dotenv variant, not just .env.
+#
+# `next build` loads .env.production and .env.local when it finds them, and reports
+# what it loaded as "Environments: ...". A stray file left in a working copy therefore
+# becomes part of a release build. NEXT_PUBLIC_CORE_API_URL specifically survives,
+# because the Dockerfile sets it as a real environment variable and @next/env does not
+# overwrite one that is already set — but nothing else in the build has that
+# protection, so the files are kept out of the context entirely.
+.env
+.env.*
+!.env.example
+
+# Deployment configuration is not application source.
+#
+# The build stage does `COPY . .`, so anything here lands in a layer and any edit to it
+# invalidates the cache and forces a full npm build. Excluding these means a
+# manifest-only change rebuilds nothing.
+k8s
+cloudbuild.yaml
+
+# Build artefacts and local scratch that would otherwise be copied in.
+tsconfig.tsbuildinfo
+semantic-review

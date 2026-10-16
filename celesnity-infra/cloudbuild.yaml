@@ -1,0 +1,544 @@
+########################################
+# celesnity-infra -> GCP development and production environments
+#
+# Default action is plan. An apply trigger must explicitly set _CONFIRM_TARGET to
+# the cluster it owns. The production trigger additionally requires a release tag.
+#
+# Development trigger:
+#   _ACTION=apply
+#   _CONFIRM_TARGET=celesnity-gcp-dev
+#
+# Production trigger:
+#   _ACTION=apply
+#   _CONFIRM_TARGET=celesnity-gcp-prod
+#   _REQUIRE_RELEASE_TAG=true
+#
+# Certificate Manager and Cloudflare DNS remain operator-owned. Both certificates
+# named by terraform.tfvars.example must exist before a full apply.
+########################################
+
+steps:
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: bootstrap-state
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        if ! gcloud storage buckets describe "gs://${_STATE_BUCKET}" --project "${PROJECT_ID}" >/dev/null 2>&1; then
+          echo "==> creating ${_ENV} Terraform state bucket"
+          gcloud storage buckets create "gs://${_STATE_BUCKET}" \
+            --project "${PROJECT_ID}" \
+            --location "${_REGION}" \
+            --uniform-bucket-level-access
+        fi
+        gcloud storage buckets update "gs://${_STATE_BUCKET}" --versioning
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: validate-target
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        case "${_ENV}" in
+          gcp-dev|gcp-prod) ;;
+          *) echo "ERROR: unsupported environment ${_ENV}"; exit 1 ;;
+        esac
+
+        case "${_ACTION}" in
+          plan) exit 0 ;;
+          apply) ;;
+          *) echo "ERROR: _ACTION must be plan or apply"; exit 1 ;;
+        esac
+
+        if [ "${_CONFIRM_TARGET}" != "${_CLUSTER}" ]; then
+          echo "ERROR: apply requires _CONFIRM_TARGET=${_CLUSTER}"
+          exit 1
+        fi
+
+        if [ "${_REQUIRE_RELEASE_TAG}" = "true" ]; then
+          if [ -z "${TAG_NAME}" ]; then
+            echo "ERROR: production apply must be invoked by a release tag"
+            exit 1
+          fi
+          if ! printf '%s' "${TAG_NAME}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$'; then
+            echo "ERROR: release tag must use semantic versioning, for example v1.2.3"
+            exit 1
+          fi
+        fi
+
+        # Never let an empty remote state attempt to recreate an existing cluster.
+        # This is especially important while adopting the original development
+        # environment, whose first deployment used local Terraform state.
+        STATE_OBJECT="gs://${_STATE_BUCKET}/celesnity-infra/${_ENV}/default.tfstate"
+        STATE_HAS_CLUSTER=false
+        if gcloud storage cat "$$STATE_OBJECT" 2>/dev/null \
+          | grep -Eq '"type"[[:space:]]*:[[:space:]]*"google_container_cluster"'; then
+          STATE_HAS_CLUSTER=true
+        fi
+        if [ "$$STATE_HAS_CLUSTER" = false ]; then
+          LOCATION_FLAG="--${_CLUSTER_LOCATION_TYPE}"
+          if gcloud container clusters describe "${_CLUSTER}" \
+            "$$LOCATION_FLAG" "${_CLUSTER_LOCATION}" \
+            --project "${PROJECT_ID}" >/dev/null 2>&1; then
+            echo "ERROR: ${_CLUSTER} exists, but remote Terraform state is missing."
+            echo "       Adopt the live resources into $$STATE_OBJECT before enabling apply."
+            exit 1
+          fi
+        fi
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: validate-trino-tls
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        TFVARS="infra/environments/${_ENV}/terraform.tfvars.example"
+        read_tfvar() {
+          awk -F= -v key="$$1" '
+            $$1 ~ "^[[:space:]]*" key "[[:space:]]*$$" {
+              value = $$2
+              gsub(/[[:space:]\"]/, "", value)
+              print value
+            }
+          ' "$$TFVARS"
+        }
+
+        TLS_VERSION="$$(read_tfvar trino_tls_secret_version)"
+        CA_VERSION="$$(read_tfvar trino_ca_secret_version)"
+        USER_PASSWORD_VERSION="$$(read_tfvar trino_user_password_secret_version)"
+        SHARED_SECRET_VERSION="$$(read_tfvar trino_shared_secret_version)"
+        FTPS_DEMO_VERSION="$$(read_tfvar ftps_demo_password_secret_version)"
+        FTPS_STATUS_VERSION="$$(read_tfvar ftps_status_password_secret_version)"
+        if [ -z "$$TLS_VERSION" ] || [ -z "$$CA_VERSION" ] \
+          || [ -z "$$USER_PASSWORD_VERSION" ] || [ -z "$$SHARED_SECRET_VERSION" ]; then
+          echo "ERROR: tfvars must pin all four Trino Secret Manager versions"
+          exit 1
+        fi
+        if [ "${_ENV}" = "gcp-dev" ] \
+          && { [ -z "$$FTPS_DEMO_VERSION" ] || [ -z "$$FTPS_STATUS_VERSION" ]; }; then
+          echo "ERROR: development tfvars must pin both FTPS Secret Manager versions"
+          exit 1
+        fi
+
+        TLS_SECRET="${_CLUSTER}-trino-tls-pem"
+        CA_SECRET="${_CLUSTER}-trino-ca-pem"
+        USER_PASSWORD_SECRET="${_CLUSTER}-trino-user-password"
+        SHARED_SECRET="${_CLUSTER}-trino-shared-secret"
+        for secret_spec in \
+          "$$TLS_SECRET:$$TLS_VERSION" \
+          "$$CA_SECRET:$$CA_VERSION" \
+          "$$USER_PASSWORD_SECRET:$$USER_PASSWORD_VERSION" \
+          "$$SHARED_SECRET:$$SHARED_SECRET_VERSION"; do
+          SECRET_NAME="$${secret_spec%%:*}"
+          SECRET_VERSION="$${secret_spec##*:}"
+          if ! gcloud secrets versions access "$$SECRET_VERSION" \
+            --secret="$$SECRET_NAME" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+            echo "ERROR: Secret Manager version $$SECRET_NAME/$$SECRET_VERSION is not readable"
+            echo "       Bootstrap it with scripts/trino/bootstrap-tls-secret-manager.sh"
+            exit 1
+          fi
+        done
+        if [ "${_ENV}" = "gcp-dev" ]; then
+          for secret_spec in \
+            "${_ENV}-ftps-demo-password:$$FTPS_DEMO_VERSION" \
+            "${_ENV}-ftps-status-password:$$FTPS_STATUS_VERSION"; do
+            SECRET_NAME="$${secret_spec%%:*}"
+            SECRET_VERSION="$${secret_spec##*:}"
+            if ! gcloud secrets versions access "$$SECRET_VERSION" \
+              --secret="$$SECRET_NAME" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+              echo "ERROR: Secret Manager version $$SECRET_NAME/$$SECRET_VERSION is not readable"
+              echo "       Bootstrap it with the apps_runtime_secrets Terraform output"
+              exit 1
+            fi
+          done
+        fi
+        echo "==> pinned Trino Secret Manager versions are readable"
+
+  - name: hashicorp/terraform:1.15.8
+    id: terraform
+    entrypoint: sh
+    args:
+      - -ceu
+      - |
+        TF_DIR="infra/environments/${_ENV}"
+        VAR_FILE="terraform.tfvars.example"
+
+        terraform -chdir="$$TF_DIR" init -input=false \
+          -backend-config="bucket=${_STATE_BUCKET}" \
+          -backend-config="prefix=celesnity-infra/${_ENV}"
+        terraform fmt -check -recursive infra
+        terraform -chdir="$$TF_DIR" validate
+
+        case "${_ACTION}" in
+          plan)
+            if terraform -chdir="$$TF_DIR" state list 2>/dev/null | grep -q '^module.cluster.google_container_cluster.this$$'; then
+              terraform -chdir="$$TF_DIR" plan -input=false -lock-timeout=10m \
+                -var-file="$$VAR_FILE"
+            else
+              echo "==> empty state: planning the foundation first"
+              echo "    A full plan requires the Kubernetes API created by this stage."
+              terraform -chdir="$$TF_DIR" plan -input=false -lock-timeout=10m \
+                -var-file="$$VAR_FILE" \
+                -target=module.network -target=module.cluster -target=module.data
+            fi
+            ;;
+          apply)
+            # The Kubernetes and Helm providers cannot connect until the first
+            # cluster exists. Establish the foundation, then make and
+            # apply one saved plan for the complete platform.
+            terraform -chdir="$$TF_DIR" apply -input=false -auto-approve -lock-timeout=10m \
+              -var-file="$$VAR_FILE" \
+              -target=module.network -target=module.cluster -target=module.data
+            terraform -chdir="$$TF_DIR" plan -input=false -lock-timeout=10m \
+              -var-file="$$VAR_FILE" -out="/workspace/${_ENV}.tfplan"
+            terraform -chdir="$$TF_DIR" apply -input=false -auto-approve \
+              -lock-timeout=10m "/workspace/${_ENV}.tfplan"
+            ;;
+          *)
+            echo "ERROR: _ACTION must be plan or apply"
+            exit 1
+            ;;
+        esac
+
+        terraform -chdir="$$TF_DIR" output -raw identity_platform_tenant_id \
+          > /workspace/.identity-platform-tenant-id
+        terraform -chdir="$$TF_DIR" output -raw workload_google_service_account \
+          > /workspace/.workload-google-service-account
+
+  # The Google Terraform provider does not expose tenant-level MFA settings.
+  # Reconcile the supported Identity Toolkit tenant API explicitly and fail
+  # plan builds when the live tenant drifts from mandatory TOTP.
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: configure-tenant-totp-mfa
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        TENANT_ID="$$(cat /workspace/.identity-platform-tenant-id)"
+        MODE=check
+        if [ "${_ACTION}" = "apply" ]; then MODE=apply; fi
+        scripts/identity/configure-tenant-totp-mfa.sh \
+          "$$MODE" "${PROJECT_ID}" "$$TENANT_ID" 1
+
+  # Multi-tenant account lookup is authorized on the tenant resource, not by
+  # the project-level custom role alone. This is explicit REST reconciliation
+  # because the Google Terraform provider has no tenant IAM resource.
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: configure-tenant-runtime-iam
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        TENANT_ID="$$(cat /workspace/.identity-platform-tenant-id)"
+        MODE=check
+        if [ "${_ACTION}" = "apply" ]; then MODE=apply; fi
+        scripts/identity/configure-tenant-runtime-iam.sh \
+          "$$MODE" "${PROJECT_ID}" "$$TENANT_ID" \
+          "${_CLUSTER}-web@${PROJECT_ID}.iam.gserviceaccount.com" \
+          "${_CLUSTER}-core-api@${PROJECT_ID}.iam.gserviceaccount.com"
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: provision-runtime-secrets
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        if [ "${_ACTION}" != "apply" ]; then exit 0; fi
+
+        CREDENTIAL_SECRET="${_ENV}-core-credential-keys"
+        AUDIT_HASH_SECRET="${_ENV}-audit-hash-key"
+        FTPS_DEMO_SECRET="${_ENV}-ftps-demo-password"
+        FTPS_STATUS_SECRET="${_ENV}-ftps-status-password"
+        HMAC_ACCESS_SECRET="${_ENV}-gcs-hmac-access-key"
+        HMAC_SECRET_SECRET="${_ENV}-gcs-hmac-secret-key"
+        WORKLOAD_SA="$$(cat /workspace/.workload-google-service-account)"
+
+        # Fail before creating or rotating secrets when a trigger points at a
+        # stale Terraform-managed workload identity. This keeps the HMAC pair
+        # and its Secret Manager versions atomic from the build's perspective.
+        if ! gcloud iam service-accounts describe "$$WORKLOAD_SA" \
+          --project "${PROJECT_ID}" >/dev/null 2>&1; then
+          echo "ERROR: configured workload service account does not exist: $$WORKLOAD_SA"
+          echo "Terraform output workload_google_service_account is stale or invalid."
+          exit 1
+        fi
+
+        if ! gcloud secrets describe "$$CREDENTIAL_SECRET" --project "${PROJECT_ID}" >/dev/null 2>&1; then
+          echo "==> creating Core credential-encryption secret container"
+          gcloud secrets create "$$CREDENTIAL_SECRET" --project "${PROJECT_ID}" \
+            --replication-policy=automatic >/dev/null
+        fi
+        if ! gcloud secrets versions access latest --secret="$$CREDENTIAL_SECRET" \
+          --project "${PROJECT_ID}" >/dev/null 2>&1; then
+          echo "==> adding Core credential-encryption keyring version"
+          printf 'v1:%s' "$$(head -c 32 /dev/urandom | base64 | tr -d '\r\n')" \
+            | gcloud secrets versions add "$$CREDENTIAL_SECRET" --project "${PROJECT_ID}" \
+                --data-file=- >/dev/null
+        else
+          echo "==> Core credential-encryption keyring has a readable version"
+        fi
+
+        if ! gcloud secrets describe "$$AUDIT_HASH_SECRET" --project "${PROJECT_ID}" >/dev/null 2>&1; then
+          echo "==> creating Core audit-hash secret container"
+          gcloud secrets create "$$AUDIT_HASH_SECRET" --project "${PROJECT_ID}" \
+            --replication-policy=automatic >/dev/null
+        fi
+        if ! gcloud secrets versions access latest --secret="$$AUDIT_HASH_SECRET" \
+          --project "${PROJECT_ID}" >/dev/null 2>&1; then
+          echo "==> adding Core audit-hash key version"
+          head -c 48 /dev/urandom | base64 | tr -d '\r\n' \
+            | gcloud secrets versions add "$$AUDIT_HASH_SECRET" --project "${PROJECT_ID}" \
+                --data-file=- >/dev/null
+        else
+          echo "==> Core audit-hash secret has a readable version"
+        fi
+
+        for secret_name in "$$FTPS_DEMO_SECRET" "$$FTPS_STATUS_SECRET"; do
+          if ! gcloud secrets describe "$$secret_name" --project "${PROJECT_ID}" >/dev/null 2>&1; then
+            echo "==> creating runtime secret container: $$secret_name"
+            gcloud secrets create "$$secret_name" --project "${PROJECT_ID}" \
+              --replication-policy=automatic >/dev/null
+          fi
+          if ! gcloud secrets versions access latest --secret="$$secret_name" \
+            --project "${PROJECT_ID}" >/dev/null 2>&1; then
+            echo "==> adding generated runtime secret version: $$secret_name"
+            head -c 32 /dev/urandom | base64 | tr -d '\r\n' \
+              | gcloud secrets versions add "$$secret_name" --project "${PROJECT_ID}" \
+                  --data-file=- >/dev/null
+          else
+            echo "==> runtime secret has a readable version: $$secret_name"
+          fi
+        done
+
+        for secret_name in "$$HMAC_ACCESS_SECRET" "$$HMAC_SECRET_SECRET"; do
+          if ! gcloud secrets describe "$$secret_name" --project "${PROJECT_ID}" >/dev/null 2>&1; then
+            gcloud secrets create "$$secret_name" --project "${PROJECT_ID}" \
+              --replication-policy=automatic >/dev/null
+          fi
+        done
+
+        access_ready=false
+        secret_ready=false
+        hmac_active=false
+        gcloud secrets versions access latest --secret="$$HMAC_ACCESS_SECRET" \
+          --project "${PROJECT_ID}" >/dev/null 2>&1 && access_ready=true
+        gcloud secrets versions access latest --secret="$$HMAC_SECRET_SECRET" \
+          --project "${PROJECT_ID}" >/dev/null 2>&1 && secret_ready=true
+
+        # A readable Secret Manager version does not prove that its access ID
+        # still names a live GCS HMAC key. Detect deleted or inactive keys before
+        # application deployment; otherwise Core reports SignatureDoesNotMatch
+        # only when the first script is compiled.
+        if [ "$$access_ready" = true ] && [ "$$secret_ready" = true ]; then
+          HMAC_ACCESS=$$(gcloud secrets versions access latest \
+            --secret="$$HMAC_ACCESS_SECRET" --project "${PROJECT_ID}" | tr -d '\r\n')
+          HMAC_OWNER=""
+          HMAC_STATE=""
+          HMAC_DESCRIPTION=$$(gcloud storage hmac describe "$$HMAC_ACCESS" \
+            --project "${PROJECT_ID}" --format='value(serviceAccountEmail,state)' 2>/dev/null || true)
+          if [ -n "$$HMAC_DESCRIPTION" ]; then
+            IFS=$$'\t' read -r HMAC_OWNER HMAC_STATE <<< "$$HMAC_DESCRIPTION"
+          fi
+          if [ "$$HMAC_STATE" = "ACTIVE" ] && [ "$$HMAC_OWNER" = "$$WORKLOAD_SA" ]; then
+            hmac_active=true
+          fi
+          unset HMAC_ACCESS HMAC_DESCRIPTION HMAC_OWNER HMAC_STATE
+        fi
+
+        if [ "$$hmac_active" = false ]; then
+          echo "==> creating a fresh matched Core GCS HMAC pair"
+          HMAC_FILE=$$(mktemp)
+          trap 'rm -f "$$HMAC_FILE"' EXIT
+          gcloud storage hmac create "$$WORKLOAD_SA" --project "${PROJECT_ID}" \
+            --format='value(metadata.accessId,secret)' > "$$HMAC_FILE"
+          IFS=$$'\t' read -r HMAC_ACCESS HMAC_SECRET < "$$HMAC_FILE"
+          if [ -z "$$HMAC_ACCESS" ] || [ -z "$$HMAC_SECRET" ]; then
+            echo "ERROR: GCS did not return a complete HMAC pair"
+            exit 1
+          fi
+          printf '%s' "$$HMAC_ACCESS" \
+            | gcloud secrets versions add "$$HMAC_ACCESS_SECRET" --project "${PROJECT_ID}" \
+                --data-file=- >/dev/null
+          printf '%s' "$$HMAC_SECRET" \
+            | gcloud secrets versions add "$$HMAC_SECRET_SECRET" --project "${PROJECT_ID}" \
+                --data-file=- >/dev/null
+          unset HMAC_ACCESS HMAC_SECRET
+          rm -f "$$HMAC_FILE"
+          trap - EXIT
+        else
+          echo "==> Core GCS HMAC secrets reference an ACTIVE key"
+        fi
+
+  - name: gcr.io/cloud-builders/docker
+    id: build-spark
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        if [ "${_ACTION}" != "apply" ]; then exit 0; fi
+        TAG="${TAG_NAME}"
+        if [ -z "$$TAG" ]; then TAG="${SHORT_SHA}"; fi
+        if [ -z "$$TAG" ]; then TAG="manual-${BUILD_ID}"; fi
+        printf '%s' "$$TAG" > /workspace/.spark-image-tag
+        IMAGE="${_SPARK_REPOSITORY}:$$TAG"
+        docker build --pull --tag "$$IMAGE" images/spark
+        docker push "$$IMAGE"
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy-platform
+    entrypoint: bash
+    env:
+      - USE_GKE_GCLOUD_AUTH_PLUGIN=True
+    args:
+      - -ceu
+      - |
+        if [ "${_ACTION}" != "apply" ]; then exit 0; fi
+        TAG=$$(cat /workspace/.spark-image-tag)
+
+        LOCATION_FLAG="--${_CLUSTER_LOCATION_TYPE}"
+        gcloud container clusters get-credentials "${_CLUSTER}" \
+          "$$LOCATION_FLAG" "${_CLUSTER_LOCATION}" --project "${PROJECT_ID}"
+
+        curl -sS "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
+          | bash -s -- "${_KUSTOMIZE_VERSION}"
+        mv kustomize /usr/local/bin/
+
+        cd "deploy/overlays/${_ENV}"
+        kustomize edit set image "celesnity/spark=${_SPARK_REPOSITORY}:$$TAG"
+
+        # Jobs have an immutable pod template. Recreate the idempotent topic
+        # bootstrap before applying so service-account and security-context
+        # hardening can be rolled out without an immutable-field failure.
+        kubectl -n "${_NAMESPACE}" delete job redpanda-topics-v2 \
+          --ignore-not-found --wait=true
+
+        # One-time migration from the former headless Spark Service. clusterIP
+        # is immutable, so it must be recreated before applying the stable
+        # ClusterIP definition. Restart long-lived clients afterwards to discard
+        # any JVM-cached headless pod address.
+        MIGRATED_SPARK_MASTER_SERVICE=false
+        PREVIOUS_SPARK_MASTER_UID=$$(kubectl -n "${_NAMESPACE}" get pods \
+          -l 'app.kubernetes.io/name=spark,app.kubernetes.io/component=master' \
+          -o jsonpath='{.items[0].metadata.uid}' 2>/dev/null || true)
+        CURRENT_SPARK_MASTER_CLUSTER_IP=$$(kubectl -n "${_NAMESPACE}" get service spark-master \
+          -o jsonpath='{.spec.clusterIP}' 2>/dev/null || true)
+        if [ "$$CURRENT_SPARK_MASTER_CLUSTER_IP" = "None" ]; then
+          echo "==> migrating spark-master from headless DNS to a stable ClusterIP"
+          kubectl -n "${_NAMESPACE}" delete service spark-master --wait=true
+          MIGRATED_SPARK_MASTER_SERVICE=true
+        fi
+        kustomize build --load-restrictor LoadRestrictionsNone . | kubectl apply -f -
+
+        # Trino authenticates every non-health request. Core reads the source
+        # trino-client Secret in this namespace, while minder-serve reads a copy
+        # in its own namespace as an environment variable. Updating only the
+        # source leaves an already-running agent on the old password and Trino
+        # returns 401 even though Core continues to query successfully.
+        #
+        # Reconcile the copy on every platform apply and restart the agent only
+        # when the password changed, so its process receives the new value.
+        case "${_ENV}" in
+          gcp-dev) AGENT_NAMESPACE="minder" ;;
+          gcp-prod) AGENT_NAMESPACE="minder-prod" ;;
+          *) echo "ERROR: unsupported environment ${_ENV}"; exit 1 ;;
+        esac
+        if kubectl get namespace "$$AGENT_NAMESPACE" >/dev/null 2>&1 \
+          && kubectl -n "$$AGENT_NAMESPACE" get deployment minder-serve >/dev/null 2>&1; then
+          SOURCE_PASSWORD_HASH=$$(kubectl -n "${_NAMESPACE}" get secret trino-client \
+            -o jsonpath='{.data.password}' | sha256sum | awk '{print $$1}')
+          DESTINATION_PASSWORD_HASH=$$(kubectl -n "$$AGENT_NAMESPACE" get secret trino-client \
+            -o jsonpath='{.data.password}' 2>/dev/null | sha256sum | awk '{print $$1}')
+
+          kubectl -n "${_NAMESPACE}" get secret trino-client -o yaml \
+            | sed '/^\s*namespace:/d; /^\s*resourceVersion:/d; /^\s*uid:/d; /^\s*creationTimestamp:/d; /kubectl.kubernetes.io/d; /^\s*selfLink:/d' \
+            | kubectl apply -n "$$AGENT_NAMESPACE" --server-side -f -
+
+          if [ "$$SOURCE_PASSWORD_HASH" != "$$DESTINATION_PASSWORD_HASH" ]; then
+            echo "==> Trino client credential changed; restarting minder-serve"
+            kubectl -n "$$AGENT_NAMESPACE" rollout restart deployment/minder-serve
+            kubectl -n "$$AGENT_NAMESPACE" rollout status deployment/minder-serve --timeout=600s
+          else
+            echo "==> minder Trino client credential is current"
+          fi
+        else
+          echo "==> minder-serve is not installed; skipping the cross-namespace Trino credential copy"
+        fi
+
+        kubectl -n "${_NAMESPACE}" rollout status deployment/trino-coordinator --timeout=600s
+        kubectl -n "${_NAMESPACE}" rollout status deployment/trino-worker --timeout=600s
+        # A Running/Ready Trino worker can still be absent from the cluster when
+        # NetworkPolicy blocks its discovery announcement. Exercise the exact
+        # worker-to-coordinator path so deployment cannot succeed with zero
+        # registered query capacity.
+        kubectl -n "${_NAMESPACE}" exec deployment/trino-worker -- \
+          curl --fail --silent --show-error --max-time 10 \
+            http://trino-coordinator:8080/v1/info >/dev/null
+        kubectl -n "${_NAMESPACE}" rollout status deployment/spark-master --timeout=600s
+        CURRENT_SPARK_MASTER_UID=$$(kubectl -n "${_NAMESPACE}" get pods \
+          -l 'app.kubernetes.io/name=spark,app.kubernetes.io/component=master' \
+          -o jsonpath='{.items[0].metadata.uid}')
+        # Spark workers and long-running drivers remember the pod address that
+        # the master advertises after registration. Restart them whenever the
+        # master identity changes so they rediscover it through the stable
+        # ClusterIP instead of retrying the retired pod IP.
+        if [ "$$MIGRATED_SPARK_MASTER_SERVICE" = "true" ] \
+          || { [ -n "$$PREVIOUS_SPARK_MASTER_UID" ] \
+            && [ "$$PREVIOUS_SPARK_MASTER_UID" != "$$CURRENT_SPARK_MASTER_UID" ]; }; then
+          echo "==> Spark master identity changed; restarting registered clients"
+          kubectl -n "${_NAMESPACE}" rollout restart deployment/spark-worker
+          if kubectl -n "${_NAMESPACE}" get deployment mqtt-bronze-stream-shared-0 >/dev/null 2>&1; then
+            kubectl -n "${_NAMESPACE}" rollout restart deployment/mqtt-bronze-stream-shared-0
+          fi
+        fi
+        kubectl -n "${_NAMESPACE}" rollout status deployment/spark-worker --timeout=600s
+        # The master's own readiness does not imply executor capacity. Require
+        # every configured worker to be registered and at least one complete
+        # 1-core/1-GiB slot to remain on a single worker for batch admission.
+        EXPECTED_SPARK_WORKERS=$$(kubectl -n "${_NAMESPACE}" get deployment spark-worker \
+          -o jsonpath='{.spec.replicas}')
+        kubectl -n "${_NAMESPACE}" exec deployment/spark-master -- \
+          env EXPECTED_SPARK_WORKERS="$$EXPECTED_SPARK_WORKERS" python3 -c '
+        import json, os, time, urllib.request
+        expected = int(os.environ["EXPECTED_SPARK_WORKERS"])
+        deadline = time.monotonic() + 180
+        while True:
+            with urllib.request.urlopen("http://localhost:8080/json/", timeout=10) as response:
+                cluster = json.load(response)
+            alive = [worker for worker in cluster.get("workers", []) if worker.get("state") == "ALIVE"]
+            has_batch_slot = any(
+                worker.get("coresfree", 0) >= 1 and worker.get("memoryfree", 0) >= 1024
+                for worker in alive
+            )
+            if len(alive) == expected and has_batch_slot:
+                print(f"Spark capacity ready: {len(alive)}/{expected} workers registered")
+                break
+            if time.monotonic() >= deadline:
+                raise SystemExit(
+                    f"Spark capacity unavailable: expected {expected} registered workers, "
+                    f"found {len(alive)}, complete batch slot={has_batch_slot}"
+                )
+            time.sleep(5)
+        '
+        kubectl -n "${_NAMESPACE}" rollout status deployment/redpanda-connect --timeout=600s
+        kubectl -n "${_NAMESPACE}" wait --for=condition=complete job/redpanda-topics-v2 --timeout=600s
+        kubectl -n "${_NAMESPACE}" get pods,svc,gateway,httproute
+
+substitutions:
+  _ACTION: plan
+  _CONFIRM_TARGET: not-confirmed
+  _REQUIRE_RELEASE_TAG: "false"
+  _ENV: gcp-prod
+  _REGION: europe-west2
+  _CLUSTER: celesnity-gcp-prod
+  _CLUSTER_LOCATION_TYPE: region
+  _CLUSTER_LOCATION: europe-west2
+  _NAMESPACE: celesnity-prod
+  _KUSTOMIZE_VERSION: 5.8.1
+  _STATE_BUCKET: celesnity-gcp-prod-tfstate-celesnity-minder-platform
+  _SPARK_REPOSITORY: europe-west2-docker.pkg.dev/celesnity-minder-platform/celesnity-gcp-prod-spark/spark
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+timeout: 7200s

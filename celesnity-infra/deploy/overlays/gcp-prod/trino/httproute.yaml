@@ -1,0 +1,38 @@
+---
+# Trino's route onto the shared Gateway. SERVICE-OWNED.
+#
+# This is the file a service team edits. Adding another service means another
+# HTTPRoute like this one with a different hostname and backend — the Gateway,
+# the address, and the certificate are untouched.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: trino
+spec:
+  parentRefs:
+    - name: celesnity
+      # Pinned to the HTTPS listener by name. Without sectionName the route would
+      # attach to every listener the Gateway happens to expose later.
+      sectionName: https
+
+  # Host-based routing. The Gateway matches the Host header against this list, so
+  # several hostnames can share the one address, each with its own HTTPRoute.
+  #
+  # Must match lb_hostname in infra/environments/gcp-prod, which is also what the
+  # certificate map entry matches on by SNI. If the two disagree, TLS succeeds and
+  # routing then returns 404, or the reverse — a name mismatch before any routing
+  # happens. Both fail confusingly, so change them together.
+  #
+  # Requests arriving by bare IP no longer work, and that is expected: with no SNI
+  # there is no certificate map entry to select, so TLS fails before routing.
+  hostnames:
+    - trino.celesnity.com
+
+  rules:
+    - backendRefs:
+        # 8443, not 8080. With password authentication enabled the HTTP listener
+        # carries only coordinator/worker discovery and refuses authenticated
+        # client requests, so a load balancer pointed at 8080 health-checks green
+        # and then fails every query.
+        - name: trino-coordinator
+          port: 8443

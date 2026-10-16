@@ -1,0 +1,140 @@
+---
+# start-worker.sh leaves --host unset so each pod announces its own IP. That is
+# what makes this Deployment freely scalable:
+#   kubectl -n celesnity scale deploy/spark-worker --replicas=4
+#
+# SPARK_WORKER_CORES and SPARK_WORKER_MEMORY are what the master advertises as
+# available capacity. Keep SPARK_WORKER_MEMORY below the pod memory limit, since
+# it governs executor heap allocation inside the same cgroup.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-worker
+  labels:
+    app.kubernetes.io/name: spark
+    app.kubernetes.io/component: worker
+spec:
+  # Keep one executor slot for streaming and another for batch execution.
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: spark
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: spark
+        app.kubernetes.io/component: worker
+    spec:
+      serviceAccountName: celesnity-spark-runtime
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 185
+        fsGroup: 185
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: spark
+                    app.kubernetes.io/component: worker
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: spark
+          image: celesnity/spark:3.5.7-iceberg-1.11.0
+          imagePullPolicy: Always
+          command: ["/bin/bash", "/opt/celesnity/start-worker.sh"]
+          ports:
+            - name: ui
+              containerPort: 8081
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: SPARK_MASTER_HOST
+              value: spark-master
+            - name: SPARK_MASTER_INTERNAL_PORT
+              value: "7077"
+            - name: SPARK_WORKER_CORES
+              value: "2"
+            - name: SPARK_WORKER_MEMORY
+              value: 1g
+            - name: AWS_ENDPOINT_URL
+              value: ""
+            - name: WAREHOUSE_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: celesnity-storage
+                  key: WAREHOUSE_S3_PATH
+          envFrom:
+            - secretRef:
+                name: celesnity-database
+            - configMapRef:
+                name: celesnity-storage
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              memory: 1280Mi
+          readinessProbe:
+            # Local health and a fresh TCP connection can both succeed while the
+            # long-lived worker process is still registered with an old master.
+            # Require this pod's address in the master's ALIVE worker set.
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - |
+                  curl --fail --silent --show-error --max-time 3 \
+                    http://localhost:8081 >/dev/null
+                  python3 -c '
+                  import json, os, urllib.request
+                  with urllib.request.urlopen("http://spark-master:8080/json/", timeout=3) as response:
+                      cluster = json.load(response)
+                  if not any(worker.get("state") == "ALIVE" and worker.get("host") == os.environ["POD_IP"] for worker in cluster.get("workers", [])):
+                      raise SystemExit("worker is not registered with the active Spark master")
+                  '
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            # Spark remembers the master's advertised pod IP after registering.
+            # If that pod is replaced, the worker otherwise retries the dead IP
+            # forever. Restart it so initial discovery goes through the stable
+            # spark-master ClusterIP again.
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - |
+                  curl --fail --silent --show-error --max-time 3 \
+                    http://localhost:8081 >/dev/null
+                  python3 -c '
+                  import json, os, urllib.request
+                  with urllib.request.urlopen("http://spark-master:8080/json/", timeout=3) as response:
+                      cluster = json.load(response)
+                  if not any(worker.get("state") == "ALIVE" and worker.get("host") == os.environ["POD_IP"] for worker in cluster.get("workers", [])):
+                      raise SystemExit("worker is not registered with the active Spark master")
+                  '
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 6
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: work
+              mountPath: /opt/spark/work
+            - name: ivy
+              mountPath: /opt/spark/ivy
+      volumes:
+        - name: work
+          emptyDir: {}
+        - name: ivy
+          emptyDir: {}

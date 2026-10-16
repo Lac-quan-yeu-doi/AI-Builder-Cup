@@ -1,0 +1,702 @@
+@import 'tailwindcss';
+@import '@atomic-editor/editor/styles.css';
+
+/*
+ * The official shadcn/ui style layer, exactly as `new-york-v4` declares it:
+ * enter/exit animations plus the data-open / data-closed / data-checked
+ * variants and utilities the vendored components in `app/_components/ui`
+ * are written against.
+ */
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+/*
+ * `dark:` is class-driven rather than OS-driven. The workspace ships light only
+ * today; the dark token block below exists so turning it on is a one-line
+ * change rather than a re-theme.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+/*
+ * ── Palette ──────────────────────────────────────────────────────────────────
+ *
+ * The ChatGPT skin, from `celesnity-product-design`'s
+ * `.shadcn-scope.chatgpt-brand` block — which in turn lifts its values from
+ * OpenAI's own published library, `@openai/apps-sdk-ui@0.2.2`
+ * (`styles/variables-primitive.css` and `variables-semantic.css`). The grey
+ * ramp, the radius scale, the elevation geometry and the 4px spacing base are
+ * theirs verbatim; nothing here was sampled off a screenshot.
+ *
+ * It replaces the Notion skin this app carried until now, and the difference
+ * that matters most is the CTA: it is near-black rather than blue. Blue is
+ * demoted to links, focus rings and selection, which is the whole of what
+ * carries brand in ChatGPT's own chrome.
+ *
+ * Three things are deliberately ours rather than OpenAI's, and only three:
+ *
+ *   1. The accent is Minder blue #0075DE, not their #0285FF. The two are ~4°
+ *      apart in hue, so the ramp keeps their structure while the brand stays
+ *      ours.
+ *   2. `--sidebar-selected` exists at all. OpenAI has no "the row you are on"
+ *      token; the rail needs one (see the note on it below).
+ *   3. `--status-*` keeps its three-stop shape, restated on their green /
+ *      orange / red / blue families. The names do not change, so no screen
+ *      moves — only the values do.
+ *
+ * The design system showcases both skins behind `.shadcn-scope.<id>-brand`,
+ * because it renders them side by side. This app is one skin, so the values
+ * land on `:root` directly rather than behind a class nothing would remove.
+ */
+:root {
+  /*
+   * 12px rather than the stock 10px, which lands the derived scale on OpenAI's
+   * own numbers: button 10px (their control-radius-lg) and card 16px (their
+   * radius-2xl, exactly what a ChatGPT card uses).
+   */
+  --radius: 0.75rem;
+
+  --background: #ffffff;
+  --foreground: #0d0d0d;
+
+  --card: #ffffff;
+  --card-foreground: #0d0d0d;
+  --popover: #ffffff;
+  --popover-foreground: #0d0d0d;
+
+  /*
+   * Neutral, not blue: gray-900 solid with gray-700 on hover, their
+   * `--color-background-primary-solid` and its hover verbatim. This is the
+   * single biggest departure from the Notion skin and the part most worth
+   * keeping — a blue CTA is what made the old workspace read as a different
+   * product from the assistant inside it.
+   */
+  --primary: #181818;
+  --primary-foreground: #ffffff;
+  --secondary: #ededed;
+  --secondary-foreground: #0d0d0d;
+
+  --muted: #f3f3f3;
+  --muted-foreground: #5d5d5d;
+
+  /*
+   * OURS. OpenAI's hovered and selected surfaces are pure neutral alpha; this
+   * mixes 8% of the accent in, so selection reads as Minder's across menus,
+   * tabs and rows without touching a single neutral.
+   */
+  --accent: color-mix(in oklab, #0075de 8%, #ffffff);
+  --accent-foreground: #0d0d0d;
+
+  --destructive: #e02e2a;
+  --destructive-foreground: #ffffff;
+
+  /*
+   * Borders are alpha over whatever sits behind them rather than fixed greys.
+   * That is what lets one value work on white, on #f9f9f9 and in dark without
+   * three separate ramps.
+   */
+  --border: rgb(13 13 13 / 10%);
+  --input: rgb(13 13 13 / 10%);
+  --ring: #0075de;
+
+  /*
+   * OpenAI publishes no sequential scale of its own, so this steps their
+   * `--blue-*` family. It stays a single-hue ramp read light-to-dark, which is
+   * what the monitor board's heatmap and small multiples are built against.
+   */
+  --chart-1: #99ceff;
+  --chart-2: #3b9bec;
+  --chart-3: #0075de;
+  --chart-4: #005fb4;
+  --chart-5: #003666;
+
+  /* Their sidebar is the secondary surface, and its border is lighter than the
+   * page's — the rail reads as one plane with the canvas rather than a panel
+   * stuck onto it. */
+  --sidebar: #f9f9f9;
+  --sidebar-foreground: #0d0d0d;
+  --sidebar-primary: #181818;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: color-mix(in oklab, #0075de 8%, #ffffff);
+  --sidebar-accent-foreground: #0d0d0d;
+  --sidebar-border: rgb(13 13 13 / 6%);
+  --sidebar-ring: #0075de;
+  /*
+   * Celesnity addition: the sidebar row you are on.
+   *
+   * `accent` and `sidebar-accent` are the hover surface, so a selected row and
+   * a hovered one painted identically and the rail read as one flat list. This
+   * carries more of the accent rather than more grey — under this skin
+   * selection is a tint, so "more selected" means more tint.
+   */
+  --sidebar-selected: color-mix(in oklab, #0075de 16%, #ffffff);
+  /*
+   * Celesnity addition: the brand mark's own two colours.
+   *
+   * Not part of the skin — the mark is a fixed plate of navy with white
+   * artwork on it, and it stays that way under the dark block too, the way a
+   * logo file would. They live here only because the mark is drawn inline
+   * (see `layout/logo-mark`) and rule 7 keeps hex out of a component.
+   */
+  --brand-mark-plate: #07002e;
+  --brand-mark-ink: #ffffff;
+}
+
+/*
+ * Their dark theme is not a flip of the light one: the grey scale is
+ * re-authored end to end and surfaces get *lighter* as they rise — #0d0d0d
+ * ground, #181818 well, #212121 card. Restated as such rather than inverted.
+ */
+.dark {
+  --background: #0d0d0d;
+  --foreground: #ffffff;
+
+  --card: #212121;
+  --card-foreground: #ffffff;
+  --popover: #212121;
+  --popover-foreground: #ffffff;
+
+  /* Inverts the way theirs does: the solid CTA becomes near-white with dark
+   * type. Neutral under both skies, which is the point of it. */
+  --primary: #f3f3f3;
+  --primary-foreground: #0d0d0d;
+  --secondary: #303030;
+  --secondary-foreground: #ffffff;
+
+  --muted: #181818;
+  --muted-foreground: #afafaf;
+
+  /* OURS: the same accent mix, over the dark card rather than white. */
+  --accent: color-mix(in oklab, #3b9bec 14%, #212121);
+  --accent-foreground: #ffffff;
+
+  --destructive: #ff6764;
+  --destructive-foreground: #0d0d0d;
+
+  --border: rgb(255 255 255 / 12%);
+  --input: rgb(255 255 255 / 15%);
+  --ring: #3b9bec;
+
+  /* The ramp reverses so more-is-darker becomes more-is-lighter against the
+   * dark ground; the heatmap's intensity reading survives the inversion. */
+  --chart-1: #003666;
+  --chart-2: #005fb4;
+  --chart-3: #0075de;
+  --chart-4: #3b9bec;
+  --chart-5: #8fc4f5;
+
+  --sidebar: #181818;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #f3f3f3;
+  --sidebar-primary-foreground: #0d0d0d;
+  --sidebar-accent: color-mix(in oklab, #3b9bec 14%, #212121);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 8%);
+  --sidebar-ring: #3b9bec;
+  /* Celesnity addition: more tint again, over the rail rather than the card. */
+  --sidebar-selected: color-mix(in oklab, #3b9bec 24%, #181818);
+}
+
+/*
+ * Celesnity addition: named status scales, kept from the Notion skin and
+ * restated on OpenAI's green / orange / red / blue families at their -50, -500
+ * and -700 positions — which is where their own semantic layer reads them from.
+ *
+ * Rule 7 says no inline hex in a screen, and `destructive` is the only status
+ * colour a shadcn token names, which left a canvas with eight station states
+ * nowhere legal to put them. `-light` is a surface, the base is a border or a
+ * dot, `-dark` is text on the light surface.
+ */
+:root {
+  --status-success-light: #d9f4e4;
+  --status-success: #00a240;
+  --status-success-dark: #00692a;
+  --status-warning-light: #ffe7d9;
+  --status-warning: #e25507;
+  --status-warning-dark: #923b0f;
+  --status-info-light: #e0effc;
+  --status-info: #0075de;
+  --status-info-dark: #004a8c;
+}
+
+.dark {
+  /* The surface and the text swap roles so contrast survives the inversion. */
+  --status-success-light: #003716;
+  --status-success: #04b84c;
+  --status-success-dark: #8cdfad;
+  --status-warning-light: #4a2206;
+  --status-warning: #fb6a22;
+  --status-warning-dark: #ffb790;
+  --status-info-light: #00284d;
+  --status-info: #3b9bec;
+  --status-info-dark: #8fc4f5;
+}
+
+/*
+ * Celesnity addition (removed 2026-09-16): the visual-query notebook used to
+ * carry its own three step tones here — #0075de / #924ff7 / #00a240, which are
+ * Metabase's brand hexes rather than this skin's. Eighteen properties across
+ * light and dark, consumed by sixteen files, formed a complete second palette
+ * inside a codebase whose rule 7 reads "one palette". They entered through a
+ * token name, which is why the `no-restricted-syntax` rule below never saw them
+ * — the same drift its own header comment warns about.
+ *
+ * A notebook step is identity, and identity is now carried the way the rest of
+ * the skin carries it: one neutral band surface (`bg-muted`), a step label with
+ * an icon, and the blue reserved for what it is reserved for everywhere else —
+ * selection (`bg-sidebar-selected`) and focus (`ring-ring`). Colour was
+ * redundant with proximity: a clause chip already sits inside its own labelled
+ * band.
+ */
+
+/*
+ * Celesnity addition: the analytics chart palette, vendored from
+ * minder-design-system's `.shadcn-scope.chatgpt-brand` block.
+ *
+ * `--chart-1..5` above is a single blue ramp and cannot do categorical work:
+ * identity needs distinct hues, magnitude needs one hue stepped. These are that
+ * second namespace — categorical (`--mchart-*`), sequential (`--mseq-*` plus the
+ * ink legible on each step), diverging (`--mdiv-*`) and reserved status
+ * (`--mstatus-*`).
+ *
+ * Assign slots 1..N in order and never cycle: the slot ORDER is the separation
+ * mechanism. A 9th series folds into "Other".
+ *
+ * Built from OpenAI's seven hue families. Unlike the Minder ramp these have NOT
+ * been through the CVD/contrast validator — they are OpenAI's hues ordered by
+ * eye. The design system says so itself and recommends re-running the validator
+ * before shipping them. The measured guarantees (OKLab dE, Machado CVD at
+ * severity 1.0) belong to the Minder ramp, which is the fallback if an
+ * accessibility review rejects these.
+ */
+:root {
+  --mchart-1: #0075de;
+  --mchart-2: #fb6a22;
+  --mchart-3: #00a240;
+  --mchart-4: #924ff7;
+  --mchart-5: #ff66ad;
+  --mchart-6: #e0ac00;
+  --mchart-7: #e02e2a;
+  --mchart-8: #5d5d5d;
+
+  --mseq-0: #e0effc;
+  --mseq-1: #8fc4f5;
+  --mseq-2: #3b9bec;
+  --mseq-3: #0075de;
+  --mseq-4: #005fb4;
+  --mseq-5: #003666;
+
+  --mseq-ink-0: #0d0d0d;
+  --mseq-ink-1: #0d0d0d;
+  --mseq-ink-2: #0d0d0d;
+  --mseq-ink-3: #ffffff;
+  --mseq-ink-4: #ffffff;
+  --mseq-ink-5: #ffffff;
+
+  --mdiv-neg-2: #005fb4;
+  --mdiv-neg-1: #8fc4f5;
+  --mdiv-mid: #ededed;
+  --mdiv-pos-1: #ffa4a2;
+  --mdiv-pos-2: #e02e2a;
+
+  --mstatus-good: #00a240;
+  --mstatus-warning: #e25507;
+  --mstatus-critical: #e02e2a;
+
+  --mchart-grid: rgb(13 13 13 / 8%);
+  --mchart-axis: #8f8f8f;
+  --mchart-muted: #5d5d5d;
+  --mchart-surface: #ffffff;
+}
+
+.dark {
+  --mchart-1: #339cff;
+  --mchart-2: #ff8549;
+  --mchart-3: #40c977;
+  --mchart-4: #ad7bf9;
+  --mchart-5: #ff8cc1;
+  --mchart-6: #ffd240;
+  --mchart-7: #ff6764;
+  --mchart-8: #afafaf;
+
+  /* The ramp flips its anchor, as the Minder one does: on a near-black
+     surface, more means lighter. */
+  --mseq-0: #003666;
+  --mseq-1: #004a8c;
+  --mseq-2: #0075de;
+  --mseq-3: #3b9bec;
+  --mseq-4: #8fc4f5;
+  --mseq-5: #e0effc;
+
+  --mseq-ink-0: #ffffff;
+  --mseq-ink-1: #ffffff;
+  --mseq-ink-2: #ffffff;
+  --mseq-ink-3: #0d0d0d;
+  --mseq-ink-4: #0d0d0d;
+  --mseq-ink-5: #0d0d0d;
+
+  --mdiv-neg-2: #8fc4f5;
+  --mdiv-neg-1: #3b9bec;
+  --mdiv-mid: #303030;
+  --mdiv-pos-1: #ff8583;
+  --mdiv-pos-2: #fa423e;
+
+  --mstatus-good: #40c977;
+  --mstatus-warning: #ff8549;
+  --mstatus-critical: #ff6764;
+
+  --mchart-grid: rgb(255 255 255 / 10%);
+  --mchart-axis: #5d5d5d;
+  --mchart-muted: #afafaf;
+  --mchart-surface: #212121;
+}
+
+/*
+ * The Notion skin's primary button grew a gradient and two inset glows on
+ * hover. This one does the opposite on purpose: a flat step down the grey
+ * ramp, which is the whole of ChatGPT's hover vocabulary.
+ *
+ * Written here rather than left to the variant's own `hover:bg-primary/90` so
+ * the step lands on a real ramp value instead of an opacity of the resting
+ * one. Two attributes plus `:hover` out-specifies the variant, so nothing here
+ * needs `!important`. Geometry is untouched — height, radius, padding and type
+ * stay on the system's scale and only the surface changes.
+ */
+[data-slot='button'][data-variant='default']:hover:not(:disabled) {
+  background-color: #303030;
+}
+
+.dark [data-slot='button'][data-variant='default']:hover:not(:disabled) {
+  background-color: #ededed;
+}
+
+[data-slot='button'][data-variant='secondary']:hover:not(:disabled) {
+  background-color: #cdcdcd;
+}
+
+.dark [data-slot='button'][data-variant='secondary']:hover:not(:disabled) {
+  background-color: #414141;
+}
+
+/*
+ * Celesnity addition: the skin's elevation scale.
+ *
+ * OpenAI's own numbers, from `@openai/apps-sdk-ui`. The hairline ring is the
+ * load-bearing one — it is what lets a white card sit on a white page at all,
+ * and it travels with every raised surface rather than being a separate
+ * decision.
+ *
+ * Before this, raised surfaces in the chat carried hand-written shadows like
+ * `shadow-[0_8px_26px_rgb(28_50_40/9%)]` — a green-tinted value left over from
+ * an older skin, repeated across seven files and already off-palette.
+ */
+:root {
+  --elevation-hairline: 0 0 0 1px rgb(0 0 0 / 8%);
+  --elevation-100: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --elevation-200: 0 2px 4px -1px rgb(0 0 0 / 8%);
+  --elevation-300: 0 4px 8px -2px rgb(0 0 0 / 10%);
+  --elevation-400: 0 8px 16px -4px rgb(0 0 0 / 12%);
+}
+
+.dark {
+  /* The ring inverts to a light hairline; the cast deepens so it still reads. */
+  --elevation-hairline: 0 0 0 1px rgb(255 255 255 / 10%);
+  --elevation-100: 0 1px 2px -1px rgb(0 0 0 / 32%);
+  --elevation-200: 0 2px 4px -1px rgb(0 0 0 / 32%);
+  --elevation-300: 0 4px 8px -2px rgb(0 0 0 / 36%);
+  --elevation-400: 0 8px 16px -4px rgb(0 0 0 / 44%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-selected: var(--sidebar-selected); /* Celesnity addition */
+
+  /* Celesnity addition: status scales as Tailwind utilities, so a canvas can
+   * write `bg-status-warning-light` instead of a hex. */
+  --color-status-success-light: var(--status-success-light);
+  --color-status-success: var(--status-success);
+  --color-status-success-dark: var(--status-success-dark);
+  --color-status-warning-light: var(--status-warning-light);
+  --color-status-warning: var(--status-warning);
+  --color-status-warning-dark: var(--status-warning-dark);
+  --color-status-info-light: var(--status-info-light);
+  --color-status-info: var(--status-info);
+  --color-status-info-dark: var(--status-info-dark);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --shadow-hairline: var(--elevation-hairline);
+  --shadow-100: var(--elevation-100);
+  --shadow-200: var(--elevation-200);
+  --shadow-300: var(--elevation-300);
+  --shadow-400: var(--elevation-400);
+}
+
+/*
+ * The foundational scales, from minder-design-system's ChatGPT skin.
+ *
+ * Colour was only one of four token families. These are the other three — type,
+ * radius and breakpoints — and without them a screen has nowhere legal to put a
+ * size, so it invents one. Before these landed there were 434 hand-written font
+ * sizes across 56 distinct values, 43 hand-written radii and ~20 invented
+ * breakpoints (including 900px *and* 901px).
+ *
+ * Spacing needs no block: OpenAI configures `--spacing: 0.25rem`, which is
+ * already Tailwind's default 4px base, so the scale agrees by construction.
+ */
+@theme {
+  /* OpenAI's heading-* and text-* scales, converted from rem at 16px, with
+     the small steps one pixel up. 14/12/10 read as cramped beside the 16px
+     that ChatGPT and AI Hay set their content in, so body-sm, label,
+     caption and micro sit at 15/13/11 (Slack's 15px body) while body-md
+     stays the 16px content size. Tailwind's stock text-xs/sm/base are
+     pinned to the same numbers, so a screen the token sweep has not reached
+     moves with the rest. Headings are 600, never 700 — the system has no
+     bold display weight. */
+  --text-display-1: 60px;
+  --text-display-1--line-height: 60px;
+  --text-display-1--font-weight: 600;
+  --text-display-1--letter-spacing: -0.025em;
+
+  --text-display-2: 48px;
+  --text-display-2--line-height: 48px;
+  --text-display-2--font-weight: 600;
+  --text-display-2--letter-spacing: -0.025em;
+
+  --text-heading-1: 36px;
+  --text-heading-1--line-height: 42px;
+  --text-heading-1--font-weight: 600;
+  --text-heading-1--letter-spacing: -0.025em;
+
+  --text-heading-2: 32px;
+  --text-heading-2--line-height: 38px;
+  --text-heading-2--font-weight: 600;
+  --text-heading-2--letter-spacing: -0.025em;
+
+  --text-heading-3: 24px;
+  --text-heading-3--line-height: 28px;
+  --text-heading-3--font-weight: 600;
+
+  --text-title: 20px;
+  --text-title--line-height: 26px;
+  --text-title--font-weight: 600;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+
+  --text-body-sm: 15px;
+  --text-body-sm--line-height: 22px;
+
+  /* Same size as body-sm, one weight up — a field label, not prose. */
+  --text-label: 15px;
+  --text-label--line-height: 22px;
+  --text-label--font-weight: 500;
+
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
+  --text-caption--letter-spacing: 0.025em;
+
+  --text-micro: 11px;
+  --text-micro--line-height: 16px;
+  --text-micro--letter-spacing: 0.025em;
+
+  /* Tailwind's stock steps, pinned to the scale above (see the note at the
+     top of this block). */
+  --text-xs: 13px;
+  --text-xs--line-height: 18px;
+  --text-sm: 15px;
+  --text-sm--line-height: 22px;
+  --text-base: 16px;
+  --text-base--line-height: 24px;
+
+  /* OpenAI's radius scale in full. `--radius-sm/md/lg/xl` are derived from
+     `--radius` in the @theme inline block above and land on 8/10/12/16 — these
+     name the rest of the scale, which that derivation cannot reach. */
+  --radius-2xs: 2px;
+  --radius-xs: 4px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
+
+  /* OpenAI's breakpoints. `xs` has no Tailwind equivalent — it exists because a
+     widget renders inside a phone conversation, not just on a page. `sm` is
+     576px here, not Tailwind's 640. */
+  --breakpoint-xs: 380px;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+@theme {
+  /*
+   * Not palette: the two surfaces the embedded Monaco editor paints against.
+   * `editor-canvas` is Monaco's own `vs-dark` background — it has to match the
+   * editor's theme, not ours, or the chrome and the text area disagree by a few
+   * points of lightness. `editor-chrome` is the skin's dark `card`, so the
+   * header above the editor stays in the palette.
+   */
+  --color-editor-chrome: #212121;
+  --color-editor-canvas: #1e1e1e;
+  /* The ink that sits on those two surfaces. Same reason they are here: it has
+   * to match Monaco's own theme, which does not move with the page palette. */
+  --color-editor-ink: #ededed;
+  --color-editor-ink-muted: #afafaf;
+
+  /* The skin's own stack, verbatim: no webfont, and every face in it carries
+   * Vietnamese. See the note in app/layout.tsx for what the Roboto loader this
+   * replaced was doing and where each of its reasons went. */
+  --font-sans:
+    ui-sans-serif, -apple-system, system-ui, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --animate-loading-shimmer: loading-shimmer 1.3s infinite linear;
+  --animate-status-pulse: status-pulse 1.4s ease-in-out infinite;
+  --animate-message-in: message-in 0.25s ease-out;
+  --animate-text-sheen: text-sheen 2s linear infinite;
+  --animate-token-in: token-in 0.45s ease-out both;
+}
+
+/* A word that has just streamed in (see `ChatMarkdown`'s `animateFrom`). */
+@keyframes token-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes loading-shimmer {
+  to {
+    background-position: -220% 0;
+  }
+}
+
+/* A highlight gliding left to right across text clipped to a gradient that is
+   220% as wide as the text (see `ShimmerText`). At 100% the light sits just
+   past the left edge, at 0% just past the right. */
+@keyframes text-sheen {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: 0% 0;
+  }
+}
+
+@keyframes message-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/*
+ * Base element rules live in @layer base so Tailwind utilities always win.
+ * Unlayered element selectors would otherwise override every text and colour
+ * utility in the app.
+ */
+@layer base {
+  :root {
+    color-scheme: light;
+    font-family: var(--font-sans);
+  }
+
+  /* shadcn's baseline: a bare `border` utility paints the token, not
+   * currentColor, which is what the vendored `outline` variants assume. */
+  * {
+    border-color: var(--color-border);
+    outline-color: color-mix(in oklab, var(--color-ring) 50%, transparent);
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button {
+    color: inherit;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2.5rem, 5vw, 4.7rem);
+    font-weight: 500;
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+  }
+}

@@ -1,0 +1,124 @@
+name: celesnity-core-device-management
+
+x-device-core-env: &device-core-env
+  NODE_ENV: development
+  # Keep local-development identities and tenant data isolated from the main
+  # Core stack while reusing the same PostgreSQL container.
+  DATABASE_URL: postgresql://celesnity:${POSTGRES_PASSWORD:-celesnity_dev_password}@postgres:5432/${DEVICE_DATABASE_NAME:-celesnity_device_management}?schema=celesnity_app
+  MINIO_ENDPOINT: http://minio:9000
+  MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-celesnity}
+  MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+  MINIO_WAREHOUSE_BUCKET: warehouse
+  MINIO_ARTIFACTS_BUCKET: celesnity-artifacts
+  FIRMWARE_ARTIFACTS_BUCKET: celesnity-artifacts
+  FIRMWARE_ARTIFACT_STORAGE_PROVIDER: MINIO
+  FIRMWARE_DOWNLOAD_URL_TTL_SECONDS: '900'
+  # RFC 8032 test key, restricted to this isolated local simulation.
+  FIRMWARE_SIGNING_PUBLIC_KEYS: local-dev:11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
+  TRINO_URL: http://trino-coordinator:8080
+  CONNECTION_ALLOW_PRIVATE_DESTINATIONS: 'true'
+  CONNECTION_ALLOWED_HOSTS: postgres,host.docker.internal
+  MQTT_PUBLIC_ENDPOINT: mqtt://localhost:1883
+  EMQX_API_URL: http://emqx:18083/api/v5
+  EMQX_API_KEY: ${EMQX_API_KEY:-celesnity-core}
+  EMQX_API_SECRET: ${EMQX_API_SECRET:-celesnity_emqx_api_secret}
+  REDPANDA_BROKERS: redpanda:9092
+  REDPANDA_USERNAME: ${REDPANDA_USERNAME:-celesnity-admin}
+  REDPANDA_PASSWORD: ${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+  REDPANDA_TLS_ENABLED: 'false'
+  IDENTITY_PLATFORM_PROJECT_ID: ${IDENTITY_PLATFORM_PROJECT_ID:-replace-with-gcp-project-id}
+  CELESNITY_AUTH_MODE: local-development
+  LOCAL_DEV_AUTH_SIGNING_KEY: ${DEVICE_LOCAL_DEV_AUTH_SIGNING_KEY:-device-simulator-local-signing-key-change-me}
+  DEFAULT_ORGANIZATION_ID: ${DEFAULT_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000001}
+  AUDIT_HASH_KEY: ${AUDIT_HASH_KEY:-development-only-audit-hash-key-change-me}
+  STREAMING_RECONCILE_INTERVAL_MS: '1000'
+  STREAMING_RECONCILE_BATCH_SIZE: '25'
+  DEVICE_EXPECTED_CHECK_IN_INTERVAL_SECONDS: '5'
+  DEVICE_MISSED_CHECK_IN_THRESHOLD: '3'
+  DEVICE_CONTACT_MONITOR_INTERVAL_MS: '1000'
+  DEVICE_CONTACT_MONITOR_BATCH_SIZE: '100'
+  DEVICE_CONFIGURATION_CONFIRMATION_TIMEOUT_SECONDS: '30'
+  DEVICE_CONFIGURATION_MONITOR_INTERVAL_MS: '1000'
+  DEVICE_CONFIGURATION_MONITOR_BATCH_SIZE: '100'
+  FIRMWARE_BOOT_CONFIRMATION_TIMEOUT_SECONDS: '30'
+  FIRMWARE_CONFIRMATION_MONITOR_INTERVAL_MS: '1000'
+  FIRMWARE_CONFIRMATION_MONITOR_BATCH_SIZE: '100'
+
+services:
+  device-database-bootstrap:
+    image: postgres:17.6-alpine
+    restart: 'no'
+    entrypoint: ['/bin/sh', '-ec']
+    command:
+      - |
+        echo "$${DEVICE_DATABASE_NAME}" | grep -Eq '^[a-zA-Z_][a-zA-Z0-9_]*$$'
+        if [ "$$(psql -h postgres -U celesnity -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$${DEVICE_DATABASE_NAME}'")" != '1' ]; then
+          createdb -h postgres -U celesnity "$${DEVICE_DATABASE_NAME}"
+        fi
+        psql -v ON_ERROR_STOP=1 -h postgres -U celesnity -d "$${DEVICE_DATABASE_NAME}" -f /bootstrap.sql
+    environment:
+      DEVICE_DATABASE_NAME: ${DEVICE_DATABASE_NAME:-celesnity_device_management}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
+    volumes:
+      - ../celesnity-infra/config/sql/01-iceberg-catalog.sql:/bootstrap.sql:ro
+    networks: [infra]
+
+  device-migrate:
+    build:
+      context: .
+      target: migrator
+    image: celesnity/core-device-management-migrator:local
+    restart: 'no'
+    environment: *device-core-env
+    depends_on:
+      device-database-bootstrap:
+        condition: service_completed_successfully
+    networks: [device-core, infra]
+
+  device-api:
+    build:
+      context: .
+    image: celesnity/core-device-management:local
+    restart: unless-stopped
+    command: ['node', 'dist/bootstrap/api-main.js']
+    environment:
+      <<: *device-core-env
+      PORT: '3301'
+      API_BIND_ADDRESS: 0.0.0.0
+      WEB_ORIGIN: ${DEVICE_WEB_ORIGIN:-http://localhost:3000}
+      SPARK_MASTER_URL: spark://spark-master:7077
+    depends_on:
+      device-auth-seed:
+        condition: service_completed_successfully
+    ports:
+      - '127.0.0.1:3301:3301'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3301/api/v1/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks: [device-core, infra]
+
+  device-worker:
+    image: celesnity/core-device-management:local
+    restart: unless-stopped
+    command: ['node', 'dist/bootstrap/device-management-worker-main.js']
+    environment: *device-core-env
+    depends_on:
+      device-migrate:
+        condition: service_completed_successfully
+    networks: [device-core, infra]
+
+networks:
+  device-core:
+    name: celesnity-core-device-management
+  infra:
+    external: true
+    name: celesnity-poc

@@ -1,0 +1,73 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: celesnity-core-api-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: celesnity-core
+      app.kubernetes.io/component: api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: celesnity-web
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: minder
+          podSelector:
+            matchLabels:
+              celesnity.io/core-client: 'true'
+      ports:
+        - protocol: TCP
+          port: 3001
+    # Google Managed Service for Prometheus collectors run in gmp-system.
+    # They may reach only the scrape port; the Service remains ClusterIP-only.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: gmp-system
+      ports:
+        - protocol: TCP
+          port: 3001
+    # GKE Gateway health checks and proxy traffic originate from Google's
+    # external Application Load Balancer ranges. The VPC firewall admits these
+    # sources, and Dataplane V2 NetworkPolicy must admit them independently.
+    - from:
+        - ipBlock:
+            cidr: 35.191.0.0/16
+        - ipBlock:
+            cidr: 130.211.0.0/22
+      ports:
+        - protocol: TCP
+          port: 3001
+  egress:
+    # GKE Dataplane V2 evaluates kube-dns Service traffic in a way that does not
+    # reliably match the kube-system pod selector. Restrict DNS by port instead;
+    # the resolver address still comes from the pod's managed resolv.conf.
+    - ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    - ports:
+        - { protocol: TCP, port: 443 }
+        - { protocol: TCP, port: 5432 }
+        - { protocol: TCP, port: 8443 }
+        - { protocol: TCP, port: 18083 }
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: celesnity-streaming
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redpanda
+              app.kubernetes.io/instance: redpanda
+      ports:
+        - { protocol: TCP, port: 9093 }
+    - to:
+        - ipBlock: { cidr: 169.254.169.254/32 }
+      ports:
+        - { protocol: TCP, port: 80 }
+        - { protocol: TCP, port: 8080 }

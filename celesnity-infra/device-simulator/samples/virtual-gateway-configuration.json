@@ -1,0 +1,17 @@
+{
+  "samplingRateHz": 2,
+  "reportingIntervalSeconds": 30,
+  "gatewayUplinkMode": "MQTT",
+  "channels": {
+    "temperature": true
+  },
+  "diagnosticLogging": [
+    "BATTERY_PERCENT",
+    "RSSI_SNR",
+    "UPTIME"
+  ],
+  "logLevel": "INFO",
+  "alertThresholds": {
+    "batteryPercentLow": 15
+  }
+}

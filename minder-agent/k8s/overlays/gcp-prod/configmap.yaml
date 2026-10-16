@@ -1,0 +1,53 @@
+---
+# Phase 0 contains only the operational compatibility host.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minder-serve-config
+data:
+  NODE_ENV: "production"
+  MINDER_WORKSPACE_DIR: "/tmp/minder-workspaces"
+  MINDER_SANDBOX_SOCKET: "/run/minder-sandbox/runner.sock"
+  RUST_LOG: "minder_serve=info,minder_agent=info,minder_app=info,minder_mcp=info"
+  MINDER_SERVE_CORS_ORIGINS: ""
+  MINDER_AUTH_MODE: "core-assertion"
+  MINDER_ASSERTION_ISSUER: "celesnity-core"
+  MINDER_ASSERTION_AUDIENCE: "minder-agent"
+  MINDER_ASSERTION_REPLAY_CACHE_CAPACITY: "10000"
+
+  LLM_MODEL: "gemini-3.8-flash"
+
+  # The agent manifests use Core's in-process MCP-over-HTTP endpoints. Keep
+  # these aligned with the development overlay; the namespace is the only
+  # environment-specific part of the service addresses.
+  AUTOMATION_WORKFLOW_MCP_URL: "http://celesnity-core.celesnity-prod.svc.cluster.local:3001/api/v1/automation-workflow-mcp"
+  SKILL_MCP_URL: "http://celesnity-core.celesnity-prod.svc.cluster.local:3001/api/v1/skill-mcp"
+  # Required by chat-assistant (Google Drive / cloud file tools) — same fail-fast rule.
+  CLOUD_FILE_MCP_URL: "http://celesnity-core.celesnity-prod.svc.cluster.local:3001/api/v1/cloud-file-mcp"
+
+  TRINO_URL: "https://trino-coordinator.celesnity-prod.svc.cluster.local:8443"
+  TRINO_USER: "celesnity"
+  TRINO_CATALOG: "iceberg"
+  TRINO_SCHEMA: ""
+  TRINO_HOST: "trino-coordinator.celesnity-prod.svc.cluster.local"
+  TRINO_PORT: "8443"
+  TRINO_SSL: "true"
+
+  MCP_TRINO_BIN: "/usr/local/bin/mcp-trino"
+  MCP_CHART_BIN: "/usr/local/bin/mcp-chart"
+  MCP_DOCUMENT_BIN: "/usr/local/bin/mcp-document"
+  TRINO_MCP_URL: "http://celesnity-core.celesnity-prod.svc.cluster.local:3001/api/v1/trino-mcp"
+  CHART_MCP_URL: "http://celesnity-core.celesnity-prod.svc.cluster.local:3001/api/v1/chart-mcp"
+  DOCUMENT_MCP_URL: "http://celesnity-core.celesnity-prod.svc.cluster.local:3001/api/v1/document-mcp"
+  PLANT_MODEL_MCP_URL: "http://celesnity-core.celesnity-prod.svc.cluster.local:3001/api/v1/plant-model-mcp"
+
+  SQL_QUERY_TIMEOUT_MS: "60000"
+  SQL_MAX_RESULT_ROWS: "1000"
+
+  CELESNITY_CORE_URL: "http://celesnity-core.celesnity-prod.svc.cluster.local:3001"
+  CELESNITY_CORE_AUDIENCE: "http://celesnity-core.celesnity-prod.svc.cluster.local:3001"
+  CHART_API_URL: "http://celesnity-core.celesnity-prod.svc.cluster.local:3001/api/v1"
+
+  MINIO_ENDPOINT: "https://storage.googleapis.com"
+  MINIO_WORKSPACE_BUCKET: "celesnity-gcp-prod-artifacts-celesnity-minder-platform"
+  MINIO_SECURE: "true"

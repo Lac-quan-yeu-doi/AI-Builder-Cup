@@ -1,0 +1,148 @@
+name: celesnity-core
+
+# The control plane (API + workers) runs as its own stack on its own
+# network (celesnity-core) and also attaches to the infrastructure network
+# (celesnity-poc, defined by celesnity-infra/compose.yaml) so it can resolve
+# postgres, minio, trino, spark, and source databases by service name.
+#
+# Prerequisites: the infra stack and (for the sample) the sample stack are up:
+#   cd ../celesnity-infra   && docker compose up -d --wait
+#   cd ../celesnity-sample  && docker compose up -d --wait sample-postgres
+# For the local FTPS contract, interpolate the same named client/status values
+# from Infra when starting Core:
+#   docker compose --env-file .env --env-file ../celesnity-infra/local/.env up -d --build --wait
+# Migrations are applied against the infra Postgres before first run:
+#   DATABASE_URL=postgresql://celesnity:celesnity_dev_password@localhost:15432/celesnity?schema=celesnity_app \
+#     npm run prisma:migrate:deploy
+# The one-shot migrate service applies pending migrations before either serving
+# process starts. This keeps a branch switch or fresh database from starting an
+# API whose Prisma Client is newer than its database schema.
+
+x-core-env: &core-env
+  NODE_ENV: development
+  DATABASE_URL: postgresql://celesnity:celesnity_dev_password@postgres:5432/celesnity?schema=celesnity_app
+  MINIO_ENDPOINT: http://minio:9000
+  MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-celesnity}
+  MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+  MINIO_WAREHOUSE_BUCKET: warehouse
+  MINIO_ARTIFACTS_BUCKET: celesnity-artifacts
+  FIRMWARE_ARTIFACTS_BUCKET: celesnity-artifacts
+  FIRMWARE_ARTIFACT_STORAGE_PROVIDER: MINIO
+  FIRMWARE_DOWNLOAD_URL_TTL_SECONDS: '900'
+  # RFC 8032 test seed for Celesnity-managed local signing only.
+  FIRMWARE_SIGNING_PROVIDER: LOCAL_ED25519
+  FIRMWARE_SIGNING_KEY_ID: local-dev
+  FIRMWARE_SIGNING_PRIVATE_KEY: nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A=
+  TRINO_URL: http://trino-coordinator:8080
+  # Source databases are reachable from both the API (create/test) and Spark by
+  # their service names on the shared network.
+  CONNECTION_ALLOW_PRIVATE_DESTINATIONS: 'true'
+  CONNECTION_ALLOWED_HOSTS: postgres,sample-postgres,host.docker.internal
+  # FTPS client metadata is returned to the first-version Web form. This
+  # password is the external FTP client credential only; SFTPGo status and
+  # bootstrap credentials remain backend-only on the private network.
+  FTPS_PUBLIC_HOST: ${FTPS_PUBLIC_HOST:-localhost}
+  FTPS_PUBLIC_PORT: ${FTPS_PUBLIC_PORT:-2121}
+  FTPS_REMOTE_PATH: ${FTPS_REMOTE_PATH:-/incoming}
+  FTPS_DEMO_USERNAME: ${FTPS_DEMO_USERNAME:-ftps-demo-user}
+  FTPS_DEMO_PASSWORD: ${FTPS_DEMO_PASSWORD:-replace-with-a-local-ftps-password}
+  FTPS_SFTPGO_API_URL: http://sftpgo:8080
+  FTPS_STATUS_USERNAME: ${FTPS_STATUS_USERNAME:-ftps-status-monitor}
+  FTPS_STATUS_PASSWORD: ${FTPS_STATUS_PASSWORD:-replace-with-a-local-ftps-status-password}
+  FTPS_STATUS_TIMEOUT_MS: ${FTPS_STATUS_TIMEOUT_MS:-3000}
+  MQTT_PUBLIC_ENDPOINT: mqtt://localhost:1883
+  EMQX_API_URL: http://emqx:18083/api/v5
+  EMQX_API_KEY: ${EMQX_API_KEY:-celesnity-core}
+  EMQX_API_SECRET: ${EMQX_API_SECRET:-celesnity_emqx_api_secret}
+  REDPANDA_BROKERS: redpanda:9092
+  REDPANDA_USERNAME: ${REDPANDA_USERNAME:-celesnity-admin}
+  REDPANDA_PASSWORD: ${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+  REDPANDA_TLS_ENABLED: 'false'
+  DATA_WORKFLOW_CDC_ENABLED: ${DATA_WORKFLOW_CDC_ENABLED:-false}
+  DATA_WORKFLOW_CDC_TOPIC: ${DATA_WORKFLOW_CDC_TOPIC:-celesnity.data-workflow.cdc.v1}
+  DATA_WORKFLOW_CDC_CONSUMER_GROUP_ID: ${DATA_WORKFLOW_CDC_CONSUMER_GROUP_ID:-celesnity.data-workflow-cdc.v1}
+  DATA_WORKFLOW_CDC_SEAL_INTERVAL_MS: ${DATA_WORKFLOW_CDC_SEAL_INTERVAL_MS:-1000}
+  DEBEZIUM_CONNECT_URL: ${DEBEZIUM_CONNECT_URL:-http://debezium-connect:8083}
+  DEBEZIUM_CONNECT_TIMEOUT_MS: ${DEBEZIUM_CONNECT_TIMEOUT_MS:-5000}
+  IDENTITY_PLATFORM_PROJECT_ID: ${IDENTITY_PLATFORM_PROJECT_ID:-replace-with-gcp-project-id}
+  # This Compose file is local-only. GKE overlays explicitly enforce
+  # identity-platform and Cloud Build rejects local-development in GKE.
+  CELESNITY_AUTH_MODE: ${CELESNITY_AUTH_MODE:-local-development}
+  LOCAL_DEV_AUTH_SIGNING_KEY: ${LOCAL_DEV_AUTH_SIGNING_KEY:-}
+  DEFAULT_ORGANIZATION_ID: ${DEFAULT_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000001}
+  AUDIT_HASH_KEY: ${AUDIT_HASH_KEY:-development-only-audit-hash-key-change-me}
+
+services:
+  migrate:
+    build:
+      context: .
+      target: migrator
+    image: celesnity/core-migrator:0.1.0
+    restart: 'no'
+    environment: *core-env
+    networks: [core, infra]
+
+  api:
+    build:
+      context: .
+    image: celesnity/core:0.1.0
+    restart: unless-stopped
+    command: ['node', 'dist/bootstrap/api-main.js']
+    environment:
+      <<: *core-env
+      PORT: '3001'
+      API_BIND_ADDRESS: 0.0.0.0
+      WEB_ORIGIN: http://localhost:3000
+      GOOGLE_APPLICATION_CREDENTIALS: /var/run/secrets/google/adc.json
+      GOOGLE_CLOUD_QUOTA_PROJECT: ${IDENTITY_PLATFORM_PROJECT_ID:-replace-with-gcp-project-id}
+      # Local Compose must boot without an untracked .env override. Deployed
+      # environments provide an independently generated signing key instead.
+      SPARK_MASTER_URL: spark://spark-master:7077
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - '127.0.0.1:3001:3001'
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS_HOST}:/var/run/secrets/google/adc.json:ro
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3001/api/v1/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks: [core, infra]
+
+  worker:
+    build:
+      context: .
+    image: celesnity/core:0.1.0
+    restart: unless-stopped
+    command: ['node', 'dist/bootstrap/worker-main.js']
+    environment:
+      <<: *core-env
+      # The worker submits Spark jobs by exec-ing into the running Spark container.
+      SPARK_EXECUTION_BACKEND: docker
+      SPARK_SUBMIT_MASTER_URL: spark://spark-master:7077
+      SPARK_CONTAINER: celesnity-poc-spark-master-1
+      INTEGRATION_EVENT_PUBLISHER_BACKEND: redpanda
+      METADATA_CRAWLER_CONSUMER_GROUP_ID: celesnity.metadata-crawler-worker.v1
+      METADATA_CRAWLER_RECOVERY_INTERVAL_MS: '60000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      # Only the worker needs the Docker socket (to spark-submit); the API never does.
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [core, infra]
+
+networks:
+  core:
+    name: celesnity-core
+  infra:
+    external: true
+    name: celesnity-poc

@@ -1,0 +1,47 @@
+services:
+  control-postgres:
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: celesnity
+      POSTGRES_USER: celesnity
+      POSTGRES_PASSWORD: celesnity_test_only
+    ports:
+      - '127.0.0.1:15432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U celesnity -d celesnity']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  postgres-source:
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: analytics
+      POSTGRES_USER: crawler
+      POSTGRES_PASSWORD: source-test-only
+    ports:
+      - '127.0.0.1:15433:5432'
+    volumes:
+      - ./init/postgres-source.sql:/docker-entrypoint-initdb.d/01-source.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U crawler -d analytics']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  mysql-source:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: analytics
+      MYSQL_ROOT_PASSWORD: root-test-only
+      MYSQL_USER: crawler
+      MYSQL_PASSWORD: source-test-only
+    ports:
+      - '127.0.0.1:13309:3306'
+    volumes:
+      - ./init/mysql-source.sql:/docker-entrypoint-initdb.d/01-source.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -u crawler -p$$MYSQL_PASSWORD --silent']
+      interval: 2s
+      timeout: 2s
+      retries: 30

@@ -1,0 +1,123 @@
+{
+  "sections": [
+    {
+      "title": { "vi": "Bắt đầu", "en": "Getting started" },
+      "items": [
+        {
+          "slug": "getting-started",
+          "file": "01-getting-started.md",
+          "title": { "vi": "Đăng nhập và làm quen", "en": "Signing in and finding your way" }
+        },
+        {
+          "slug": "roles-and-access",
+          "file": "02-roles-and-access.md",
+          "title": { "vi": "Vai trò và quyền truy cập", "en": "Roles and access" }
+        }
+      ]
+    },
+    {
+      "title": { "vi": "Trợ lý và trò chuyện", "en": "Assistant and chat" },
+      "items": [
+        {
+          "slug": "chat",
+          "file": "10-chat.md",
+          "title": { "vi": "Hỏi đáp với trợ lý (Home)", "en": "Asking the assistant (Home)" }
+        },
+        {
+          "slug": "charts-in-chat",
+          "file": "11-charts-in-chat.md",
+          "title": {
+            "vi": "Biểu đồ, bảng và tài liệu trong trò chuyện",
+            "en": "Charts, tables and documents in chat"
+          }
+        }
+      ]
+    },
+    {
+      "title": { "vi": "Dữ liệu", "en": "Data" },
+      "items": [
+        {
+          "slug": "databases",
+          "file": "20-databases.md",
+          "title": { "vi": "Cơ sở dữ liệu và danh mục", "en": "Databases and the catalog" }
+        },
+        {
+          "slug": "streaming",
+          "file": "21-streaming.md",
+          "title": { "vi": "Streaming và thiết bị", "en": "Streaming and devices" }
+        },
+        {
+          "slug": "plant-model",
+          "file": "22-plant-model.md",
+          "title": { "vi": "Mô hình nhà máy", "en": "Plant model" }
+        },
+        {
+          "slug": "analytics",
+          "file": "23-analytics.md",
+          "title": {
+            "vi": "Phân tích: biểu đồ và dashboard",
+            "en": "Analytics: charts and dashboards"
+          }
+        }
+      ]
+    },
+    {
+      "title": { "vi": "Công cụ", "en": "Tools" },
+      "items": [
+        {
+          "slug": "query",
+          "file": "30-query.md",
+          "title": { "vi": "Truy vấn SQL", "en": "SQL query workbench" }
+        },
+        {
+          "slug": "scripts",
+          "file": "31-scripts.md",
+          "title": { "vi": "Scripts", "en": "Scripts" }
+        },
+        {
+          "slug": "skills",
+          "file": "32-skills.md",
+          "title": { "vi": "Skills của trợ lý", "en": "Assistant skills" }
+        },
+        {
+          "slug": "plugins",
+          "file": "33-plugins.md",
+          "title": { "vi": "Plugins và Google Drive", "en": "Plugins and Google Drive" }
+        },
+        {
+          "slug": "automations",
+          "file": "34-automations.md",
+          "title": { "vi": "Tự động hoá", "en": "Automations" }
+        }
+      ]
+    },
+    {
+      "title": { "vi": "Tài nguyên", "en": "Resources" },
+      "items": [
+        {
+          "slug": "documents",
+          "file": "40-documents.md",
+          "title": { "vi": "Tài liệu", "en": "Documents" }
+        },
+        {
+          "slug": "tutorials",
+          "file": "41-tutorials.md",
+          "title": { "vi": "Hướng dẫn từng bước trong ứng dụng", "en": "In-app guided tutorials" }
+        }
+      ]
+    },
+    {
+      "title": { "vi": "Quản trị", "en": "Administration" },
+      "items": [
+        {
+          "slug": "administration",
+          "file": "50-administration.md",
+          "title": {
+            "vi": "Quản trị tổ chức và phân quyền",
+            "en": "Organization and access administration"
+          }
+        }
+      ]
+    }
+  ]
+}

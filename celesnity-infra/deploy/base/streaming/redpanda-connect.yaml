@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redpanda-connect
+spec:
+  selector:
+    app.kubernetes.io/name: redpanda-connect
+  ports:
+    - name: http
+      port: 4195
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redpanda-connect
+spec:
+  # This bridge owns one persistent EMQX session. Avoid overlapping pods with
+  # the same stable client ID during a rollout.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redpanda-connect
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redpanda-connect
+        app.kubernetes.io/component: mqtt-bridge
+    spec:
+      serviceAccountName: celesnity-redpanda-connect
+      automountServiceAccountToken: false
+      nodeSelector:
+        celesnity-io-pool: redpanda
+      tolerations:
+        - key: celesnity.io/workload
+          operator: Equal
+          value: redpanda
+          effect: NoSchedule
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+      containers:
+        - name: connect
+          image: docker.redpanda.com/redpandadata/connect:4.104.0
+          args:
+            - streams
+            - --observability
+            - /etc/redpanda-connect/root.yaml
+            - /etc/redpanda-connect/streams/mqtt-to-redpanda.yaml
+          ports:
+            - name: http
+              containerPort: 4195
+          envFrom:
+            - secretRef:
+                name: celesnity-streaming
+          env:
+            - name: MQTT_CONNECT_CLIENT_ID
+              value: celesnity-redpanda-connect-shared-0
+          readinessProbe:
+            httpGet: { path: /ready, port: http }
+          livenessProbe:
+            httpGet: { path: /ping, port: http }
+          resources:
+            # The bridge is I/O-bound. A 250m reservation cannot coexist with
+            # Redpanda, EMQX, the bronze stream, and GKE system DaemonSets on
+            # the cost-controlled four-vCPU streaming node.
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 1Gi }
+          volumeMounts:
+            - name: root-config
+              mountPath: /etc/redpanda-connect
+              readOnly: true
+            - name: mqtt-stream
+              mountPath: /etc/redpanda-connect/streams
+              readOnly: true
+            - name: redpanda-ca
+              mountPath: /etc/redpanda/tls
+              readOnly: true
+      volumes:
+        - name: root-config
+          configMap:
+            name: redpanda-connect-root
+        - name: mqtt-stream
+          configMap:
+            name: redpanda-connect-mqtt-stream
+        - name: redpanda-ca
+          secret:
+            secretName: celesnity-streaming
+            items:
+              - key: ca.crt
+                path: ca.crt
+            defaultMode: 0444

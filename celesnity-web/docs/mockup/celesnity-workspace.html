@@ -1,0 +1,1686 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Celesnity Workspace — đề xuất UI/UX</title>
+    <style>
+      /* Token layer lấy từ celesnity-web/app/globals.css (shadcn neutral, light). */
+      :root {
+        --radius: 0.625rem;
+        --background: oklch(1 0 0);
+        --foreground: oklch(0.145 0 0);
+        --card: oklch(1 0 0);
+        --primary: oklch(0.205 0 0);
+        --primary-foreground: oklch(0.985 0 0);
+        --muted: oklch(0.97 0 0);
+        --muted-foreground: oklch(0.556 0 0);
+        --accent: oklch(0.97 0 0);
+        --border: oklch(0.922 0 0);
+        --destructive: oklch(0.577 0.245 27.325);
+        --sidebar: oklch(0.985 0 0);
+        --ok: oklch(0.62 0.15 150);
+        --warn: oklch(0.72 0.16 75);
+        --sidebar-w: 268px;
+        --sidebar-w-icon: 56px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--foreground);
+        font:
+          14px/1.5 Roboto,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+      code {
+        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+        font-size: 0.92em;
+      }
+      .app {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .spacer {
+        flex: 1;
+      }
+
+      /* ── Sidebar ─────────────────────────────────────────────── */
+      .sidebar {
+        width: var(--sidebar-w);
+        flex: 0 0 var(--sidebar-w);
+        background: var(--sidebar);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        transition:
+          width 0.18s ease,
+          flex-basis 0.18s ease;
+        overflow: hidden;
+      }
+      body[data-collapsed='true'] .sidebar {
+        width: var(--sidebar-w-icon);
+        flex-basis: var(--sidebar-w-icon);
+      }
+      body[data-collapsed='true'] .hide-collapsed {
+        display: none !important;
+      }
+      body[data-collapsed='true'] .nav-item {
+        justify-content: center;
+        padding-inline: 0;
+      }
+      body[data-collapsed='true'] .sb-head,
+      body[data-collapsed='true'] .ws-switch {
+        justify-content: center;
+        padding-inline: 0;
+      }
+      .sb-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 52px;
+        padding: 0 10px 0 12px;
+        flex: 0 0 auto;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+      }
+      .brand-mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: linear-gradient(140deg, #4f46e5, #db2777 60%, #f59e0b);
+        flex: 0 0 auto;
+      }
+      .icon-btn {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: var(--muted-foreground);
+        flex: 0 0 auto;
+      }
+      .icon-btn:hover {
+        background: var(--accent);
+        color: var(--foreground);
+      }
+      .ws-switch {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 0 8px 8px;
+        padding: 7px 8px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--card);
+        width: calc(100% - 16px);
+        text-align: left;
+      }
+      .ws-switch:hover {
+        background: var(--accent);
+      }
+      .ws-avatar {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: #db2777;
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 700;
+        flex: 0 0 auto;
+      }
+      .sb-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 8px 10px;
+      }
+      .sb-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .sb-scroll::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+      .sb-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 15px 8px 5px;
+        font-size: 11px;
+        font-weight: 650;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+      }
+      .sb-label .icon-btn {
+        width: 20px;
+        height: 20px;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        min-height: 32px;
+        padding: 0 9px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--muted-foreground);
+        text-align: left;
+        font-size: 13.4px;
+      }
+      .nav-item:hover {
+        background: var(--accent);
+        color: var(--foreground);
+      }
+      .nav-item[aria-current='true'] {
+        background: var(--accent);
+        color: var(--foreground);
+        font-weight: 600;
+      }
+      .nav-item svg {
+        flex: 0 0 auto;
+      }
+      .nav-text {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .nav-count {
+        font-size: 11.5px;
+        color: var(--muted-foreground);
+        font-variant-numeric: tabular-nums;
+      }
+      .kbd {
+        font-size: 11px;
+        color: var(--muted-foreground);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        padding: 1px 5px;
+        background: var(--card);
+      }
+      .nav-child {
+        padding-left: 30px;
+        min-height: 28px;
+        font-size: 12.8px;
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+      }
+      .dot.ok {
+        background: var(--ok);
+      }
+      .dot.warn {
+        background: var(--warn);
+      }
+      .dot.err {
+        background: var(--destructive);
+      }
+      .dot.idle {
+        background: oklch(0.8 0 0);
+      }
+      .chev {
+        transition: transform 0.15s ease;
+        color: var(--muted-foreground);
+      }
+      .nav-item[data-open='true'] .chev {
+        transform: rotate(90deg);
+      }
+      .sb-foot {
+        border-top: 1px solid var(--border);
+        padding: 8px;
+        flex: 0 0 auto;
+      }
+
+      /* ── Main ────────────────────────────────────────────────── */
+      .main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .topbar {
+        height: 48px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 18px;
+        border-bottom: 1px solid var(--border);
+      }
+      .crumb {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        color: var(--muted-foreground);
+      }
+      .crumb b {
+        color: var(--foreground);
+        font-weight: 600;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 32px;
+        padding: 0 11px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--card);
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        background: var(--accent);
+      }
+      .btn.primary {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-color: var(--primary);
+      }
+      .btn.primary:hover {
+        opacity: 0.9;
+      }
+      .btn.sm {
+        height: 28px;
+        font-size: 12.5px;
+        padding: 0 9px;
+      }
+      .screen {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: none;
+      }
+      .screen[data-active='true'] {
+        display: block;
+      }
+      .wrap {
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: 22px 24px 60px;
+      }
+
+      /* Page bar thay cho hero 71px hiện tại */
+      .pagebar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .pagebar h1 {
+        margin: 0;
+        font-size: 21px;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 2px 9px;
+        font-size: 11.5px;
+        color: var(--muted-foreground);
+        background: var(--card);
+        white-space: nowrap;
+      }
+      .tabs {
+        display: flex;
+        gap: 2px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 20px;
+      }
+      .tab {
+        border: 0;
+        background: transparent;
+        padding: 9px 13px;
+        font-size: 13.4px;
+        color: var(--muted-foreground);
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+      }
+      .tab:hover {
+        color: var(--foreground);
+      }
+      .tab[aria-selected='true'] {
+        color: var(--foreground);
+        font-weight: 600;
+        border-bottom-color: var(--primary);
+      }
+      .panel {
+        display: none;
+      }
+      .panel[data-active='true'] {
+        display: block;
+      }
+
+      .box {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--card);
+        padding: 15px 16px;
+        margin-bottom: 14px;
+      }
+      .box h3 {
+        margin: 0 0 12px;
+        font-size: 12px;
+        font-weight: 650;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .pill {
+        display: inline-grid;
+        place-items: center;
+        min-width: 22px;
+        height: 19px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: var(--foreground);
+        font-size: 10.5px;
+        font-weight: 700;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-wrap: wrap;
+      }
+      table.grid {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      table.grid th {
+        text-align: left;
+        font-weight: 600;
+        color: var(--muted-foreground);
+        font-size: 11.5px;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      table.grid td {
+        padding: 9px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      table.grid tr:last-child td {
+        border-bottom: 0;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 9px 16px;
+        font-size: 13.2px;
+      }
+      .kv dt {
+        color: var(--muted-foreground);
+      }
+      .kv dd {
+        margin: 0;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+        gap: 12px;
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--card);
+        padding: 14px 15px;
+        text-align: left;
+        width: 100%;
+        display: block;
+      }
+      .card:hover {
+        background: var(--accent);
+      }
+      .card-t {
+        font-weight: 600;
+        font-size: 13.8px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+      .card-s {
+        font-size: 12.2px;
+        color: var(--muted-foreground);
+        margin-top: 6px;
+        line-height: 1.55;
+      }
+      .handoff {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--primary);
+        border-radius: 0 12px 12px 0;
+        background: var(--muted);
+        padding: 13px 16px;
+        margin-top: 18px;
+      }
+      .handoff .h-t {
+        font-size: 13.4px;
+        font-weight: 600;
+      }
+      .handoff .h-s {
+        font-size: 12.3px;
+        color: var(--muted-foreground);
+        margin-top: 2px;
+      }
+      .note {
+        border-left: 3px solid var(--border);
+        padding: 2px 0 2px 12px;
+        font-size: 12.2px;
+        color: var(--muted-foreground);
+        line-height: 1.6;
+        margin-top: 16px;
+      }
+      .note b {
+        color: var(--foreground);
+      }
+
+      /* Split: danh sách bảng + chi tiết — giữ đúng idiom của /catalog hiện tại */
+      .split {
+        display: grid;
+        grid-template-columns: 264px minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+      }
+      .tree-node {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-height: 31px;
+        padding: 0 9px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        text-align: left;
+        font-size: 13px;
+      }
+      .tree-node:hover {
+        background: var(--accent);
+      }
+      .tree-node[data-selected='true'] {
+        background: var(--accent);
+        font-weight: 600;
+        box-shadow: inset 2px 0 0 var(--primary);
+      }
+      .tree-meta {
+        font-size: 11.3px;
+        color: var(--muted-foreground);
+      }
+
+      /* Empty state 4 bước */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .step {
+        border: 1px solid var(--border);
+        border-radius: 11px;
+        background: var(--card);
+        padding: 13px 14px;
+        text-align: left;
+      }
+      .step:hover {
+        background: var(--accent);
+      }
+      .step[data-state='now'] {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px oklch(0.205 0 0 / 7%);
+      }
+      .step[data-state='done'] {
+        border-color: color-mix(in oklch, var(--ok) 40%, var(--border));
+        background: color-mix(in oklch, var(--ok) 6%, var(--card));
+      }
+      .step .n {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: var(--muted-foreground);
+      }
+      .step .t {
+        font-size: 13.2px;
+        font-weight: 600;
+        margin: 3px 0;
+      }
+      .step .s {
+        font-size: 11.8px;
+        color: var(--muted-foreground);
+        line-height: 1.45;
+      }
+      .empty {
+        border: 1px dashed var(--border);
+        border-radius: 14px;
+        padding: 36px 24px;
+        text-align: center;
+      }
+      .empty h2 {
+        margin: 0 0 6px;
+        font-size: 17px;
+        font-weight: 650;
+      }
+      .empty p {
+        margin: 0 auto;
+        max-width: 460px;
+        font-size: 13px;
+        color: var(--muted-foreground);
+        line-height: 1.6;
+      }
+
+      /* Home */
+      .hero {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 64px 24px 0;
+      }
+      .hero h1 {
+        margin: 0 0 24px;
+        font-size: clamp(1.6rem, 3vw, 2.15rem);
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        text-align: center;
+      }
+      .composer {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--card);
+        box-shadow: 0 10px 34px rgb(0 0 0 / 5%);
+        padding: 14px 14px 10px;
+      }
+      .composer textarea {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        resize: none;
+        font: inherit;
+        background: transparent;
+        min-height: 44px;
+        color: inherit;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 15px;
+      }
+      .chip {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--card);
+        padding: 5px 12px;
+        font-size: 12.5px;
+        color: var(--muted-foreground);
+      }
+      .chip:hover {
+        background: var(--accent);
+        color: var(--foreground);
+      }
+      .sec-title {
+        font-size: 11.5px;
+        font-weight: 650;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+        margin: 30px 0 12px;
+      }
+    </style>
+  </head>
+  <body data-collapsed="false">
+    <div class="app">
+      <!-- ══ Sidebar ══════════════════════════════════════════ -->
+      <aside class="sidebar">
+        <div class="sb-head">
+          <span class="brand">
+            <span class="brand-mark"></span>
+            <span class="hide-collapsed">Celesnity</span>
+          </span>
+          <span class="spacer hide-collapsed"></span>
+          <button class="icon-btn" id="toggle" title="Thu gọn (⌘B)" aria-label="Thu gọn thanh bên">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <rect width="18" height="18" x="3" y="3" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </button>
+        </div>
+
+        <button class="ws-switch">
+          <span class="ws-avatar">T</span>
+          <span class="nav-text hide-collapsed" style="font-size: 13px; font-weight: 550"
+            >Tú's Workspace</span
+          >
+          <svg
+            class="hide-collapsed"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            style="color: var(--muted-foreground)"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+
+        <div class="sb-scroll">
+          <button class="nav-item" data-screen="home" aria-current="true">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span class="nav-text hide-collapsed">Trang chủ</span>
+          </button>
+          <button class="nav-item">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <span class="nav-text hide-collapsed">Tìm kiếm</span>
+            <span class="kbd hide-collapsed">⌘K</span>
+          </button>
+
+          <div class="sb-label hide-collapsed">
+            <span>Database</span>
+            <span class="spacer"></span>
+            <button class="icon-btn" title="Tạo database" data-screen="db-empty">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <path d="M5 12h14M12 5v14" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- demo: mở ra danh sách bảng, đúng như cây /catalog hiện tại -->
+          <button
+            class="nav-item"
+            data-screen="db"
+            data-open="true"
+            aria-current="true"
+            id="nav-demo"
+          >
+            <svg
+              class="chev"
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <span class="nav-text hide-collapsed">nhamay_saigonfood</span>
+            <span class="nav-count hide-collapsed">5</span>
+          </button>
+          <div id="demo-children">
+            <button class="nav-item nav-child hide-collapsed" data-screen="db" data-tab="tables">
+              <code>san_luong_theo_ca</code>
+            </button>
+            <button class="nav-item nav-child hide-collapsed" data-screen="db" data-tab="tables">
+              <code>ton_kho_cuoi_ngay</code>
+            </button>
+            <button class="nav-item nav-child hide-collapsed" data-screen="db" data-tab="tables">
+              <code>phe_pham_theo_ca</code>
+            </button>
+            <button class="nav-item nav-child hide-collapsed" data-screen="db" data-tab="tables">
+              <code>tieu_hao_nguyen_lieu</code>
+            </button>
+            <button class="nav-item nav-child hide-collapsed" data-screen="db" data-tab="tables">
+              <code>hieu_suat_day_chuyen</code>
+            </button>
+          </div>
+
+          <button class="nav-item">
+            <svg
+              class="chev"
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <span class="nav-text hide-collapsed">kho_nguyenlieu</span>
+            <span class="nav-count hide-collapsed">4</span>
+          </button>
+
+          <button class="nav-item" data-screen="db-empty">
+            <svg
+              class="chev"
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              style="opacity: 0.3"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <span class="nav-text hide-collapsed">baocao_thang</span>
+            <span class="nav-count hide-collapsed">0</span>
+          </button>
+
+          <div class="sb-label hide-collapsed">Tất cả nguồn</div>
+          <button class="nav-item" data-screen="source">
+            <span class="dot ok"></span><span class="nav-text hide-collapsed">mes_saigonfood</span>
+            <span class="nav-count hide-collapsed">PostgreSQL</span>
+          </button>
+          <button class="nav-item">
+            <span class="dot ok"></span><span class="nav-text hide-collapsed">iot_dayxchuyen</span>
+            <span class="nav-count hide-collapsed">MQTT</span>
+          </button>
+          <button class="nav-item">
+            <span class="dot err"></span><span class="nav-text hide-collapsed">ncc_giaohang</span>
+            <span class="nav-count hide-collapsed">FTPS</span>
+          </button>
+
+          <div class="sb-label hide-collapsed">Công cụ</div>
+          <button class="nav-item">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="4 17 10 11 4 5" />
+              <line x1="12" x2="20" y1="19" y2="19" />
+            </svg>
+            <span class="nav-text hide-collapsed">SQL</span>
+          </button>
+          <button class="nav-item">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+            <span class="nav-text hide-collapsed">Lượt chạy</span>
+            <span class="dot err" title="1 thất bại"></span>
+          </button>
+        </div>
+
+        <div class="sb-foot">
+          <button class="nav-item">
+            <span class="ws-avatar" style="background: oklch(0.55 0.02 260)">M</span>
+            <span class="nav-text hide-collapsed">Mạnh Tú</span>
+            <svg
+              class="hide-collapsed"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+              />
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <!-- ══ Main ═════════════════════════════════════════════ -->
+      <div class="main">
+        <div class="topbar">
+          <div class="crumb" id="crumb"><b>Trang chủ</b></div>
+          <span class="spacer"></span>
+          <button class="btn sm">VI / EN</button>
+          <button class="btn sm primary" data-screen="db-empty">＋ Tạo database</button>
+        </div>
+
+        <!-- ── Trang chủ ──────────────────────────────────── -->
+        <section class="screen" id="screen-home" data-active="true">
+          <div class="hero">
+            <h1>Hôm nay bạn muốn biết gì về dữ liệu?</h1>
+            <div class="composer">
+              <textarea
+                placeholder="Hỏi về dữ liệu của bạn, hoặc mô tả bảng bạn muốn tạo…"
+              ></textarea>
+              <div class="row">
+                <button class="btn sm">＋ Đính kèm</button>
+                <span class="spacer"></span>
+                <button class="btn sm">Hỏi ▾</button>
+                <button class="btn sm primary">Gửi</button>
+              </div>
+            </div>
+            <div class="chips">
+              <button class="chip">Doanh thu 30 ngày gần nhất</button>
+              <button class="chip">Bảng nào mới cập nhật?</button>
+              <button class="chip">Đơn hàng theo kênh</button>
+            </div>
+          </div>
+
+          <div class="wrap" style="max-width: 900px">
+            <div class="sec-title">Database</div>
+            <div class="cards">
+              <button class="card" data-screen="db">
+                <div class="card-t"><span class="dot ok"></span> nhamay_saigonfood</div>
+                <div class="card-s">5 bảng · cập nhật 5 phút trước</div>
+              </button>
+              <button class="card">
+                <div class="card-t"><span class="dot ok"></span> kho_nguyenlieu</div>
+                <div class="card-s">4 bảng · cập nhật 20 phút trước</div>
+              </button>
+              <button class="card" data-screen="db-empty">
+                <div class="card-t"><span class="dot idle"></span> baocao_thang</div>
+                <div class="card-s">Chưa có bảng nào · vừa tạo</div>
+              </button>
+              <button
+                class="card"
+                style="border-style: dashed; background: transparent"
+                data-screen="db-empty"
+              >
+                <div class="card-t" style="color: var(--muted-foreground)">＋ Tạo database</div>
+                <div class="card-s">Iceberg database trong catalog <code>iceberg</code></div>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Database: demo ─────────────────────────────── -->
+        <section class="screen" id="screen-db">
+          <div class="wrap">
+            <div class="pagebar">
+              <h1>nhamay_saigonfood</h1>
+              <span class="badge">catalog <code>iceberg</code></span>
+              <span class="badge"><span class="dot err"></span> 1 pipeline lỗi</span>
+              <span class="spacer"></span>
+              <button class="btn sm">Mở trong SQL</button>
+              <button class="btn sm primary" data-tab="sources">＋ Thêm bảng vào database</button>
+            </div>
+
+            <div class="tabs" data-tabs="db">
+              <button class="tab" aria-selected="true" data-panel="tables">Bảng · 5</button>
+              <button class="tab" data-panel="sources">Nguồn · 2</button>
+              <button class="tab" data-panel="flows">Pipeline · 5</button>
+              <button class="tab" data-panel="runs">Lượt chạy</button>
+            </div>
+
+            <!-- Bảng: mặc định, giữ nguyên idiom cây + chi tiết của /catalog -->
+            <div class="panel" data-panel="tables" data-active="true">
+              <div class="split">
+                <div class="box" style="margin: 0; padding: 8px">
+                  <button class="tree-node" data-selected="true">
+                    <span class="dot ok"></span
+                    ><span class="nav-text"><code>san_luong_theo_ca</code></span>
+                    <span class="tree-meta">1.8M</span>
+                  </button>
+                  <button class="tree-node">
+                    <span class="dot ok"></span
+                    ><span class="nav-text"><code>phe_pham_theo_ca</code></span>
+                    <span class="tree-meta">240K</span>
+                  </button>
+                  <button class="tree-node">
+                    <span class="dot ok"></span
+                    ><span class="nav-text"><code>tieu_hao_nguyen_lieu</code></span>
+                    <span class="tree-meta">960K</span>
+                  </button>
+                  <button class="tree-node">
+                    <span class="dot ok"></span
+                    ><span class="nav-text"><code>ton_kho_cuoi_ngay</code></span>
+                    <span class="tree-meta">73K</span>
+                  </button>
+                  <button class="tree-node">
+                    <span class="dot warn"></span
+                    ><span class="nav-text"><code>hieu_suat_day_chuyen</code></span>
+                    <span class="tree-meta">cũ</span>
+                  </button>
+                </div>
+
+                <div>
+                  <div class="box">
+                    <h3>Cột <span class="pill">7</span></h3>
+                    <table class="grid">
+                      <thead>
+                        <tr>
+                          <th>Cột</th>
+                          <th>Kiểu</th>
+                          <th>Nullable</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>ngay</code></td>
+                          <td>date</td>
+                          <td>không</td>
+                        </tr>
+                        <tr>
+                          <td><code>ca</code></td>
+                          <td>varchar</td>
+                          <td>không</td>
+                        </tr>
+                        <tr>
+                          <td><code>ma_day_chuyen</code></td>
+                          <td>varchar</td>
+                          <td>không</td>
+                        </tr>
+                        <tr>
+                          <td><code>ma_san_pham</code></td>
+                          <td>varchar</td>
+                          <td>không</td>
+                        </tr>
+                        <tr>
+                          <td><code>san_luong</code></td>
+                          <td>bigint</td>
+                          <td>không</td>
+                        </tr>
+                        <tr>
+                          <td><code>phe_pham</code></td>
+                          <td>bigint</td>
+                          <td>không</td>
+                        </tr>
+                        <tr>
+                          <td><code>ty_le_dat</code></td>
+                          <td>decimal(5,2)</td>
+                          <td>có</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="box">
+                    <h3>Nguồn gốc</h3>
+                    <dl class="kv">
+                      <dt>Sinh bởi pipeline</dt>
+                      <dd><b>san_luong_theo_ca</b> v3 · No-code</dd>
+                      <dt>Đọc từ</dt>
+                      <dd>
+                        <code>mes_saigonfood</code> · <code>mes.production_runs</code>,
+                        <code>mes.run_outputs</code>
+                      </dd>
+                      <dt>Lượt chạy cuối</dt>
+                      <dd><span class="dot ok"></span> Thành công · 5 phút trước</dd>
+                    </dl>
+                    <div class="row" style="margin-top: 13px">
+                      <button class="btn sm">Chạy lại pipeline</button>
+                      <button class="btn sm">Mở canvas</button>
+                    </div>
+                    <div class="note">
+                      Khối này là phần thêm so với <code>/catalog</code> hiện tại — màn đó chỉ có
+                      Columns / Snapshots / Preview, nhìn một bảng không biết pipeline nào sinh ra
+                      nó nên số liệu sai thì không biết sửa ở đâu.
+                    </div>
+                  </div>
+
+                  <div class="box">
+                    <h3>Snapshot <span class="pill">12</span></h3>
+                    <table class="grid">
+                      <thead>
+                        <tr>
+                          <th>Snapshot</th>
+                          <th>Thời điểm</th>
+                          <th>Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>7261…a3</code></td>
+                          <td>5 phút trước</td>
+                          <td>append</td>
+                        </tr>
+                        <tr>
+                          <td><code>4b90…f1</code></td>
+                          <td>6 giờ trước</td>
+                          <td>overwrite</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="box">
+                    <h3>Xem trước <span class="badge">giới hạn phía server</span></h3>
+                    <table class="grid">
+                      <thead>
+                        <tr>
+                          <th>ngay</th>
+                          <th>ca</th>
+                          <th>ma_day_chuyen</th>
+                          <th>ma_san_pham</th>
+                          <th>san_luong</th>
+                          <th>phe_pham</th>
+                          <th>ty_le_dat</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>2026-08-24</td>
+                          <td>ca_1</td>
+                          <td>DC-01</td>
+                          <td>MI-GOI-65G</td>
+                          <td>48 200</td>
+                          <td>612</td>
+                          <td>98.73</td>
+                        </tr>
+                        <tr>
+                          <td>2026-08-24</td>
+                          <td>ca_2</td>
+                          <td>DC-01</td>
+                          <td>MI-GOI-65G</td>
+                          <td>46 950</td>
+                          <td>708</td>
+                          <td>98.49</td>
+                        </tr>
+                        <tr>
+                          <td>2026-08-24</td>
+                          <td>ca_3</td>
+                          <td>DC-01</td>
+                          <td>MI-GOI-65G</td>
+                          <td>39 410</td>
+                          <td>1 194</td>
+                          <td>96.97</td>
+                        </tr>
+                        <tr>
+                          <td>2026-08-24</td>
+                          <td>ca_1</td>
+                          <td>DC-02</td>
+                          <td>PHO-AN-LIEN</td>
+                          <td>27 300</td>
+                          <td>331</td>
+                          <td>98.79</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Nguồn -->
+            <div class="panel" data-panel="sources">
+              <div class="cards">
+                <button class="card" data-screen="source">
+                  <div class="card-t">
+                    <span class="dot ok"></span> mes_saigonfood
+                    <span class="badge">PostgreSQL</span>
+                  </div>
+                  <div class="card-s">
+                    Đã xác minh · quét 2 phút trước<br />
+                    41 bảng phát hiện · 6 bảng đang được pipeline của
+                    <code>nhamay_saigonfood</code> đọc
+                  </div>
+                </button>
+                <button class="card">
+                  <div class="card-t">
+                    <span class="dot ok"></span> iot_dayxchuyen <span class="badge">MQTT</span>
+                  </div>
+                  <div class="card-s">
+                    Adapter đang chạy · 3.4k msg/phút<br />1 pipeline của
+                    <code>nhamay_saigonfood</code> đang tiêu thụ
+                  </div>
+                </button>
+                <button class="card" style="border-style: dashed; background: transparent">
+                  <div class="card-t" style="color: var(--muted-foreground)">＋ Thêm nguồn</div>
+                  <div class="card-s">Chọn nguồn có sẵn hoặc tạo kết nối mới</div>
+                </button>
+              </div>
+
+              <div class="handoff">
+                <div>
+                  <div class="h-t">41 bảng sẵn sàng dùng làm nguồn</div>
+                  <div class="h-s">
+                    Bước tiếp: dựng pipeline đọc từ chúng và ghi vào <code>nhamay_saigonfood</code>.
+                  </div>
+                </div>
+                <span class="spacer"></span>
+                <button class="btn primary" data-tab="flows">Tạo pipeline →</button>
+              </div>
+
+              <div class="note">
+                <b>Gộp từ 3 màn hiện tại:</b> <code>/database-services</code>,
+                <code>/metadata-crawler</code>, <code>/streaming</code>. Cột đầu bảng crawler hiện
+                tại chính là <code>item.databaseService.name</code>, và
+                <code>DatabaseMetadataCrawler.databaseServiceId</code> là quan hệ 1–1 — hai màn đang
+                hiển thị cùng một đối tượng.
+              </div>
+            </div>
+
+            <!-- Pipeline -->
+            <div class="panel" data-panel="flows">
+              <div class="cards">
+                <button class="card">
+                  <div class="card-t">
+                    <span class="dot ok"></span> san_luong_theo_ca
+                    <span class="badge">No-code</span>
+                  </div>
+                  <div class="card-s">
+                    v3 · chạy 5 phút trước · thành công<br />
+                    → <code>nhamay_saigonfood.san_luong_theo_ca</code>
+                  </div>
+                </button>
+                <button class="card">
+                  <div class="card-t">
+                    <span class="dot ok"></span> phe_pham_theo_ca <span class="badge">No-code</span>
+                  </div>
+                  <div class="card-s">
+                    v2 · chạy 5 phút trước · thành công<br />
+                    → <code>nhamay_saigonfood.phe_pham_theo_ca</code>
+                  </div>
+                </button>
+                <button class="card">
+                  <div class="card-t">
+                    <span class="dot ok"></span> tieu_hao_nguyen_lieu
+                    <span class="badge">No-code</span>
+                  </div>
+                  <div class="card-s">
+                    v7 · chạy 1 giờ trước · thành công<br />
+                    → <code>nhamay_saigonfood.tieu_hao_nguyen_lieu</code>
+                  </div>
+                </button>
+                <button class="card">
+                  <div class="card-t">
+                    <span class="dot ok"></span> ton_kho_cuoi_ngay
+                    <span class="badge">No-code</span>
+                  </div>
+                  <div class="card-s">
+                    v4 · chạy 23:05 hôm qua · thành công<br />
+                    → <code>nhamay_saigonfood.ton_kho_cuoi_ngay</code>
+                  </div>
+                </button>
+                <button class="card">
+                  <div class="card-t">
+                    <span class="dot err"></span> hieu_suat_day_chuyen
+                    <span class="badge">No-code</span>
+                  </div>
+                  <div class="card-s">
+                    v2 · thất bại 09:12 — cột <code>ma_day_chuyen</code> không tồn tại<br />
+                    → <code>nhamay_saigonfood.hieu_suat_day_chuyen</code> giữ dữ liệu lần chạy trước
+                  </div>
+                </button>
+                <button class="card" style="border-style: dashed; background: transparent">
+                  <div class="card-t" style="color: var(--muted-foreground)">＋ Pipeline mới</div>
+                  <div class="card-s">
+                    Canvas kéo thả · target mặc định <code>nhamay_saigonfood</code>
+                  </div>
+                </button>
+              </div>
+
+              <div class="handoff">
+                <div>
+                  <div class="h-t">Chạy xong pipeline là bảng xuất hiện trong database</div>
+                  <div class="h-s">
+                    Spark ghi ra Iceberg, Trino đọc lại được ngay — không có bước publish riêng.
+                  </div>
+                </div>
+                <span class="spacer"></span>
+                <button class="btn primary" data-tab="tables">Xem bảng →</button>
+              </div>
+
+              <div class="note">
+                <b>Script không nằm ở tab này.</b> <code>Script.databaseServiceId</code> là FK bắt
+                buộc tới một nguồn và script không có target database để suy ra, nên nó là tab riêng
+                trong từng <b>Nguồn</b>.
+              </div>
+            </div>
+
+            <!-- Lượt chạy -->
+            <div class="panel" data-panel="runs">
+              <div class="box">
+                <h3>Lượt chạy ghi vào <code>nhamay_saigonfood</code></h3>
+                <table class="grid">
+                  <thead>
+                    <tr>
+                      <th>Pipeline</th>
+                      <th>Trạng thái</th>
+                      <th>Bắt đầu</th>
+                      <th>Thời lượng</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><b>san_luong_theo_ca</b> v3</td>
+                      <td><span class="dot ok"></span> Thành công</td>
+                      <td>09:41</td>
+                      <td>1m 12s</td>
+                      <td style="text-align: right"><button class="btn sm">Log</button></td>
+                    </tr>
+                    <tr>
+                      <td><b>phe_pham_theo_ca</b> v2</td>
+                      <td><span class="dot ok"></span> Thành công</td>
+                      <td>09:41</td>
+                      <td>44s</td>
+                      <td style="text-align: right"><button class="btn sm">Log</button></td>
+                    </tr>
+                    <tr>
+                      <td><b>hieu_suat_day_chuyen</b> v2</td>
+                      <td><span class="dot err"></span> Thất bại</td>
+                      <td>09:12</td>
+                      <td>18s</td>
+                      <td style="text-align: right"><button class="btn sm">Log</button></td>
+                    </tr>
+                    <tr>
+                      <td><b>tieu_hao_nguyen_lieu</b> v7</td>
+                      <td><span class="dot ok"></span> Thành công</td>
+                      <td>08:30</td>
+                      <td>2m 51s</td>
+                      <td style="text-align: right"><button class="btn sm">Log</button></td>
+                    </tr>
+                    <tr>
+                      <td><b>ton_kho_cuoi_ngay</b> v4</td>
+                      <td><span class="dot ok"></span> Thành công</td>
+                      <td>23:05 hôm qua</td>
+                      <td>1m 33s</td>
+                      <td style="text-align: right"><button class="btn sm">Log</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Database rỗng: baocao_thang ───────────────── -->
+        <section class="screen" id="screen-db-empty">
+          <div class="wrap">
+            <div class="pagebar">
+              <h1>baocao_thang</h1>
+              <span class="badge">catalog <code>iceberg</code></span>
+              <span class="badge">vừa tạo</span>
+            </div>
+
+            <div class="tabs">
+              <button class="tab" aria-selected="true">Bảng · 0</button>
+              <button class="tab">Nguồn · 0</button>
+              <button class="tab">Pipeline · 0</button>
+              <button class="tab">Lượt chạy</button>
+            </div>
+
+            <div class="empty">
+              <h2>Database này chưa có bảng nào</h2>
+              <p>
+                Bảng xuất hiện ở đây sau khi một pipeline chạy xong và ghi vào
+                <code>baocao_thang</code>. Bốn bước dưới đây dẫn tới đó.
+              </p>
+            </div>
+
+            <div class="steps">
+              <button class="step" data-state="now">
+                <div class="n">BƯỚC 1</div>
+                <div class="t">Kết nối nguồn</div>
+                <div class="s">PostgreSQL, MySQL, FTPS hoặc MQTT</div>
+              </button>
+              <button class="step">
+                <div class="n">BƯỚC 2</div>
+                <div class="t">Quét metadata</div>
+                <div class="s">Lấy danh sách bảng và cột của nguồn</div>
+              </button>
+              <button class="step">
+                <div class="n">BƯỚC 3</div>
+                <div class="t">Dựng pipeline</div>
+                <div class="s">Canvas kéo thả, target là database này</div>
+              </button>
+              <button class="step">
+                <div class="n">BƯỚC 4</div>
+                <div class="t">Chạy</div>
+                <div class="s">Spark ghi ra Iceberg → bảng hiện ở tab Bảng</div>
+              </button>
+            </div>
+
+            <div class="note">
+              Đây là chỗ duy nhất dạy người dùng thứ tự nghiệp vụ, và nó chỉ xuất hiện đúng lúc họ
+              cần — khi database còn rỗng. Có bảng rồi thì bốn ô này biến mất, nhường chỗ cho danh
+              sách bảng.
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Nguồn: mes_saigonfood ──────────────────────────── -->
+        <section class="screen" id="screen-source">
+          <div class="wrap">
+            <div class="pagebar">
+              <span class="dot ok"></span>
+              <h1>mes_saigonfood</h1>
+              <span class="badge">PostgreSQL</span>
+              <span class="badge"
+                >Cấp dữ liệu cho <code>nhamay_saigonfood</code>, <code>kho_nguyenlieu</code></span
+              >
+              <span class="spacer"></span>
+              <button class="btn sm">Kiểm tra kết nối</button>
+              <button class="btn sm primary">Quét ngay</button>
+            </div>
+
+            <div class="tabs" data-tabs="src">
+              <button class="tab" aria-selected="true" data-panel="conn">Kết nối</button>
+              <button class="tab" data-panel="crawl">Quét metadata</button>
+              <button class="tab" data-panel="found">Bảng đã phát hiện · 41</button>
+              <button class="tab" data-panel="scripts">Script · 2</button>
+            </div>
+
+            <div class="panel" data-panel="conn" data-active="true">
+              <div class="box">
+                <h3>Cấu hình</h3>
+                <dl class="kv" style="max-width: 620px">
+                  <dt>Host</dt>
+                  <dd><code>mes-db.iceberg.local:5432</code></dd>
+                  <dt>Database</dt>
+                  <dd><code>mes_prod</code></dd>
+                  <dt>Người dùng</dt>
+                  <dd><code>mes_readonly</code></dd>
+                  <dt>SSL</dt>
+                  <dd>REQUIRED</dd>
+                  <dt>Kiểm tra gần nhất</dt>
+                  <dd><span class="dot ok"></span> Thành công · 2 phút trước</dd>
+                </dl>
+              </div>
+            </div>
+
+            <div class="panel" data-panel="crawl">
+              <div class="box">
+                <h3>Lịch quét</h3>
+                <div class="row">
+                  <span class="badge">Mỗi 6 giờ</span>
+                  <span class="badge">Asia/Ho_Chi_Minh</span>
+                  <span class="badge">Bỏ qua nếu đang chạy</span>
+                  <span class="spacer"></span>
+                  <button class="btn sm">Sửa lịch</button>
+                </div>
+              </div>
+              <div class="box">
+                <h3>Lịch sử quét</h3>
+                <table class="grid">
+                  <thead>
+                    <tr>
+                      <th>Thời điểm</th>
+                      <th>Trạng thái</th>
+                      <th>Phát hiện</th>
+                      <th>Thay đổi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>08:00 hôm nay</td>
+                      <td><span class="dot ok"></span> Thành công</td>
+                      <td>4 schema · 41 bảng</td>
+                      <td>+1 bảng, 2 cột đổi kiểu</td>
+                    </tr>
+                    <tr>
+                      <td>02:00 hôm nay</td>
+                      <td><span class="dot ok"></span> Thành công</td>
+                      <td>4 schema · 40 bảng</td>
+                      <td>—</td>
+                    </tr>
+                    <tr>
+                      <td>20:00 hôm qua</td>
+                      <td><span class="dot warn"></span> Một phần</td>
+                      <td>3 / 4 schema</td>
+                      <td>1 schema thiếu quyền</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel" data-panel="found">
+              <div class="box">
+                <h3>Bảng đã phát hiện <span class="pill">41</span></h3>
+                <table class="grid">
+                  <thead>
+                    <tr>
+                      <th>Bảng</th>
+                      <th>Cột</th>
+                      <th>Đang cấp cho</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>mes.production_runs</code></td>
+                      <td>18</td>
+                      <td>san_luong_theo_ca → <code>nhamay_saigonfood</code></td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td><code>mes.run_outputs</code></td>
+                      <td>7</td>
+                      <td>san_luong_theo_ca → <code>nhamay_saigonfood</code></td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td><code>mes.shifts</code></td>
+                      <td>11</td>
+                      <td>hieu_suat_day_chuyen → <code>nhamay_saigonfood</code></td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td><code>mes.quality_checks</code></td>
+                      <td>9</td>
+                      <td>phe_pham_theo_ca → <code>nhamay_saigonfood</code></td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td><code>mes.material_usage</code></td>
+                      <td>12</td>
+                      <td>tieu_hao_nguyen_lieu → <code>nhamay_saigonfood</code></td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td><code>wms.stock_snapshots</code></td>
+                      <td>10</td>
+                      <td>ton_kho_cuoi_ngay → <code>nhamay_saigonfood</code></td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td><code>mes.downtime_events</code></td>
+                      <td>8</td>
+                      <td>—</td>
+                      <td style="text-align: right">
+                        <button class="btn sm">Tạo pipeline</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel" data-panel="scripts">
+              <div class="cards">
+                <button class="card">
+                  <div class="card-t">
+                    <span class="dot ok"></span> backfill_sanluong
+                    <span class="badge">PySpark</span>
+                  </div>
+                  <div class="card-s">v5 · chạy 2 giờ trước · thành công</div>
+                </button>
+                <button class="card">
+                  <div class="card-t">
+                    <span class="dot idle"></span> sua_du_lieu_ca3
+                    <span class="badge">PySpark</span>
+                  </div>
+                  <div class="card-s">v1 · chưa chạy lần nào</div>
+                </button>
+              </div>
+              <div class="note">
+                Script gắn với nguồn qua FK bắt buộc <code>Script.databaseServiceId</code> — nó ghi
+                đi đâu là do code tự quyết, không suy ra được database, nên nằm ở đây.
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const body = document.body;
+      const toggle = () =>
+        body.setAttribute('data-collapsed', body.dataset.collapsed === 'true' ? 'false' : 'true');
+      document.getElementById('toggle').addEventListener('click', toggle);
+      window.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'b' && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          toggle();
+        }
+      });
+
+      const CRUMB = {
+        home: '<b>Trang chủ</b>',
+        db: 'Database <span>/</span> <b>nhamay_saigonfood</b>',
+        'db-empty': 'Database <span>/</span> <b>baocao_thang</b>',
+        source: 'Tất cả nguồn <span>/</span> <b>mes_saigonfood</b>',
+      };
+
+      function go(screen) {
+        document
+          .querySelectorAll('.screen')
+          .forEach((s) => s.setAttribute('data-active', String(s.id === 'screen-' + screen)));
+        document.getElementById('crumb').innerHTML = CRUMB[screen] ?? '';
+        document
+          .querySelectorAll('.nav-item[data-screen]')
+          .forEach((n) =>
+            n.setAttribute('aria-current', String(n.dataset.screen === screen && !n.dataset.tab)),
+          );
+      }
+
+      function selectTab(name) {
+        const tab = document.querySelector(
+          '.screen[data-active="true"] .tab[data-panel="' + name + '"]',
+        );
+        if (!tab) return;
+        const bar = tab.closest('.tabs');
+        bar
+          .querySelectorAll('.tab')
+          .forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+        const scope = bar.closest('.screen');
+        scope
+          .querySelectorAll('.panel')
+          .forEach((p) => p.setAttribute('data-active', String(p.dataset.panel === name)));
+      }
+
+      document.querySelectorAll('[data-screen]').forEach((el) =>
+        el.addEventListener('click', () => {
+          go(el.dataset.screen);
+          if (el.dataset.tab) selectTab(el.dataset.tab);
+        }),
+      );
+
+      document
+        .querySelectorAll('[data-tab]:not([data-screen])')
+        .forEach((el) => el.addEventListener('click', () => selectTab(el.dataset.tab)));
+
+      document
+        .querySelectorAll('.tab[data-panel]')
+        .forEach((tab) => tab.addEventListener('click', () => selectTab(tab.dataset.panel)));
+
+      document.querySelectorAll('.tree-node').forEach((node) =>
+        node.addEventListener('click', () => {
+          document
+            .querySelectorAll('.tree-node')
+            .forEach((n) => n.setAttribute('data-selected', 'false'));
+          node.setAttribute('data-selected', 'true');
+        }),
+      );
+
+      const demo = document.getElementById('nav-demo');
+      const kids = document.getElementById('demo-children');
+      demo.querySelector('.chev').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = demo.dataset.open !== 'true';
+        demo.dataset.open = String(open);
+        kids.style.display = open ? '' : 'none';
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "minder-agent-sandbox-runner",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "test": "node --test *.test.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sandbox-runtime": "0.0.76"
+  }
+}

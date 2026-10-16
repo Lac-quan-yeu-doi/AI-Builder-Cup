@@ -1,0 +1,3 @@
+user_id,password,is_superuser
+celesnity-connect,celesnity_connect_password,false
+celesnity-device,celesnity_device_password,false

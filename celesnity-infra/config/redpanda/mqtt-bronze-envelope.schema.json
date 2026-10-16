@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.celesnity.io/mqtt/bronze-envelope-v1.json",
+  "title": "Celesnity MQTT Bronze Envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tenantId",
+    "adapterId",
+    "deviceId",
+    "eventId",
+    "receivedAt",
+    "mqttTopic",
+    "mqttQos",
+    "mqttRetained",
+    "mqttDuplicate",
+    "schemaVersion",
+    "payload"
+  ],
+  "properties": {
+    "tenantId": { "type": "string", "pattern": "^tnt_[a-z0-9]{12,48}$" },
+    "adapterId": { "type": "string", "pattern": "^adp_[a-z0-9]{12,48}$" },
+    "deviceId": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "eventId": { "type": "string", "format": "uuid" },
+    "sourceEventId": { "type": ["string", "null"], "maxLength": 255 },
+    "eventTime": { "type": ["string", "null"], "format": "date-time" },
+    "receivedAt": { "type": "string", "format": "date-time" },
+    "mqttTopic": { "type": "string", "minLength": 1, "maxLength": 1024 },
+    "mqttQos": { "type": "integer", "minimum": 0, "maximum": 2 },
+    "mqttRetained": { "type": "boolean" },
+    "mqttDuplicate": { "type": "boolean" },
+    "schemaVersion": { "const": 1 },
+    "payload": { "type": "object" }
+  }
+}

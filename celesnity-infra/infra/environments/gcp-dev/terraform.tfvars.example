@@ -1,0 +1,152 @@
+# Non-secret development inputs used by Cloud Build.
+
+########################################
+# Project boundary
+########################################
+
+project_id = "cosmos3-mmad-research"
+
+project     = "celesnity"
+environment = "gcp-dev"
+
+# asia-southeast1 is Singapore, matching the AWS build's ap-southeast-1.
+region = "asia-southeast1"
+
+# Zonal cluster. A regional one replicates the control plane across three zones
+# AND creates node_count nodes PER ZONE, so this single line is the difference
+# between 2 nodes and 6.
+zone = "asia-southeast1-a"
+
+########################################
+# Kubernetes API access
+#
+# No CIDR allow-list by design. The endpoint is reachable from any network and
+# protected by IAM plus TLS only — access requires a Google identity with the
+# right role, obtained through `gcloud auth application-default login`.
+#
+# The tradeoff: an allow-list would mean an attacker needs the right network
+# position AND valid credentials. Without one, valid credentials alone suffice, so
+# IAM hygiene is the whole control. Keep the set of principals holding
+# container.developer or higher small, and prefer short-lived ADC over service
+# account keys.
+#
+# The cluster module still supports an allow-list; wire var.authorized_networks
+# back in for the EU/production environment if you want defence in depth there.
+########################################
+
+########################################
+# Compute
+########################################
+
+# e2-standard-2 is 2 vCPU / 8 GiB. Double the memory of the AWS build's
+# t4g.medium, which removes the ~2.8 GiB per-node scheduling ceiling that
+# constrained Trino there.
+node_machine_type = "e2-standard-2"
+node_count        = 2
+node_disk_size_gb = 50
+node_disk_type    = "pd-balanced"
+
+# Preserve the existing dedicated streaming pool during state adoption. A later
+# maintenance window can replace it with Secure Boot and the narrower scope set.
+streaming_node_enable_secure_boot = false
+streaming_node_oauth_scopes = [
+  "https://www.googleapis.com/auth/cloud-platform",
+  "https://www.googleapis.com/auth/userinfo.email",
+]
+
+########################################
+# Data
+########################################
+
+db_tier              = "db-g1-small"
+db_disk_size_gb      = 20
+db_availability_type = "ZONAL"
+db_point_in_time_recovery_enabled = false
+
+# Dev settings so teardown is not a fight. Flip all three before this holds
+# anything you care about.
+db_deletion_protection      = false
+cluster_deletion_protection = false
+force_destroy_buckets       = true
+
+########################################
+# Observability
+########################################
+
+install_observability = true
+loki_retention_hours  = 168 # 7 days
+enable_managed_prometheus = true
+agent_namespace           = "minder"
+
+# Publish Grafana through the shared HTTPS Gateway. The wildcard certificate
+# covers this name; create a DNS-only A record pointing at trino_lb_address.
+grafana_hostname = "dev-grafana.celesnity.com"
+
+# Shared Gateway used by approved public application edges in development.
+enable_external_lb      = true
+lb_hostname             = "trino-dev.celesnity.com"
+lb_certificate_name     = "celesnity-global"
+lb_additional_hostnames = ["*.celesnity.com"]
+application_hostname = "dev.celesnity.com"
+monitoring_notification_email_addresses = [
+  "dax.pham@celesnity.com",
+]
+
+# Secret Manager is the source of truth for Trino TLS. Version numbers are
+# deliberately pinned; rotate with scripts/trino/bootstrap-tls-secret-manager.sh,
+# then update both versions and increment the Kubernetes revision.
+trino_tls_secret_version         = "1"
+trino_ca_secret_version          = "1"
+trino_user_password_secret_version = "3"
+trino_shared_secret_version        = "1"
+trino_kubernetes_secret_revision = 2
+
+########################################
+# FTPS inbound connector
+#
+# The FTPS TCP proxies reuse mqtt_load_balancer_ip on distinct ports. Configure
+# ftps-dev.celesnity.com in Cloudflare as a DNS-only record to that same address
+# after Terraform apply; do not enable Cloudflare's HTTP proxy.
+########################################
+
+ftps_hostname             = "ftps-dev.celesnity.com"
+ftps_tenant_prefix        = "tnt_gcpdev000001"
+ftps_sqlite_storage_size  = "5Gi"
+ftps_bootstrap_revision   = "v1"
+ftps_demo_password_secret_version   = "1"
+ftps_status_password_secret_version = "1"
+ftps_kubernetes_secret_revision     = 1
+
+# Optional globally unique bucket name. Empty derives
+# celesnity-gcp-dev-ftps-ingress-cosmos3-mmad-research.
+# ftps_ingress_bucket_name = ""
+
+########################################
+# Cost reductions
+########################################
+
+# Spot VMs: typically 60-91% off, with 30 seconds of preemption notice.
+# node_spot = true
+
+# Skip the logging stack entirely, or keep only Alloy and ship to Grafana Cloud's
+# free tier (50 GB/month, 14-day retention).
+# install_loki        = false
+# install_grafana     = false
+# loki_write_endpoint = "https://logs-prod-XXX.grafana.net/loki/api/v1/push"
+
+# No public internet egress at all. Google APIs still work via Private Google
+# Access, but Docker Hub images (Trino, Loki, Grafana, Alloy) will not pull.
+# Only viable if you mirror those images into Artifact Registry first.
+# enable_cloud_nat = false
+
+########################################
+# Production changes
+########################################
+
+# zone                        = null      # regional cluster, 3x nodes
+# db_availability_type        = "REGIONAL"
+# db_deletion_protection      = true
+# cluster_deletion_protection = true
+# force_destroy_buckets       = false
+# enable_private_endpoint     = true      # needs a bastion or Cloud Shell
+# release_channel             = "STABLE"

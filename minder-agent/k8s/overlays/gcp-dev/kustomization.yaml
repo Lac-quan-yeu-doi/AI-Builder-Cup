@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: minder
+
+patches:
+  - path: sandbox-security-patch.yaml
+
+resources:
+  - ../../base
+  - configmap.yaml
+  - secret.yaml
+  - hpa.yaml
+  - networkpolicy.yaml
+
+# The deployment pipeline replaces newTag before rendering, so the
+# digest-pinned tag never has to be committed. newName is spelled out rather
+# than left to the pipeline so `kubectl kustomize k8s/overlays/gcp-dev` renders
+# something meaningful on its own.
+#
+images:
+  - name: minder/minder-serve
+    newName: asia-southeast1-docker.pkg.dev/cosmos3-mmad-research/celesnity-gcp-dev-apps/minder-serve
+    newTag: development-latest
+  - name: minder/minder-sandbox-runner
+    newName: asia-southeast1-docker.pkg.dev/cosmos3-mmad-research/celesnity-gcp-dev-apps/minder-sandbox-runner
+    newTag: development-latest

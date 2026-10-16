@@ -1,0 +1,247 @@
+########################################
+# celesnity-web -> GKE (celesnity-gcp-dev)
+#
+# Triggered on push to the development branch. Builds the frontend image and applies
+# k8s/overlays/gcp/dev.
+#
+# Shorter than the celesnity-core pipeline because there is less to do: no schema to
+# migrate and no runtime secrets to inject, since the frontend holds no credentials.
+# The one thing it does need that core does not is the API URL at *build* time.
+#
+# The cluster, namespace, ServiceAccount, Gateway, and Artifact Registry repository
+# are all owned by celesnity-infra. This pipeline creates none of them.
+#
+# One-time setup, from celesnity-infra:
+#   terraform -chdir=infra/environments/gcp-dev output -raw apps_cloud_build_setup
+########################################
+
+steps:
+  # ---------------------------------------------------------------------------
+  # Build and push.
+  #
+  # No --platform. Cloud Build workers and the cluster's e2 nodes are both x86_64,
+  # so the native build is already the right architecture.
+  # ---------------------------------------------------------------------------
+  - name: gcr.io/cloud-builders/docker
+    id: build-and-push
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+
+        # Two tags. The commit tag is what gets deployed, so a rollout traces back to
+        # a commit and a rollback is a tag change rather than a rebuild. The moving
+        # tag is for humans reading `gcloud artifacts docker images list`.
+        #
+        # SHORT_SHA is empty for a manual build with no commit. Use the build ID in
+        # that case so a production rollout never depends on a mutable cached tag.
+        # Written to a file because each step runs in a fresh container and only
+        # /workspace survives between them.
+        TAG="${SHORT_SHA}"
+        if [ -z "$$TAG" ]; then
+          TAG="manual-${BUILD_ID}"
+          echo "==> no SHORT_SHA; deploying unique manual tag $$TAG"
+        fi
+        printf '%s' "$$TAG" > /workspace/.image-tag
+
+        WEB="${_AR_HOST}/${PROJECT_ID}/${_AR_REPO}/web"
+
+        # --build-arg, not an environment variable on the Deployment.
+        #
+        # Next.js inlines NEXT_PUBLIC_* into the client bundle during `next build`,
+        # because the browser cannot read the server's environment. Supplying this at
+        # runtime does nothing: the app falls back to its localhost default and the
+        # browser reports a connection error that says nothing about configuration.
+        #
+        # It also means the image is not portable between hostnames. Promoting this
+        # build to another environment requires rebuilding it, not just retagging.
+        echo "==> building $$WEB:$$TAG for ${_CORE_API_URL}"
+        docker build --pull \
+          --build-arg "NEXT_PUBLIC_AGENT_API_URL=${_AGENT_API_URL}" \
+          --build-arg "NEXT_PUBLIC_CHAT_AGENT_NAME=${_CHAT_AGENT_NAME}" \
+          --build-arg "NEXT_PUBLIC_AUTOMATION_WORKFLOW_CHAT_AGENT_NAME=${_AUTOMATION_WORKFLOW_CHAT_AGENT_NAME}" \
+          --build-arg "NEXT_PUBLIC_SKILL_CHAT_AGENT_NAME=${_SKILL_CHAT_AGENT_NAME}" \
+          --build-arg "NEXT_PUBLIC_PLANT_MODEL_CHAT_AGENT_NAME=${_PLANT_MODEL_CHAT_AGENT_NAME}" \
+          --tag "$$WEB:$$TAG" \
+          --tag "$$WEB:${_MOVING_TAG}" \
+          -f Dockerfile .
+
+        for ref in "$$WEB:$$TAG" "$$WEB:${_MOVING_TAG}"; do
+          echo "==> pushing $$ref"
+          docker push "$$ref"
+        done
+
+  # ---------------------------------------------------------------------------
+  # Resolve environment-specific Identity Platform configuration.
+  #
+  # The API key is referrer-restricted and necessarily reaches the browser, but
+  # Secret Manager remains the operational source so rotation does not require a
+  # source commit. Values are never echoed into Cloud Build logs.
+  # ---------------------------------------------------------------------------
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: inject-identity-config
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        OVERLAY_ENV="$$(printf '%s' '${_ENV}' | sed 's/^gcp-//')"
+        cd "k8s/overlays/gcp/$$OVERLAY_ENV"
+
+        CONFIG_MANIFEST="config/web-config.yaml"
+        if [ ! -f "$$CONFIG_MANIFEST" ]; then
+          echo "ERROR: Web ConfigMap is missing for overlay ${_ENV}"
+          exit 1
+        fi
+        if grep -R -n 'local-development' .; then
+          echo "ERROR: local-development authentication must never appear in a GKE overlay"
+          exit 1
+        fi
+        if ! grep -Eq "CELESNITY_AUTH_MODE:[[:space:]]*['\"]identity-platform['\"]" "$$CONFIG_MANIFEST"; then
+          echo "ERROR: GKE Web must explicitly enforce identity-platform authentication"
+          exit 1
+        fi
+
+        TENANT_SECRET="${_ENV}-identity-platform-tenant-id"
+        API_KEY_SECRET="${_ENV}-identity-platform-browser-api-key"
+        if ! identity_tenant_id=$$(gcloud secrets versions access latest \
+          --secret="$$TENANT_SECRET" 2>/dev/null); then
+          echo "ERROR: cannot read Secret Manager secret '$$TENANT_SECRET'."
+          exit 1
+        fi
+        if ! identity_api_key=$$(gcloud secrets versions access latest \
+          --secret="$$API_KEY_SECRET" 2>/dev/null); then
+          echo "ERROR: cannot read Secret Manager secret '$$API_KEY_SECRET'."
+          exit 1
+        fi
+
+        identity_tenant_id=$$(printf '%s' "$$identity_tenant_id" | tr -d '\r\n')
+        identity_api_key=$$(printf '%s' "$$identity_api_key" | tr -d '\r\n')
+        if ! printf '%s' "$$identity_tenant_id" | grep -Eq '^[A-Za-z0-9-]+$$'; then
+          echo "ERROR: '$$TENANT_SECRET' is empty or is not a valid tenant ID"
+          exit 1
+        fi
+        if ! printf '%s' "$$identity_api_key" | grep -Eq '^[A-Za-z0-9_-]+$$'; then
+          echo "ERROR: '$$API_KEY_SECRET' is empty or is not a valid browser API key"
+          exit 1
+        fi
+
+        sed -i "s|identity-platform-tenant-required|$$identity_tenant_id|g" "$$CONFIG_MANIFEST"
+        sed -i "s|identity-platform-browser-api-key-required|$$identity_api_key|g" "$$CONFIG_MANIFEST"
+        unset identity_tenant_id identity_api_key
+
+        if grep -Eq 'identity-platform-[a-z-]+-required|__[A-Z_]+__' "$$CONFIG_MANIFEST"; then
+          echo "ERROR: unresolved runtime configuration placeholders remain"
+          exit 1
+        fi
+        echo "==> injected Identity Platform configuration for ${_ENV}"
+
+  # ---------------------------------------------------------------------------
+  # Apply and wait.
+  # ---------------------------------------------------------------------------
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy
+    entrypoint: bash
+    env:
+      - USE_GKE_GCLOUD_AUTH_PLUGIN=True
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        TAG=$$(cat /workspace/.image-tag)
+
+        # Development is zonal and production is regional. The trigger selects
+        # the correct location flag.
+        LOCATION_FLAG="--${_CLUSTER_LOCATION_TYPE}"
+        gcloud container clusters get-credentials "${_CLUSTER}" \
+          "$$LOCATION_FLAG" "${_CLUSTER_LOCATION}" --project "${PROJECT_ID}"
+
+        # Preflight against what celesnity-infra owns. Without these the apply partly
+        # succeeds and the failure surfaces minutes later as a pod stuck in
+        # CreateContainerConfigError or an HTTPRoute that is never accepted.
+        echo "==> checking prerequisites from celesnity-infra"
+        for check in \
+          "namespace/${_NAMESPACE}" \
+          "serviceaccount/celesnity-web" \
+          "gateway.gateway.networking.k8s.io/celesnity"; do
+          kind="$${check%%/*}"
+          name="$${check##*/}"
+          ns_flag="-n ${_NAMESPACE}"
+          if [ "$$kind" = "namespace" ]; then ns_flag=""; fi
+          if ! kubectl get "$$kind" "$$name" $$ns_flag >/dev/null 2>&1; then
+            echo "ERROR: $$kind/$$name is missing."
+            echo "       It is created by Terraform in celesnity-infra."
+            echo "       Run: make infra-apply CLOUD=gcp && make deploy CLOUD=gcp"
+            exit 1
+          fi
+        done
+
+        echo "==> installing kustomize"
+        curl -sS "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
+          | bash -s -- "${_KUSTOMIZE_VERSION}"
+        mv kustomize /usr/local/bin/
+
+        OVERLAY_ENV="$$(printf '%s' '${_ENV}' | sed 's/^gcp-//')"
+        cd "k8s/overlays/gcp/$$OVERLAY_ENV"
+
+        # Pin to the commit tag. The overlay commits a moving tag so the manifests
+        # render meaningfully outside CI, but a Deployment referencing a moving tag
+        # has no rollout trigger when the tag is repointed and no honest rollback
+        # target.
+        kustomize edit set image \
+          "celesnity/web=${_AR_HOST}/${PROJECT_ID}/${_AR_REPO}/web:$$TAG"
+
+        echo "==> applying"
+        kustomize build . | kubectl apply -f -
+
+        # Fail the build on a bad rollout rather than reporting success while a broken
+        # revision serves.
+        echo "==> waiting for rollout"
+        kubectl -n ${_NAMESPACE} rollout status deployment/celesnity-web --timeout=420s
+
+        echo "==> deployed $$TAG"
+        kubectl -n ${_NAMESPACE} get pods -l app.kubernetes.io/name=celesnity-web
+
+substitutions:
+  # Production triggers override these with location type "region", London,
+  # cluster celesnity-gcp-prod, and the production repository.
+  _AR_HOST: asia-southeast1-docker.pkg.dev
+  _AR_REPO: celesnity-gcp-dev-apps
+  _CLUSTER: celesnity-gcp-dev
+  _CLUSTER_LOCATION_TYPE: zone
+  _CLUSTER_LOCATION: asia-southeast1-a
+  _NAMESPACE: celesnity
+  _ENV: gcp-dev
+  _KUSTOMIZE_VERSION: 5.8.1
+
+  # Baked into the client bundle, so it is set here rather than on the Deployment.
+  #
+  # A different origin from this frontend: celesnity-core owns api-dev.celesnity.com
+  # while this app owns dev.celesnity.com. Every browser call is therefore
+  # cross-origin, and only works because WEB_ORIGIN in celesnity-core's overlay
+  # ConfigMap names dev.celesnity.com. Change one and the other has to follow.
+  #
+  # The /api/v1 suffix is the API's own global prefix, not a routing artifact — the
+  # HTTPRoute forwards this hostname unrewritten.
+  _CORE_API_URL: https://api-dev.celesnity.com/api/v1
+  _AGENT_API_URL: /api/agent
+  _CHAT_AGENT_NAME: chat-assistant
+  _AUTOMATION_WORKFLOW_CHAT_AGENT_NAME: automation-workflow-editor
+  _SKILL_CHAT_AGENT_NAME: skill-creator
+  _PLANT_MODEL_CHAT_AGENT_NAME: plant-model-assistant
+
+  # Human-readable tag tracking the branch this trigger watches. Never deployed — the
+  # commit SHA is.
+  _MOVING_TAG: development-latest
+
+options:
+  # REQUIRED once a trigger runs as its own service account rather than the legacy
+  # Cloud Build account: with the default logging mode the build cannot write to a
+  # bucket and fails before the first step.
+  logging: CLOUD_LOGGING_ONLY
+  # `next build` is CPU-bound; 8 vCPU keeps it to a few minutes.
+  machineType: E2_HIGHCPU_8
+
+# The default is 10 minutes, which a Next build plus a rollout wait can exceed.
+timeout: 1800s

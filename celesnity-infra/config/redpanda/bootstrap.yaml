@@ -1,0 +1,4 @@
+superusers:
+  - celesnity-admin
+enable_sasl: true
+auto_create_topics_enabled: false

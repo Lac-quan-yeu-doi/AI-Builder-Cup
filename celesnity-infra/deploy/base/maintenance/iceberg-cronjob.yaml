@@ -1,0 +1,143 @@
+---
+# Iceberg table maintenance: expire snapshots and remove orphan files.
+#
+# This is the mechanism that makes deletion actually take effect. Without it,
+# Iceberg's immutable snapshots keep deleted rows readable through time travel
+# indefinitely, so a GDPR Art. 17 erasure request would appear satisfied while the
+# data remained retrievable.
+#
+# Runs Spark in local mode rather than submitting to spark-master. Maintenance is
+# metadata-heavy rather than data-heavy, so a single JVM is sufficient, and local
+# mode removes the driver/executor networking and the dependency on the Spark
+# cluster being healthy. Point SPARK_MASTER_URL at spark://spark-master:7077 if a
+# table ever grows large enough to need distributed listing.
+#
+# Cloud-neutral: credentials come from the ambient environment (EKS Pod Identity on
+# AWS, Workload Identity on GCP) and the warehouse URI scheme selects the Iceberg
+# FileIO. Both cloud bundles ship in the image.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: iceberg-maintenance
+  labels:
+    app.kubernetes.io/name: iceberg-maintenance
+    app.kubernetes.io/component: maintenance
+spec:
+  # Daily. The schedule interacts with ICEBERG_SNAPSHOT_RETENTION_DAYS: retention
+  # sets how long deleted data survives, this sets how promptly the sweep happens.
+  # Both belong in a documented erasure SLA.
+  schedule: "17 18 * * *" # 01:17 Singapore time
+  timeZone: Etc/UTC
+
+  # Never overlap. Two concurrent remove_orphan_files runs can race each other.
+  concurrencyPolicy: Forbid
+
+  # A missed window is not worth catching up on; the next run covers the same work.
+  startingDeadlineSeconds: 3600
+
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      # Kill a hung run rather than let it block tomorrow's.
+      activeDeadlineSeconds: 3600
+
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: iceberg-maintenance
+            app.kubernetes.io/component: maintenance
+        spec:
+          restartPolicy: Never
+
+          # Dedicated writer identity: maintenance can mutate the warehouse but
+          # cannot read or write execution artifacts.
+          serviceAccountName: celesnity-iceberg-maintenance
+          automountServiceAccountToken: false
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 185
+            fsGroup: 185
+
+          containers:
+            - name: maintenance
+              image: celesnity/spark:3.5.7-iceberg-1.11.0
+
+              command:
+                - /opt/spark/bin/spark-submit
+                - --master
+                - $(SPARK_MASTER_URL)
+                - --driver-memory
+                - 768m
+                - /opt/celesnity/maintenance/iceberg-maintenance.py
+
+              env:
+                - name: SPARK_MASTER_URL
+                  value: local[*]
+
+                # Retention window for deleted rows. This is the outer bound on how
+                # long an erasure takes to become irreversible, and should agree
+                # with db_retained_backups and the bucket noncurrent-version rule.
+                - name: ICEBERG_SNAPSHOT_RETENTION_DAYS
+                  value: "7"
+                # MQTT Bronze stays a single table per tenant. Compact its small
+                # streaming files in place before snapshot/orphan maintenance.
+                - name: ICEBERG_COMPACTION_ENABLED
+                  value: "true"
+                - name: ICEBERG_COMPACTION_MIN_INPUT_FILES
+                  value: "20"
+                - name: ICEBERG_COMPACTION_TARGET_FILE_SIZE_BYTES
+                  value: "268435456"
+
+                # Floor on snapshots kept regardless of age, so a table always has
+                # a rollback point.
+                - name: ICEBERG_RETAIN_LAST
+                  value: "3"
+
+                # Orphan sweeps lag deliberately: a file belonging to an in-flight
+                # write has no snapshot referencing it yet, and too short a window
+                # would delete data out from under a running Spark job.
+                - name: ICEBERG_ORPHAN_RETENTION_DAYS
+                  value: "3"
+
+                # Set true to report what would be deleted without deleting it.
+                - name: ICEBERG_MAINTENANCE_DRY_RUN
+                  value: "false"
+
+                # Cloud SQL enforces ENCRYPTED_ONLY; RDS accepts TLS too.
+                - name: POSTGRES_SSLMODE
+                  value: require
+
+              envFrom:
+                - secretRef:
+                    name: celesnity-database
+                - configMapRef:
+                    name: celesnity-storage
+
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 512Mi
+                limits:
+                  memory: 1Gi
+
+              volumeMounts:
+                - name: maintenance-script
+                  mountPath: /opt/celesnity/maintenance
+                  readOnly: true
+                - name: ivy
+                  mountPath: /opt/spark/ivy
+                - name: work
+                  mountPath: /opt/spark/work
+
+          volumes:
+            - name: maintenance-script
+              configMap:
+                name: iceberg-maintenance-script
+            - name: ivy
+              emptyDir: {}
+            - name: work
+              emptyDir: {}

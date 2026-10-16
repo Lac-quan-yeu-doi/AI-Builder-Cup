@@ -1,0 +1,150 @@
+services:
+  mysql-plain:
+    # MySQL 8.0 retains the TLS-disabled fixture option; MySQL 8.4 removed it.
+    image: mysql:8.0
+    command: ["--skip-ssl"]
+    environment:
+      MYSQL_ROOT_PASSWORD: root-test-only
+      MYSQL_DATABASE: analytics
+      MYSQL_USER: celesnity_reader
+      MYSQL_PASSWORD: mysql-test-only
+    volumes:
+      - ./init/01-seed.sql:/docker-entrypoint-initdb.d/01-seed.sql:ro
+      - ./init-plain/02-reader.sql:/docker-entrypoint-initdb.d/02-reader.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  certgen:
+    image: alpine:3.22
+    volumes:
+      - mysql_certs:/certs
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        apk add --no-cache openssl
+        && openssl req -x509 -nodes -newkey rsa:2048 -days 2
+        -keyout /certs/ca-key.pem -out /certs/ca.pem
+        -subj /CN=Celesnity-MySQL-Smoke-CA
+        && openssl req -nodes -newkey rsa:2048
+        -keyout /certs/server-key.pem -out /certs/server.csr
+        -subj /CN=mysql-tls
+        -addext subjectAltName=DNS:mysql-tls,DNS:localhost
+        && openssl x509 -req -days 2 -in /certs/server.csr
+        -CA /certs/ca.pem -CAkey /certs/ca-key.pem -CAcreateserial
+        -copy_extensions copy -out /certs/server-cert.pem
+        && chown 999:999 /certs/server-key.pem /certs/server-cert.pem /certs/ca.pem
+        && chmod 600 /certs/server-key.pem
+        && chmod 644 /certs/server-cert.pem /certs/ca.pem
+
+  mysql-tls:
+    image: mysql:8.4
+    command:
+      - --ssl-ca=/certs/ca.pem
+      - --ssl-cert=/certs/server-cert.pem
+      - --ssl-key=/certs/server-key.pem
+      - --require-secure-transport=ON
+    environment:
+      MYSQL_ROOT_PASSWORD: root-test-only
+      MYSQL_DATABASE: analytics
+      MYSQL_USER: celesnity_reader
+      MYSQL_PASSWORD: mysql-test-only
+    depends_on:
+      certgen:
+        condition: service_completed_successfully
+    volumes:
+      - ./init/01-seed.sql:/docker-entrypoint-initdb.d/01-seed.sql:ro
+      - mysql_certs:/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --ssl-mode=REQUIRED --silent"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  truststore:
+    build:
+      context: ../../spark
+      dockerfile: Dockerfile
+      args:
+        ICEBERG_VERSION: ${ICEBERG_VERSION:-1.11.0}
+        POSTGRES_JDBC_VERSION: ${POSTGRES_JDBC_VERSION:-42.7.13}
+        MYSQL_JDBC_VERSION: ${MYSQL_JDBC_VERSION:-26.7.0}
+    image: celesnity/spark:mysql-smoke
+    user: "0:0"
+    depends_on:
+      certgen:
+        condition: service_completed_successfully
+    volumes:
+      - mysql_certs:/certs:ro
+      - mysql_truststore:/truststore
+    entrypoint: ["/bin/bash", "-lc"]
+    command:
+      - >-
+        rm -f /truststore/mysql-test.p12
+        && keytool -importcert -noprompt
+        -alias celesnity-mysql-test-ca -file /certs/ca.pem
+        -keystore /truststore/mysql-test.p12 -storetype PKCS12
+        -storepass changeit
+        && chown spark:spark /truststore/mysql-test.p12
+
+  spark-smoke-plain:
+    build:
+      context: ../../spark
+      dockerfile: Dockerfile
+      args:
+        ICEBERG_VERSION: ${ICEBERG_VERSION:-1.11.0}
+        POSTGRES_JDBC_VERSION: ${POSTGRES_JDBC_VERSION:-42.7.13}
+        MYSQL_JDBC_VERSION: ${MYSQL_JDBC_VERSION:-26.7.0}
+    image: celesnity/spark:mysql-smoke
+    depends_on:
+      mysql-plain:
+        condition: service_healthy
+    environment:
+      CELESNITY_DB_DRIVER_CLASS: com.mysql.cj.jdbc.Driver
+      CELESNITY_DB_JDBC_URL: jdbc:mysql://mysql-plain:3306/analytics?sslMode=DISABLED
+      SOURCE_MYSQL_USER: celesnity_reader
+      SOURCE_MYSQL_PASSWORD: mysql-test-only
+    volumes:
+      - ./mysql-jdbc-smoke.py:/opt/celesnity/mysql-jdbc-smoke.py:ro
+    command:
+      - /opt/spark/bin/spark-submit
+      - --master
+      - local[1]
+      - /opt/celesnity/mysql-jdbc-smoke.py
+
+  spark-smoke-tls:
+    build:
+      context: ../../spark
+      dockerfile: Dockerfile
+      args:
+        ICEBERG_VERSION: ${ICEBERG_VERSION:-1.11.0}
+        POSTGRES_JDBC_VERSION: ${POSTGRES_JDBC_VERSION:-42.7.13}
+        MYSQL_JDBC_VERSION: ${MYSQL_JDBC_VERSION:-26.7.0}
+    image: celesnity/spark:mysql-smoke
+    depends_on:
+      mysql-tls:
+        condition: service_healthy
+      truststore:
+        condition: service_completed_successfully
+    environment:
+      CELESNITY_DB_DRIVER_CLASS: com.mysql.cj.jdbc.Driver
+      CELESNITY_DB_JDBC_URL: jdbc:mysql://mysql-tls:3306/analytics?sslMode=VERIFY_IDENTITY
+      SOURCE_MYSQL_USER: celesnity_reader
+      SOURCE_MYSQL_PASSWORD: mysql-test-only
+      JAVA_TOOL_OPTIONS: >-
+        -Djavax.net.ssl.trustStore=/truststore/mysql-test.p12
+        -Djavax.net.ssl.trustStorePassword=changeit
+    volumes:
+      - ./mysql-jdbc-smoke.py:/opt/celesnity/mysql-jdbc-smoke.py:ro
+      - mysql_truststore:/truststore:ro
+    command:
+      - /opt/spark/bin/spark-submit
+      - --master
+      - local[1]
+      - /opt/celesnity/mysql-jdbc-smoke.py
+
+volumes:
+  mysql_certs:
+  mysql_truststore:

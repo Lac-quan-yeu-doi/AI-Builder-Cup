@@ -1,0 +1,63 @@
+{
+  "month": "2026-10",
+  "entries": [
+    {
+      "id": "2026-10-01-service-identity-catalog-access",
+      "date": "2026-10-01",
+      "areas": ["web", "core"],
+      "kind": "feature",
+      "version": "0.5.0",
+      "authors": ["Dat Pham"],
+      "title": {
+        "en": "Manage catalog access for service identities",
+        "vi": "Quản lý quyền dữ liệu cho danh tính dịch vụ"
+      },
+      "summary": {
+        "en": "Organization admins can select service identities when granting catalog access, see and revoke their grants, and identify which type of identity runs a pipeline. Source access failures link to catalog access settings.",
+        "vi": "Quản trị viên tổ chức có thể chọn danh tính dịch vụ để cấp quyền dữ liệu, xem và thu hồi quyền, và xác định loại danh tính chạy pipeline. Lỗi truy cập nguồn có liên kết đến phần quản lý quyền dữ liệu."
+      }
+    },
+    {
+      "id": "2026-10-01-chat-event-stream-routing",
+      "date": "2026-10-01",
+      "areas": ["web"],
+      "kind": "fix",
+      "version": "0.5.0",
+      "authors": ["Dat Pham"],
+      "title": {
+        "vi": "Giảm gián đoạn cập nhật khi trợ lý đang trả lời",
+        "en": "Reduce interruptions while the assistant is responding"
+      },
+      "summary": {
+        "vi": "Kết nối cập nhật của trợ lý không còn bị ngắt sau 30 giây. Nếu kết nối bị gián đoạn trong lượt trả lời dài, cuộc trò chuyện tiếp tục từ cập nhật đã nhận mà không gửi lại câu hỏi.",
+        "en": "Assistant updates no longer hit a 30-second connection cutoff. If a connection is interrupted during a longer response, the conversation resumes from received updates without resending the prompt."
+      }
+    },
+    {
+      "id": "2026-10-01-chat-update-recovery",
+      "date": "2026-10-01",
+      "areas": ["web", "core"],
+      "kind": "fix",
+      "version": "0.5.0",
+      "authors": ["Dat Pham"],
+      "title": {
+        "vi": "Khôi phục cập nhật trong cùng cuộc trò chuyện",
+        "en": "Restore updates in the same conversation"
+      },
+      "summary": {
+        "vi": "Khi kết nối cập nhật bị gián đoạn, cuộc trò chuyện tải lại trạng thái mới nhất và các kết quả bị bỏ lỡ trước khi tiếp tục. Các tab hoạt động độc lập; đóng một tab không dừng lượt trả lời đang chạy.",
+        "en": "When chat updates are interrupted, the conversation reloads its latest state and missed results before continuing. Tabs remain independent; closing one tab keeps the assistant’s current run available."
+      },
+      "details": {
+        "vi": [
+          "Cuộc trò chuyện đang nghỉ chỉ mở lại cập nhật khi bạn quay lại hoặc gửi tin nhắn mới.",
+          "Nếu khôi phục nhiều lần không thành công, dùng Retry để kết nối lại mà không gửi lại câu hỏi trước đó."
+        ],
+        "en": [
+          "Idle conversations resume updates when you return or send a new message.",
+          "If repeated recovery fails, use Retry to reconnect without resending earlier questions."
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# Per-action policy for the AIP action registry (src/application/actions/).
+# Overrides an ActionDefinition's code-level defaults for approvalRequired,
+# auditRequired, and mcpEnabled (MCP catalog exposure) — see action-policy.ts.
+# An action not listed here uses its code-level defaults unchanged.
+
+chart.create: { mcpEnabled: true, approvalRequired: false, auditRequired: true }
+chart.setData: { mcpEnabled: true, approvalRequired: false, auditRequired: true }
+chart.setEncodings: { mcpEnabled: true, approvalRequired: false, auditRequired: true }
+chart.setSpec: { mcpEnabled: true, approvalRequired: false, auditRequired: true }
+chart.patch: { mcpEnabled: true, approvalRequired: false, auditRequired: true }
+chart.delete: { mcpEnabled: true, approvalRequired: true, auditRequired: true }
+
+automation.create: { mcpEnabled: true, approvalRequired: false, auditRequired: true }
+automation.toggle: { mcpEnabled: true, approvalRequired: false, auditRequired: true }
+automation.delete: { mcpEnabled: true, approvalRequired: true, auditRequired: true }
+automation.testFire: { mcpEnabled: false, approvalRequired: false, auditRequired: true }

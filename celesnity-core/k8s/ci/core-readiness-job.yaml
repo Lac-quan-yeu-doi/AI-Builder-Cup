@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__
+  namespace: __NAMESPACE__
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: celesnity-core
+        app.kubernetes.io/component: authorization-job
+    spec:
+      restartPolicy: Never
+      serviceAccountName: celesnity-core-api
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: readiness
+          image: __CORE_MIGRATE_IMAGE__
+          command: ["node", "dist/bootstrap/authorization-readiness-main.js"]
+          env:
+            - name: POSTGRES_HOST
+              valueFrom: { secretKeyRef: { name: celesnity-database, key: POSTGRES_HOST } }
+            - name: POSTGRES_PORT
+              valueFrom: { secretKeyRef: { name: celesnity-database, key: POSTGRES_PORT } }
+            - name: POSTGRES_DB
+              valueFrom: { secretKeyRef: { name: celesnity-database, key: POSTGRES_DB } }
+            - name: POSTGRES_USER
+              valueFrom: { secretKeyRef: { name: celesnity-database, key: POSTGRES_USER } }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: celesnity-database, key: POSTGRES_PASSWORD } }
+            - name: DATABASE_URL
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?schema=celesnity_app&uselibpqcompat=true&sslmode=require"
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }

@@ -1,0 +1,28 @@
+.DS_Store
+
+# Local Compose environment: credentials and host port overrides.
+local/.env
+local/secrets/
+**/__pycache__/
+
+# Terraform
+#
+# State is excluded because it contains the RDS master password: the platform
+# module reads the RDS-managed Secrets Manager value to build a Kubernetes
+# Secret. Move to an encrypted S3 backend rather than relying on this file.
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+crash.log
+crash.*.log
+tfplan
+*.tfplan
+
+# May contain account IDs, allow-listed CIDRs, or credentials.
+**/terraform.tfvars
+**/*.auto.tfvars
+!**/terraform.tfvars.example
+
+# .terraform.lock.hcl is intentionally NOT ignored: commit it so every apply
+# resolves the same provider versions.

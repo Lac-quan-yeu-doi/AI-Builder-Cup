@@ -1,0 +1,16 @@
+#!/bin/sh
+set -eu
+
+before_diff="$(mktemp "${TMPDIR:-/tmp}/minder-agent-pre-commit.XXXXXX")"
+trap 'rm -f "$before_diff"' 0 HUP INT TERM
+
+git diff --binary -- src > "$before_diff"
+npx prettier ./src --write
+npx eslint ./src --fix
+
+if ! git diff --binary -- src | cmp -s "$before_diff" -; then
+  printf '%s\n' \
+    "Formatting changed src/. Review and stage those changes, then retry the commit." \
+    >&2
+  exit 1
+fi

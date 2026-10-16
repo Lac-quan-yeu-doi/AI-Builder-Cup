@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt-bronze-stream-shared-0
+spec:
+  template:
+    spec:
+      containers:
+        - name: driver
+          env:
+            - name: STREAMING_TRIGGER_INTERVAL
+              value: 30 seconds

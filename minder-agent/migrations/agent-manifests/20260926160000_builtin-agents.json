@@ -1,0 +1,10 @@
+{
+  "id": "20260926160000_builtin-agents",
+  "assets": [
+    { "name": "chat-assistant", "source": "20260926160000_builtin-agents/chat-assistant.yaml", "sha256": "b3b4d715dfc6255d361638e8759b107ed32a0c987f23d942dff522e1d80297be" },
+    { "name": "automation-workflow-editor", "source": "20260926160000_builtin-agents/automation-workflow-editor.yaml", "sha256": "b59593a9259ee6b246a1330d52701c911117b6a7a298c10ea9b4abff546caab7" },
+    { "name": "plant-model-assistant", "source": "20260926160000_builtin-agents/plant-model-assistant.yaml", "sha256": "417c96e067a992876b4e18e05a7057e8c22a1d4a4cf1ab5d2ecefe1b13a65a0c" },
+    { "name": "skill-creator", "source": "20260926160000_builtin-agents/skill-creator.yaml", "sha256": "044217b3c0a9961a0569d47546797f5c5b0b9d57854e26de4eeeccaac6b39153" },
+    { "name": "chart-encoding-inference", "source": "20260926160000_builtin-agents/chart-encoding-inference.yaml", "sha256": "eacb1d1e0e9e3dc5c6d8d5886bf75bee99336a7a5520934a041374ceefd4601f" }
+  ]
+}

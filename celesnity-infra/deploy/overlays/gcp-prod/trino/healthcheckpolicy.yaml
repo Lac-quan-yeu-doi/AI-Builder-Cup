@@ -1,0 +1,38 @@
+---
+# Load balancer health check for the Trino coordinator.
+#
+# Replaces the healthCheck block of the Ingress-era BackendConfig; BackendConfig is
+# an Ingress-only resource and is ignored by Gateway.
+#
+# WITHOUT THIS THE BACKEND NEVER GOES HEALTHY.
+#
+# GKE derives the default check from the Service's application protocol, so
+# annotating the port HTTPS does get an HTTPS check — but the request path still
+# defaults to "/", which Trino answers with 401 now that password authentication
+# is on. Every backend is marked unhealthy and the load balancer returns 502 with
+# nothing obviously misconfigured.
+#
+# /v1/info is the one Trino endpoint that answers 200 without credentials, which is
+# why the pod readiness probe uses it too.
+apiVersion: networking.gke.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: trino-coordinator
+spec:
+  default:
+    checkIntervalSec: 15
+    timeoutSec: 5
+    healthyThreshold: 1
+    unhealthyThreshold: 3
+
+    config:
+      type: HTTPS
+      httpsHealthCheck:
+        port: 8443
+        requestPath: /v1/info
+
+  # Must name a Service, and must live in that Service's namespace.
+  targetRef:
+    group: ""
+    kind: Service
+    name: trino-coordinator

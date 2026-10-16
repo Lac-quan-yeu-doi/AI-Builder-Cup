@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: iceberg-maintenance
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: maintenance
+              # The metadata and orphan-file scans exceeded the base 1 GiB
+              # limit in GCP. Bound local concurrency and leave JVM overhead
+              # above the 1536 MiB driver heap for production maintenance too.
+              command:
+                - /opt/spark/bin/spark-submit
+                - --master
+                - $(SPARK_MASTER_URL)
+                - --driver-memory
+                - 1536m
+                - /opt/celesnity/maintenance/iceberg-maintenance.py
+              env:
+                - name: SPARK_MASTER_URL
+                  value: local[1]
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 1Gi
+                limits:
+                  memory: 2Gi

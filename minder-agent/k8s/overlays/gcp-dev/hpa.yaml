@@ -1,0 +1,28 @@
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: minder-serve
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: minder-serve
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    # CPU only, same reasoning as celesnity-core: the container has no CPU
+    # limit, so utilisation reads against the 100m request under load, and
+    # memory is left out because it tends to grow with LLM response buffering
+    # and shrink reluctantly, so it would scale up and then never back down.
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+    scaleUp:
+      stabilizationWindowSeconds: 60

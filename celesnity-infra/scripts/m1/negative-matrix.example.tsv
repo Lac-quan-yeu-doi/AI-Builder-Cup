@@ -1,0 +1,6 @@
+# Replace URLs and provide only the named token variables in the shell. Never put tokens in this file.
+no-session	GET	https://api.example.invalid/api/v1/administration/me	-	-	401	-
+wrong-audience	GET	https://api.example.invalid/api/v1/administration/me	WRONG_AUDIENCE_TOKEN	-	401	-
+disallowed-origin	POST	https://app.example.invalid/api/core/administration/invitations	OWNER_TOKEN	https://evil.example	403	examples/invitation.json
+suspended-member	GET	https://api.example.invalid/api/v1/administration/me	SUSPENDED_MEMBER_TOKEN	-	401,403	-
+foreign-resource	GET	https://api.example.invalid/api/v1/catalog/databases/FOREIGN_ID	TENANT_A_TOKEN	-	403,404	-

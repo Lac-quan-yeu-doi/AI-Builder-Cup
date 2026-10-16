@@ -1,0 +1,24 @@
+node_modules/
+.next/
+out/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+.worktrees/
+
+# Read-only clone of the design reference — never imported from, only copied from.
+.reference/
+
+# Playwright visual suite
+tests/visual/.artifacts/
+playwright-report/
+test-results/
+
+# Generated from docs/redesign-shots by scripts/build-redesign-comparison.mjs.
+# It inlines every screenshot as base64, so committing it stores the same
+# ~1.5MB twice and re-stores it whenever a single shot changes.
+docs/*-redesign-comparison.html

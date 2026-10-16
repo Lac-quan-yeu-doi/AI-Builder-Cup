@@ -1,0 +1,47 @@
+{
+  "catalogs": [
+    {
+      "user": "celesnity",
+      "catalog": "iceberg",
+      "allow": "all"
+    },
+    {
+      "catalog": ".*",
+      "allow": "read-only"
+    }
+  ],
+  "schemas": [
+    {
+      "user": "celesnity",
+      "catalog": "iceberg",
+      "schema": ".*",
+      "owner": true
+    },
+    {
+      "owner": false
+    }
+  ],
+  "tables": [
+    {
+      "user": "celesnity",
+      "catalog": "iceberg",
+      "schema": "demo",
+      "table": ".*",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "DELETE",
+        "UPDATE",
+        "OWNERSHIP"
+      ]
+    },
+    {
+      "catalog": ".*",
+      "schema": ".*",
+      "table": ".*",
+      "privileges": [
+        "SELECT"
+      ]
+    }
+  ]
+}

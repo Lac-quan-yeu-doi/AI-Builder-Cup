@@ -1,0 +1,2523 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["celesnity_app"]
+}
+
+enum VerificationStatus {
+  UNTESTED
+  SUCCEEDED
+  FAILED
+
+  @@schema("celesnity_app")
+}
+
+enum CdcConnectionSetupMode {
+  EXISTING
+  MANAGED
+
+  @@schema("celesnity_app")
+}
+
+enum CdcConnectionVerificationStatus {
+  UNTESTED
+  READY
+  SETUP_REQUIRED
+  FAILED
+
+  @@schema("celesnity_app")
+}
+
+enum ScriptStatus {
+  ACTIVE
+  ARCHIVED
+
+  @@schema("celesnity_app")
+}
+
+enum ExecutionStatus {
+  QUEUED
+  PREPARING
+  SUBMITTED
+  RUNNING
+  CANCELLING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  TIMED_OUT
+
+  @@schema("celesnity_app")
+}
+
+enum SqlExecutionStatus {
+  QUEUED
+  SUBMITTED
+  RUNNING
+  CANCELLING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  TIMED_OUT
+
+  @@schema("celesnity_app")
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  PUBLISHED
+  FAILED
+
+  @@schema("celesnity_app")
+}
+
+enum StreamAdapterStatus {
+  PROVISIONING
+  ACTIVE
+  DEGRADED
+  PAUSED
+  FAILED
+  ARCHIVED
+
+  @@schema("celesnity_app")
+}
+
+enum StreamAdapterDesiredState {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+
+  @@schema("celesnity_app")
+}
+
+enum StreamingPlacementKind {
+  SHARED
+  DEDICATED
+
+  @@schema("celesnity_app")
+}
+
+enum ProvisioningAttemptStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceStatus {
+  PROVISIONING
+  ACTIVE
+  DEGRADED
+  SUSPENDED
+  FAILED
+  RETIRED
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceDesiredState {
+  ACTIVE
+  SUSPENDED
+  RETIRED
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceType {
+  GATEWAY
+  SENSOR
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceContactStatus {
+  NEVER_SEEN
+  ONLINE
+  LOST_CONTACT
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceAlertStatus {
+  RAISED
+  ACKNOWLEDGED
+  CLEARED
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceAlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceLogLevel {
+  ERROR
+  WARNING
+  INFO
+  DEBUG
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceLogKind {
+  OPERATIONAL
+  FAULT
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceAlertType {
+  LOSS_OF_CONTACT
+  STORAGE_ALMOST_FULL
+  SIM_DATA_LIMIT
+  BATTERY_LOW
+  TAMPER
+  SHOCK
+  MOVED
+  SENSOR_FAULT
+  UNEXPECTED_REBOOT
+  RADIO_DEGRADED
+  LTE_MODEM_FAILURE
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceLifecycleState {
+  MANUFACTURED
+  PROVISIONED
+  COMMISSIONED
+  DECOMMISSIONED
+
+  @@schema("celesnity_app")
+}
+
+enum DeviceConfigurationStatus {
+  QUEUED
+  DISPATCHED
+  APPLIED
+  FAILED
+  ROLLED_BACK
+
+  @@schema("celesnity_app")
+}
+
+enum FirmwareDeploymentStatus {
+  QUEUED
+  DISPATCHED
+  ACCEPTED
+  DOWNLOADING
+  VERIFYING
+  INSTALLING
+  REBOOTING
+  SUCCEEDED
+  FAILED
+  ROLLED_BACK
+  CANCELLED
+
+  @@schema("celesnity_app")
+}
+
+enum FirmwareCampaignStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+  ABORTED
+
+  @@schema("celesnity_app")
+}
+
+enum MetadataCrawlerServiceFamily {
+  DATABASE
+
+  @@schema("celesnity_app")
+}
+
+enum MetadataCrawlerConcurrencyPolicy {
+  SKIP
+
+  @@schema("celesnity_app")
+}
+
+enum MetadataCrawlerTriggerType {
+  SCHEDULED
+  MANUAL
+
+  @@schema("celesnity_app")
+}
+
+enum MetadataCrawlerRunStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  PARTIAL
+  FAILED
+  CANCELLED
+
+  @@schema("celesnity_app")
+}
+
+enum MetadataCrawlerScopeType {
+  DATABASE
+  SCHEMA
+
+  @@schema("celesnity_app")
+}
+
+enum MetadataCrawlerScopeStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+
+  @@schema("celesnity_app")
+}
+
+enum CatalogNamespaceType {
+  DATABASE
+  SCHEMA
+
+  @@schema("celesnity_app")
+}
+
+enum CatalogRelationType {
+  TABLE
+  PARTITIONED_TABLE
+  VIEW
+  MATERIALIZED_VIEW
+  FOREIGN_TABLE
+
+  @@schema("celesnity_app")
+}
+
+enum CatalogConstraintType {
+  PRIMARY_KEY
+  FOREIGN_KEY
+  UNIQUE
+  CHECK
+
+  @@schema("celesnity_app")
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  OFFBOARDING
+  CLOSED
+
+  @@schema("celesnity_app")
+}
+
+enum IdentityStatus {
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+
+  @@schema("celesnity_app")
+}
+
+enum OrganizationRole {
+  PLATFORM_ADMIN
+  SUPPORT
+  ORG_OWNER
+  ORG_ADMIN
+  DATA_ENGINEER
+  ANALYST
+  VIEWER
+  AUDITOR
+  SERVICE_ACCOUNT
+
+  @@schema("celesnity_app")
+}
+
+enum MembershipStatus {
+  ACTIVE
+  REVOKED
+
+  @@schema("celesnity_app")
+}
+
+enum TutorialProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+
+  @@schema("celesnity_app")
+}
+
+enum TutorialOnboardingDecisionValue {
+  ACCEPTED
+  DISMISSED
+
+  @@schema("celesnity_app")
+}
+
+enum OauthConnectionStatus {
+  ACTIVE
+  NEEDS_REAUTH
+  REVOKED
+
+  @@schema("celesnity_app")
+}
+
+enum CatalogResourceType {
+  CATALOG
+  DATABASE
+  SCHEMA
+  TABLE
+  COLUMN
+
+  @@schema("celesnity_app")
+}
+
+enum CatalogPermission {
+  DISCOVER
+  DESCRIBE
+  PREVIEW
+  SELECT
+  INSERT
+  UPDATE
+  DELETE
+  EXECUTE
+  ALTER
+  GRANT
+  OWN
+
+  @@schema("celesnity_app")
+}
+
+enum PolicyEffect {
+  ALLOW
+  DENY
+
+  @@schema("celesnity_app")
+}
+
+model Organization {
+  id                                         String                                      @id @db.Uuid
+  slug                                       String                                      @unique @db.VarChar(80)
+  displayName                                String                                      @map("display_name") @db.VarChar(160)
+  homeRegion                                 String                                      @map("home_region") @db.VarChar(40)
+  status                                     OrganizationStatus                          @default(ACTIVE)
+  verifiedDomains                            String[]                                    @default([]) @map("verified_domains")
+  identityTenantId                           String?                                     @unique @map("identity_tenant_id") @db.VarChar(128)
+  mfaRequired                                Boolean                                     @default(false) @map("mfa_required")
+  createdAt                                  DateTime                                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                                  DateTime                                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  memberships                                OrganizationMembership[]
+  serviceIdentities                            OrganizationServiceIdentity[]
+  documents                                  Document[]
+  invitations                                OrganizationInvitation[]
+  auditEvents                                AuditEvent[]
+  tenants                                    Tenant[]
+  databaseServices                           DatabaseService[]
+  databaseServiceMemberships                  DatabaseServiceMembership[]
+  cdcConnectionProfiles                     DatabaseServiceCdcConnectionProfile[]
+  pipelines                                  Pipeline[]
+  scripts                                    Script[]
+  executions                                 Execution[]
+  sqlExecutions                              SqlExecution[]
+  outboxEvents                               OutboxEvent[]
+  metadataCrawlers                           MetadataCrawler[]
+  crawlerAssignments                         DatabaseMetadataCrawler[]
+  messageBlocks                              MessageBlock[]
+  groups                                     AuthorizationGroup[]
+  catalogGrants                              CatalogAccessGrant[]
+  namespaceDescriptions                      CatalogNamespaceDescription[]
+  agentRooms                                 AgentRoomBinding[]
+  agentRunScopes                             AgentRunScope[]
+  automationWorkflows                        AutomationWorkflow[]
+  chartCollections                           ChartCollection[]
+  charts                                     Chart[]
+  dashboards                                 Dashboard[]
+  devices                                    Device[]
+  measurementPoints                          MeasurementPoint[]
+  deviceLifecycleTransitions                 DeviceLifecycleTransition[]
+  deviceProvisioningAttempts                 DeviceProvisioningAttempt[]
+  firmwareReleases                           FirmwareRelease[]
+  firmwareDeployments                        FirmwareDeployment[]
+  firmwareCampaigns                          FirmwareCampaign[]
+  firmwareCampaignTargets                    FirmwareCampaignTarget[]
+  deviceAlerts                               DeviceAlert[]
+  deviceConfigurations                       DeviceConfiguration[]
+  deviceConfigurationTemplates               DeviceConfigurationTemplate[]
+  deviceLogs                                 DeviceLog[]
+  plantSites                                 PlantSite[]
+  plantModelVersions                         PlantModelVersion[]
+  plantDashboardAssociations                 PlantDashboardAssociation[]
+  dataWorkflows                              DataWorkflow[]
+  dataWorkflowVersions                       DataWorkflowVersion[]
+  dataWorkflowSchedules                      DataWorkflowSchedule[]
+  dataWorkflowRuns                           DataWorkflowRun[]
+  dataWorkflowNodeAttempts                   DataWorkflowNodeAttempt[]
+  dataWorkflowRetryAcknowledgements          DataWorkflowRetryAcknowledgement[]
+  dataWorkflowEdgeStates                     DataWorkflowEdgeState[]
+  dataWorkflowWatchSources                   DataWorkflowWatchSource[]
+  dataWorkflowWatchSourceSubscriptions       DataWorkflowWatchSourceSubscription[]
+  dataWorkflowWatchSourceCheckpoints         DataWorkflowWatchSourceCheckpoint[]
+  dataWorkflowWatchSourceCdcWindows          DataWorkflowWatchSourceCdcWindow[]
+  dataWorkflowWatchSourceCdcRelations        DataWorkflowWatchSourceCdcRelation[]
+  dataWorkflowWatchSourceCdcEvents           DataWorkflowWatchSourceCdcEvent[]
+  dataWorkflowWatchSourceCdcCheckpoints      DataWorkflowWatchSourceCdcCheckpoint[]
+  dataWorkflowWatchSourceNotificationBatches DataWorkflowWatchSourceNotificationBatch[]
+  dataWorkflowWatchSourceNotifications       DataWorkflowWatchSourceNotification[]
+  dataWorkflowWatchSourceDeliveryAssignments DataWorkflowWatchSourceDeliveryAssignment[]
+  tutorialProgress                           TutorialProgress[]
+  tutorialOnboardingDecisions                TutorialOnboardingDecision[]
+  tutorialCompletions                        TutorialCompletion[]
+
+  @@map("organizations")
+  @@schema("celesnity_app")
+}
+
+model PlantSite {
+  id                     String                      @id @db.Uuid
+  organizationId         String                      @default(dbgenerated()) @map("organization_id") @db.Uuid
+  name                   String                      @db.VarChar(160)
+  code                   String                      @db.VarChar(120)
+  timezone               String                      @db.VarChar(80)
+  draft                  Json
+  referenceData          Json                        @map("reference_data")
+  revision               Int                         @default(1)
+  latestPublishedVersion Int?                        @map("latest_published_version")
+  publishedRevision      Int?                        @map("published_revision")
+  createdAt              DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization           Organization                @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  versions               PlantModelVersion[]
+  dashboards             PlantDashboardAssociation[]
+
+  @@index([organizationId, updatedAt])
+  @@map("plant_sites")
+  @@schema("celesnity_app")
+}
+
+model PlantModelVersion {
+  id             String       @id @db.Uuid
+  organizationId String       @default(dbgenerated()) @map("organization_id") @db.Uuid
+  siteId         String       @map("site_id") @db.Uuid
+  versionNumber  Int          @map("version_number")
+  revision       Int
+  snapshot       Json
+  note           String?      @db.VarChar(400)
+  publishedBy    String       @map("published_by") @db.VarChar(320)
+  publishedAt    DateTime     @map("published_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  site           PlantSite    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, versionNumber])
+  @@index([organizationId, publishedAt])
+  @@map("plant_model_versions")
+  @@schema("celesnity_app")
+}
+
+model PlantDashboardAssociation {
+  organizationId String       @map("organization_id") @db.Uuid
+  siteId         String       @map("site_id") @db.Uuid
+  dashboardId    String       @map("dashboard_id") @db.Uuid
+  role           String       @db.VarChar(30)
+  displayOrder   Int          @default(0) @map("display_order")
+  isDefault      Boolean      @default(false) @map("is_default")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  site           PlantSite    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  dashboard      Dashboard    @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+
+  @@id([siteId, dashboardId])
+  @@index([organizationId, siteId, displayOrder])
+  @@map("plant_dashboard_associations")
+  @@schema("celesnity_app")
+}
+
+model UserIdentity {
+  id                  String                     @id @db.Uuid
+  provider            String                     @db.VarChar(80)
+  subject             String                     @db.VarChar(128)
+  identityTenantId    String?                    @map("identity_tenant_id") @db.VarChar(128)
+  email               String?                    @db.VarChar(320)
+  displayName         String?                    @map("display_name") @db.VarChar(200)
+  emailVerified       Boolean                    @default(false) @map("email_verified")
+  status              IdentityStatus             @default(ACTIVE)
+  lastLoginAt         DateTime?                  @map("last_login_at") @db.Timestamptz(6)
+  createdAt           DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  memberships         OrganizationMembership[]
+  serviceIdentity             OrganizationServiceIdentity?
+  acceptedInvitations OrganizationInvitation[]   @relation("InvitationAcceptedBy")
+  auditEvents         AuditEvent[]
+  groupMemberships    AuthorizationGroupMember[]
+  directCatalogGrants CatalogAccessGrant[]
+  boundAgentRooms     AgentRoomBinding[]         @relation("AgentRoomBoundBy")
+  dashboardsCreated   Dashboard[]                @relation("DashboardCreatedBy")
+  tutorialProgress            TutorialProgress[]
+  tutorialOnboardingDecisions TutorialOnboardingDecision[]
+  tutorialCompletions         TutorialCompletion[]
+  oauthConnections            OauthConnection[]
+
+  @@unique([provider, identityTenantId, subject])
+  @@index([email])
+  @@map("user_identities")
+  @@schema("celesnity_app")
+}
+
+model OauthConnection {
+  id                    String                @id @db.Uuid
+  identityId            String                @map("identity_id") @db.Uuid
+  provider              String                @db.VarChar(80)
+  externalAccountId     String                @map("external_account_id") @db.VarChar(255)
+  status                OauthConnectionStatus @default(ACTIVE)
+  scopes                String[]              @default([])
+  encryptedTokenPayload String                @map("encrypted_token_payload") @db.Text
+  encryptionIv          String                @map("encryption_iv") @db.VarChar(255)
+  encryptionAuthTag     String                @map("encryption_auth_tag") @db.VarChar(255)
+  encryptionKeyVersion  String                @map("encryption_key_version") @db.VarChar(50)
+  tokenExpiresAt        DateTime              @map("token_expires_at") @db.Timestamptz(6)
+  providerData          Json                  @default("{}") @map("provider_data")
+  connectedAt           DateTime              @default(now()) @map("connected_at") @db.Timestamptz(6)
+  updatedAt             DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  identity              UserIdentity          @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@unique([identityId, provider, externalAccountId])
+  @@index([identityId, provider])
+  @@map("oauth_connections")
+  @@schema("celesnity_app")
+}
+
+model OrganizationMembership {
+  id             String           @id @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  identityId     String           @map("identity_id") @db.Uuid
+  role           OrganizationRole
+  status         MembershipStatus @default(ACTIVE)
+  expiresAt      DateTime?        @map("expires_at") @db.Timestamptz(6)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  identity       UserIdentity     @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, identityId])
+  @@index([identityId, status])
+  @@map("organization_memberships")
+  @@schema("celesnity_app")
+}
+
+// Explicitly provisioned, per-organization service actor. No default grants.
+model OrganizationServiceIdentity {
+  organizationId String       @map("organization_id") @db.Uuid
+  purpose        String       @default("BACKGROUND") @db.VarChar(32)
+  identityId     String       @unique @map("identity_id") @db.Uuid
+  enabled        Boolean      @default(false)
+  permissions    String[]     @default([])
+  features       String[]     @default([])
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  identity       UserIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, purpose])
+  @@map("organization_service_identities")
+  @@schema("celesnity_app")
+}
+
+model AuthorizationGroup {
+  id                          String                     @id @db.Uuid
+  organizationId              String                     @map("organization_id") @db.Uuid
+  name                        String                     @db.VarChar(120)
+  description                 String?                    @db.VarChar(500)
+  systemKey                   String?                    @map("system_key") @db.VarChar(80)
+  featureVisibilityConfigured Boolean                    @default(false) @map("feature_visibility_configured")
+  visibleFeatures             String[]                   @default([]) @map("visible_features")
+  createdAt                   DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                   DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization                Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members                     AuthorizationGroupMember[]
+  catalogGrants               CatalogAccessGrant[]
+  chartCollectionGrants       ChartCollectionGrant[]
+
+  @@unique([organizationId, name])
+  @@unique([organizationId, systemKey])
+  @@index([organizationId])
+  @@map("authorization_groups")
+  @@schema("celesnity_app")
+}
+
+model AuthorizationGroupMember {
+  id         String             @id @db.Uuid
+  groupId    String             @map("group_id") @db.Uuid
+  identityId String             @map("identity_id") @db.Uuid
+  createdAt  DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  group      AuthorizationGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  identity   UserIdentity       @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, identityId])
+  @@index([identityId])
+  @@map("authorization_group_members")
+  @@schema("celesnity_app")
+}
+
+model CatalogAccessGrant {
+  id                 String              @id @db.Uuid
+  organizationId     String              @map("organization_id") @db.Uuid
+  groupId            String?             @map("group_id") @db.Uuid
+  identityId         String?             @map("identity_id") @db.Uuid
+  agentName          String?             @map("agent_name") @db.VarChar(120)
+  resourceType       CatalogResourceType @map("resource_type")
+  resourceId         String              @map("resource_id") @db.VarChar(255)
+  permissions        CatalogPermission[]
+  effect             PolicyEffect        @default(ALLOW)
+  includeDescendants Boolean             @default(false) @map("include_descendants")
+  grantOption        Boolean             @default(false) @map("grant_option")
+  validFrom          DateTime?           @map("valid_from") @db.Timestamptz(6)
+  expiresAt          DateTime?           @map("expires_at") @db.Timestamptz(6)
+  createdById        String              @map("created_by_id") @db.Uuid
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  group              AuthorizationGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  identity           UserIdentity?       @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, resourceType, resourceId])
+  @@index([groupId])
+  @@index([identityId])
+  @@index([organizationId, agentName])
+  @@map("catalog_access_grants")
+  @@schema("celesnity_app")
+}
+
+model CatalogNamespaceDescription {
+  id             String       @id @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  catalog        String       @db.VarChar(255)
+  namespace      String       @db.VarChar(255)
+  description    String?      @db.VarChar(1000)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // The physical Trino/Iceberg catalog is shared, so a namespace can belong to
+  // exactly one organization. Tenant-scoped uniqueness would allow two rows to
+  // authorize the same physical schema for two different organizations.
+  @@unique([catalog, namespace])
+  @@index([organizationId, catalog])
+  @@map("catalog_namespace_descriptions")
+  @@schema("celesnity_app")
+}
+
+model AgentRoomBinding {
+  roomId           String       @id @map("room_id") @db.VarChar(255)
+  organizationId   String       @map("organization_id") @db.Uuid
+  boundById        String       @map("bound_by_id") @db.Uuid
+  agentName        String?      @map("agent_name") @db.VarChar(120)
+  mfaVerifiedUntil DateTime?    @map("mfa_verified_until") @db.Timestamptz(6)
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  boundBy          UserIdentity @relation("AgentRoomBoundBy", fields: [boundById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([organizationId, agentName])
+  @@map("agent_room_bindings")
+  @@schema("celesnity_app")
+}
+
+// Browser-selected scope is registered by an authenticated human before Agent
+// admission. MCP metadata is only a lookup key; it never supplies the scope.
+model AgentRunScope {
+  runId          String       @id @map("run_id") @db.Uuid
+  roomId         String       @map("room_id") @db.VarChar(255)
+  organizationId String       @map("organization_id") @db.Uuid
+  boundById      String       @map("bound_by_id") @db.Uuid
+  agentName      String       @map("agent_name") @db.VarChar(120)
+  catalog        String?      @db.VarChar(255)
+  schema         String?      @db.VarChar(255)
+  expiresAt      DateTime     @map("expires_at") @db.Timestamptz(6)
+  closedAt       DateTime?    @map("closed_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, organizationId])
+  @@index([expiresAt])
+  @@map("agent_run_scopes")
+  @@schema("celesnity_app")
+}
+
+model OrganizationInvitation {
+  id             String           @id @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  email          String           @db.VarChar(320)
+  role           OrganizationRole
+  tokenHash      String           @unique @map("token_hash") @db.Char(64)
+  expiresAt      DateTime         @map("expires_at") @db.Timestamptz(6)
+  acceptedAt     DateTime?        @map("accepted_at") @db.Timestamptz(6)
+  revokedAt      DateTime?        @map("revoked_at") @db.Timestamptz(6)
+  acceptedById   String?          @map("accepted_by_id") @db.Uuid
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  acceptedBy     UserIdentity?    @relation("InvitationAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, email])
+  @@map("organization_invitations")
+  @@schema("celesnity_app")
+}
+
+model AuditEvent {
+  id              String        @id @db.Uuid
+  organizationId  String        @map("organization_id") @db.Uuid
+  actorIdentityId String?       @map("actor_identity_id") @db.Uuid
+  sessionId       String?       @map("session_id") @db.VarChar(128)
+  requestId       String?       @map("request_id") @db.VarChar(128)
+  eventType       String        @map("event_type") @db.VarChar(120)
+  action          String        @db.VarChar(160)
+  resourceType    String?       @map("resource_type") @db.VarChar(120)
+  resourceId      String?       @map("resource_id") @db.VarChar(255)
+  outcome         String        @db.VarChar(30)
+  ipAddressHash   String?       @map("ip_address_hash") @db.Char(64)
+  userAgent       String?       @map("user_agent") @db.VarChar(512)
+  metadata        Json          @default("{}")
+  occurredAt      DateTime      @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  actorIdentity   UserIdentity? @relation(fields: [actorIdentityId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, occurredAt])
+  @@index([actorIdentityId, occurredAt])
+  @@index([eventType, occurredAt])
+  @@map("audit_events")
+  @@schema("celesnity_app")
+}
+
+model Tenant {
+  id             String              @id @db.Uuid
+  storageKey     String              @unique @map("storage_key") @db.VarChar(52)
+  displayName    String              @map("display_name") @db.VarChar(160)
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organizationId String              @default(dbgenerated()) @map("organization_id") @db.Uuid
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  adapters       MqttStreamAdapter[]
+
+  @@map("tenants")
+  @@schema("celesnity_app")
+}
+
+model MqttStreamAdapter {
+  id                         String                         @id @db.Uuid
+  organizationId             String                         @default(dbgenerated()) @map("organization_id") @db.Uuid
+  publicKey                  String                         @unique @map("public_key") @db.VarChar(52)
+  tenantId                   String                         @map("tenant_id") @db.Uuid
+  name                       String                         @db.VarChar(160)
+  brokerUrl                  String                         @map("broker_url") @db.VarChar(2048)
+  topicFilter                String                         @map("topic_filter") @db.VarChar(1024)
+  qos                        Int                            @default(1)
+  encryptedCredentialPayload String                         @map("encrypted_credential_payload") @db.Text
+  encryptionIv               String                         @map("encryption_iv") @db.VarChar(255)
+  encryptionAuthTag          String                         @map("encryption_auth_tag") @db.VarChar(255)
+  encryptionKeyVersion       String                         @map("encryption_key_version") @db.VarChar(50)
+  desiredState               StreamAdapterDesiredState      @default(ACTIVE) @map("desired_state")
+  status                     StreamAdapterStatus            @default(PROVISIONING)
+  placementKind              StreamingPlacementKind         @default(SHARED) @map("placement_kind")
+  deploymentId               String                         @default("shared-0") @map("deployment_id") @db.VarChar(120)
+  generation                 Int                            @default(1)
+  observedGeneration         Int                            @default(0) @map("observed_generation")
+  lastError                  String?                        @map("last_error") @db.Text
+  lastReconciledAt           DateTime?                      @map("last_reconciled_at") @db.Timestamptz(6)
+  reconcileAfter             DateTime                       @default(now()) @map("reconcile_after") @db.Timestamptz(6)
+  reconciliationFailures     Int                            @default(0) @map("reconciliation_failures")
+  createdAt                  DateTime                       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime                       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant                     Tenant                         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  provisioningAttempts       StreamingProvisioningAttempt[]
+  devices                    Device[]
+  measurementPoints          MeasurementPoint[]
+
+  @@unique([tenantId, name])
+  @@index([status, reconcileAfter])
+  @@index([tenantId, status])
+  @@map("mqtt_stream_adapters")
+  @@schema("celesnity_app")
+}
+
+model Device {
+  id                             String                      @id @db.Uuid
+  organizationId                 String                      @default(dbgenerated()) @map("organization_id") @db.Uuid
+  publicKey                      String                      @unique @map("public_key") @db.VarChar(52)
+  adapterId                      String                      @map("adapter_id") @db.Uuid
+  externalDeviceId               String                      @map("external_device_id") @db.VarChar(128)
+  deviceType                     DeviceType                  @default(GATEWAY) @map("device_type")
+  name                           String                      @db.VarChar(160)
+  model                          String                      @db.VarChar(120)
+  hardwareRevision               String?                     @map("hardware_revision") @db.VarChar(80)
+  currentFirmwareVersion         String?                     @map("current_firmware_version") @db.VarChar(120)
+  deploymentSite                 String?                     @map("deployment_site") @db.VarChar(160)
+  physicalLocation               String?                     @map("physical_location") @db.VarChar(255)
+  commissionedAt                 DateTime?                   @map("commissioned_at") @db.Timestamptz(6)
+  provisioningConfirmedAt        DateTime?                   @map("provisioning_confirmed_at") @db.Timestamptz(6)
+  lifecycleState                 DeviceLifecycleState        @default(MANUFACTURED) @map("lifecycle_state")
+  gatewayId                      String?                     @map("gateway_id") @db.Uuid
+  measurementPointId             String?                     @map("measurement_point_id") @db.Uuid
+  telemetryTopic                 String                      @map("telemetry_topic") @db.VarChar(1024)
+  firmwareEventsTopic            String                      @map("firmware_events_topic") @db.VarChar(1024)
+  firmwareCommandsTopic          String                      @map("firmware_commands_topic") @db.VarChar(1024)
+  qos                            Int                         @default(1)
+  encryptedCredentialPayload     String                      @map("encrypted_credential_payload") @db.Text
+  encryptionIv                   String                      @map("encryption_iv") @db.VarChar(255)
+  encryptionAuthTag              String                      @map("encryption_auth_tag") @db.VarChar(255)
+  encryptionKeyVersion           String                      @map("encryption_key_version") @db.VarChar(50)
+  desiredState                   DeviceDesiredState          @default(ACTIVE) @map("desired_state")
+  status                         DeviceStatus                @default(PROVISIONING)
+  generation                     Int                         @default(1)
+  observedGeneration             Int                         @default(0) @map("observed_generation")
+  desiredConfigurationVersion    Int                         @default(0) @map("desired_configuration_version")
+  appliedConfigurationVersion    Int                         @default(0) @map("applied_configuration_version")
+  reportedConfigurationVersion   Int                         @default(0) @map("reported_configuration_version")
+  expectedCheckInIntervalSeconds Int                         @default(60) @map("expected_check_in_interval_seconds")
+  missedCheckInThreshold         Int                         @default(3) @map("missed_check_in_threshold")
+  contactStatus                  DeviceContactStatus         @default(NEVER_SEEN) @map("contact_status")
+  contactDeadlineAt              DateTime?                   @map("contact_deadline_at") @db.Timestamptz(6)
+  contactLostAt                  DateTime?                   @map("contact_lost_at") @db.Timestamptz(6)
+  lastSeenAt                     DateTime?                   @map("last_seen_at") @db.Timestamptz(6)
+  lastError                      String?                     @map("last_error") @db.Text
+  lastReconciledAt               DateTime?                   @map("last_reconciled_at") @db.Timestamptz(6)
+  reconcileAfter                 DateTime                    @default(now()) @map("reconcile_after") @db.Timestamptz(6)
+  reconciliationFailures         Int                         @default(0) @map("reconciliation_failures")
+  createdAt                      DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                      DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  adapter                        MqttStreamAdapter           @relation(fields: [adapterId], references: [id], onDelete: Cascade)
+  organization                   Organization                @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  gateway                        Device?                     @relation("GatewaySensors", fields: [gatewayId], references: [id], onDelete: Restrict)
+  sensors                        Device[]                    @relation("GatewaySensors")
+  measurementPoint               MeasurementPoint?           @relation(fields: [measurementPointId], references: [id], onDelete: Restrict)
+  lifecycleTransitions           DeviceLifecycleTransition[]
+  provisioningAttempts           DeviceProvisioningAttempt[]
+  firmwareDeployments            FirmwareDeployment[]
+  firmwareCampaignTargets        FirmwareCampaignTarget[]
+  alerts                         DeviceAlert[]
+  configurations                 DeviceConfiguration[]
+  logs                           DeviceLog[]
+
+  @@unique([adapterId, externalDeviceId])
+  @@index([adapterId, status])
+  @@index([organizationId])
+  @@index([adapterId, lastSeenAt])
+  @@index([contactStatus, contactDeadlineAt])
+  @@index([adapterId, deviceType, lifecycleState])
+  @@index([gatewayId])
+  @@index([measurementPointId])
+  @@index([status, reconcileAfter])
+  @@map("devices")
+  @@schema("celesnity_app")
+}
+
+model DeviceConfiguration {
+  id                     String                    @id @db.Uuid
+  organizationId         String                    @default(dbgenerated()) @map("organization_id") @db.Uuid
+  deviceId               String                    @map("device_id") @db.Uuid
+  version                Int
+  status                 DeviceConfigurationStatus @default(QUEUED)
+  parameters             Json
+  restoreFactoryDefaults Boolean                   @default(false) @map("restore_factory_defaults")
+  previousAppliedVersion Int                       @default(0) @map("previous_applied_version")
+  eventTokenHash         String                    @map("event_token_hash") @db.Char(64)
+  requestedBy            String                    @map("requested_by") @db.VarChar(160)
+  requestedAt            DateTime                  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  dispatchedAt           DateTime?                 @map("dispatched_at") @db.Timestamptz(6)
+  appliedAt              DateTime?                 @map("applied_at") @db.Timestamptz(6)
+  confirmedAt            DateTime?                 @map("confirmed_at") @db.Timestamptz(6)
+  finishedAt             DateTime?                 @map("finished_at") @db.Timestamptz(6)
+  error                  String?                   @db.VarChar(500)
+  updatedAt              DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization           Organization              @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  device                 Device                    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceId, version])
+  @@index([organizationId, requestedAt])
+  @@index([deviceId, status])
+  @@map("device_configurations")
+  @@schema("celesnity_app")
+}
+
+model DeviceConfigurationTemplate {
+  id             String       @id @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  name           String       @db.VarChar(160)
+  version        Int
+  parameters     Json
+  createdBy      String       @map("created_by") @db.VarChar(160)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, name, version])
+  @@index([organizationId, createdAt])
+  @@map("device_configuration_templates")
+  @@schema("celesnity_app")
+}
+
+model DeviceAlert {
+  id             String              @id @db.Uuid
+  organizationId String              @default(dbgenerated()) @map("organization_id") @db.Uuid
+  deviceId       String              @map("device_id") @db.Uuid
+  sourceEventId  String?             @map("source_event_id") @db.Uuid
+  type           DeviceAlertType
+  severity       DeviceAlertSeverity
+  status         DeviceAlertStatus   @default(RAISED)
+  snapshot       Json
+  raisedAt       DateTime            @default(now()) @map("raised_at") @db.Timestamptz(6)
+  acknowledgedAt DateTime?           @map("acknowledged_at") @db.Timestamptz(6)
+  acknowledgedBy String?             @map("acknowledged_by") @db.VarChar(160)
+  clearedAt      DateTime?           @map("cleared_at") @db.Timestamptz(6)
+  clearedBy      String?             @map("cleared_by") @db.VarChar(160)
+  updatedAt      DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  device         Device              @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, sourceEventId])
+  @@index([organizationId, status, raisedAt])
+  @@index([deviceId, raisedAt])
+  @@map("device_alerts")
+  @@schema("celesnity_app")
+}
+
+model DeviceLog {
+  id             String         @id @db.Uuid
+  organizationId String         @map("organization_id") @db.Uuid
+  deviceId       String         @map("device_id") @db.Uuid
+  sourceEventId  String         @map("source_event_id") @db.Uuid
+  level          DeviceLogLevel
+  kind           DeviceLogKind  @default(OPERATIONAL)
+  message        String         @db.VarChar(500)
+  context        Json
+  observedAt     DateTime       @map("observed_at") @db.Timestamptz(6)
+  receivedAt     DateTime       @default(now()) @map("received_at") @db.Timestamptz(6)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  device         Device         @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, sourceEventId])
+  @@index([organizationId, observedAt])
+  @@index([deviceId, observedAt])
+  @@index([deviceId, level, observedAt])
+  @@map("device_logs")
+  @@schema("celesnity_app")
+}
+
+model FirmwareRelease {
+  id                      String               @id @db.Uuid
+  organizationId          String               @default(dbgenerated()) @map("organization_id") @db.Uuid
+  version                 String               @db.VarChar(120)
+  deviceModel             String               @map("device_model") @db.VarChar(120)
+  hardwareRevision        String?              @map("hardware_revision") @db.VarChar(80)
+  artifactUrl             String?              @map("artifact_url") @db.VarChar(2048)
+  artifactStorageProvider String?              @map("artifact_storage_provider") @db.VarChar(20)
+  artifactBucket          String?              @map("artifact_bucket") @db.VarChar(255)
+  artifactObjectKey       String?              @map("artifact_object_key") @db.VarChar(1000)
+  artifactFileName        String?              @map("artifact_file_name") @db.VarChar(255)
+  artifactContentType     String?              @map("artifact_content_type") @db.VarChar(160)
+  artifactSizeBytes       Int?                 @map("artifact_size_bytes")
+  sha256                  String               @db.Char(64)
+  signature               String               @db.Text
+  signingKeyId            String?              @map("signing_key_id") @db.VarChar(80)
+  signaturePayload        String?              @map("signature_payload") @db.Text
+  signatureVerifiedAt     DateTime?            @map("signature_verified_at") @db.Timestamptz(6)
+  releaseNotes            String?              @map("release_notes") @db.Text
+  createdBy               String               @map("created_by") @db.VarChar(160)
+  createdAt               DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization            Organization         @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  deployments             FirmwareDeployment[]
+  campaigns               FirmwareCampaign[]
+
+  @@index([organizationId, createdAt])
+  @@map("firmware_releases")
+  @@schema("celesnity_app")
+}
+
+model FirmwareDeployment {
+  id              String                   @id @db.Uuid
+  organizationId  String                   @default(dbgenerated()) @map("organization_id") @db.Uuid
+  deviceId        String                   @map("device_id") @db.Uuid
+  releaseId       String                   @map("release_id") @db.Uuid
+  releaseVersion  String                   @map("release_version") @db.VarChar(120)
+  status          FirmwareDeploymentStatus @default(QUEUED)
+  progressPercent Int                      @default(0) @map("progress_percent")
+  previousVersion String?                  @map("previous_version") @db.VarChar(120)
+  error           String?                  @db.VarChar(500)
+  eventTokenHash  String                   @map("event_token_hash") @db.Char(64)
+  requestedBy     String                   @map("requested_by") @db.VarChar(160)
+  requestedAt     DateTime                 @default(now()) @map("requested_at") @db.Timestamptz(6)
+  startedAt       DateTime?                @map("started_at") @db.Timestamptz(6)
+  finishedAt      DateTime?                @map("finished_at") @db.Timestamptz(6)
+  updatedAt       DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization    Organization             @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  device          Device                   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  release         FirmwareRelease          @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  campaignTarget  FirmwareCampaignTarget?
+
+  @@index([organizationId, requestedAt])
+  @@index([deviceId, requestedAt])
+  @@index([releaseId])
+  @@map("firmware_deployments")
+  @@schema("celesnity_app")
+}
+
+model FirmwareCampaign {
+  id             String                   @id @db.Uuid
+  organizationId String                   @default(dbgenerated()) @map("organization_id") @db.Uuid
+  name           String                   @db.VarChar(160)
+  releaseId      String                   @map("release_id") @db.Uuid
+  releaseVersion String                   @map("release_version") @db.VarChar(120)
+  status         FirmwareCampaignStatus   @default(DRAFT)
+  canarySize     Int                      @map("canary_size")
+  batchSize      Int                      @map("batch_size")
+  currentBatch   Int?                     @map("current_batch")
+  requestedBy    String                   @map("requested_by") @db.VarChar(160)
+  error          String?                  @db.VarChar(500)
+  createdAt      DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  release        FirmwareRelease          @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  targets        FirmwareCampaignTarget[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, status, createdAt])
+  @@index([releaseId])
+  @@map("firmware_campaigns")
+  @@schema("celesnity_app")
+}
+
+model FirmwareCampaignTarget {
+  id             String              @id @db.Uuid
+  organizationId String              @default(dbgenerated()) @map("organization_id") @db.Uuid
+  campaignId     String              @map("campaign_id") @db.Uuid
+  deviceId       String              @map("device_id") @db.Uuid
+  batchNumber    Int                 @map("batch_number")
+  deploymentId   String?             @unique @map("deployment_id") @db.Uuid
+  cancelledAt    DateTime?           @map("cancelled_at") @db.Timestamptz(6)
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  campaign       FirmwareCampaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  device         Device              @relation(fields: [deviceId], references: [id], onDelete: Restrict)
+  deployment     FirmwareDeployment? @relation(fields: [deploymentId], references: [id], onDelete: SetNull)
+
+  @@unique([campaignId, deviceId])
+  @@index([organizationId, campaignId, batchNumber])
+  @@index([deviceId])
+  @@map("firmware_campaign_targets")
+  @@schema("celesnity_app")
+}
+
+model MeasurementPoint {
+  id               String            @id @db.Uuid
+  organizationId   String            @default(dbgenerated()) @map("organization_id") @db.Uuid
+  adapterId        String            @map("adapter_id") @db.Uuid
+  externalKey      String            @map("external_key") @db.VarChar(128)
+  name             String            @db.VarChar(160)
+  deploymentSite   String?           @map("deployment_site") @db.VarChar(160)
+  physicalLocation String?           @map("physical_location") @db.VarChar(255)
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  adapter          MqttStreamAdapter @relation(fields: [adapterId], references: [id], onDelete: Cascade)
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  devices          Device[]
+
+  @@unique([adapterId, externalKey])
+  @@index([organizationId])
+  @@map("measurement_points")
+  @@schema("celesnity_app")
+}
+
+model DeviceLifecycleTransition {
+  id             String                @id @db.Uuid
+  organizationId String                @default(dbgenerated()) @map("organization_id") @db.Uuid
+  deviceId       String                @map("device_id") @db.Uuid
+  fromState      DeviceLifecycleState? @map("from_state")
+  toState        DeviceLifecycleState  @map("to_state")
+  operatorId     String                @map("operator_id") @db.VarChar(160)
+  reason         String?               @db.VarChar(500)
+  transitionedAt DateTime              @default(now()) @map("transitioned_at") @db.Timestamptz(6)
+  device         Device                @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([deviceId, transitionedAt])
+  @@index([organizationId])
+  @@map("device_lifecycle_transitions")
+  @@schema("celesnity_app")
+}
+
+model DeviceProvisioningAttempt {
+  id             String                    @id @db.Uuid
+  organizationId String                    @default(dbgenerated()) @map("organization_id") @db.Uuid
+  deviceId       String                    @map("device_id") @db.Uuid
+  generation     Int
+  status         ProvisioningAttemptStatus @default(RUNNING)
+  error          String?                   @db.Text
+  startedAt      DateTime                  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime?                 @map("finished_at") @db.Timestamptz(6)
+  device         Device                    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([deviceId, startedAt])
+  @@index([organizationId])
+  @@map("device_provisioning_attempts")
+  @@schema("celesnity_app")
+}
+
+model StreamingProvisioningAttempt {
+  id             String                    @id @db.Uuid
+  organizationId String                    @default(dbgenerated()) @map("organization_id") @db.Uuid
+  adapterId      String                    @map("adapter_id") @db.Uuid
+  generation     Int
+  status         ProvisioningAttemptStatus @default(RUNNING)
+  error          String?                   @db.Text
+  startedAt      DateTime                  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime?                 @map("finished_at") @db.Timestamptz(6)
+  adapter        MqttStreamAdapter         @relation(fields: [adapterId], references: [id], onDelete: Cascade)
+
+  @@index([adapterId, startedAt])
+  @@map("streaming_provisioning_attempts")
+  @@schema("celesnity_app")
+}
+
+model DatabaseService {
+  id                         String                    @id @db.Uuid
+  organizationId             String                    @default(dbgenerated()) @map("organization_id") @db.Uuid
+  name                       String                    @unique @db.VarChar(120)
+  connectorType              String                    @map("connector_type") @db.VarChar(50)
+  config                     Json
+  configSchemaVersion        Int                       @map("config_schema_version")
+  encryptedCredentialPayload String                    @map("encrypted_credential_payload") @db.Text
+  credentialSchemaVersion    Int                       @map("credential_schema_version")
+  encryptionIv               String                    @map("encryption_iv") @db.VarChar(255)
+  encryptionAuthTag          String                    @map("encryption_auth_tag") @db.VarChar(255)
+  encryptionKeyVersion       String                    @map("encryption_key_version") @db.VarChar(50)
+  verificationStatus         VerificationStatus        @default(UNTESTED) @map("verification_status")
+  lastTestedAt               DateTime?                 @map("last_tested_at") @db.Timestamptz(6)
+  lastTestError              String?                   @map("last_test_error") @db.Text
+  archivedAt                 DateTime?                 @map("archived_at") @db.Timestamptz(6)
+  createdAt                  DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  scripts                    Script[]
+  executions                 Execution[]
+  metadataCrawlerConfig      DatabaseMetadataCrawler?
+  catalogNamespaces          CatalogNamespace[]
+  watchSources               DataWorkflowWatchSource[]
+  cdcConnectionProfile       DatabaseServiceCdcConnectionProfile?
+  memberships                DatabaseServiceMembership[]
+  organization               Organization              @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@map("database_services")
+  @@schema("celesnity_app")
+}
+
+model DatabaseServiceMembership {
+  organizationId    String          @default(dbgenerated()) @map("organization_id") @db.Uuid
+  databaseName      String          @map("database_name") @db.VarChar(120)
+  databaseServiceId String          @map("database_service_id") @db.Uuid
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  databaseService   DatabaseService @relation(fields: [databaseServiceId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@id([organizationId, databaseName, databaseServiceId])
+  @@index([organizationId, databaseServiceId, databaseName])
+  @@index([organizationId, databaseName, databaseServiceId])
+  @@map("database_service_memberships")
+  @@schema("celesnity_app")
+}
+
+model DatabaseServiceCdcConnectionProfile {
+  id                         String                          @id @db.Uuid
+  organizationId             String                          @map("organization_id") @db.Uuid
+  databaseServiceId          String                          @unique @map("database_service_id") @db.Uuid
+  connectorType              String                          @map("connector_type") @db.VarChar(50)
+  config                     Json
+  configSchemaVersion        Int                             @map("config_schema_version")
+  encryptedCredentialPayload String                          @map("encrypted_credential_payload") @db.Text
+  credentialSchemaVersion    Int                             @map("credential_schema_version")
+  encryptionIv               String                          @map("encryption_iv") @db.VarChar(255)
+  encryptionAuthTag          String                          @map("encryption_auth_tag") @db.VarChar(255)
+  encryptionKeyVersion       String                          @map("encryption_key_version") @db.VarChar(50)
+  setupMode                  CdcConnectionSetupMode          @map("setup_mode")
+  publicationName            String?                         @map("publication_name") @db.VarChar(63)
+  slotName                   String?                         @map("slot_name") @db.VarChar(63)
+  verificationStatus         CdcConnectionVerificationStatus @default(UNTESTED) @map("verification_status")
+  verificationIssueCode      String?                         @map("verification_issue_code") @db.VarChar(80)
+  verificationMessage        String?                         @map("verification_message") @db.Text
+  lastTestedAt               DateTime?                       @map("last_tested_at") @db.Timestamptz(6)
+  revision                   Int                             @default(0)
+  createdAt                  DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime                        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  databaseService            DatabaseService                 @relation(fields: [databaseServiceId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  organization               Organization                    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([databaseServiceId, organizationId], map: "cdc_profile_db_org_key")
+  @@index([organizationId, verificationStatus])
+  @@map("database_service_cdc_connection_profiles")
+  @@schema("celesnity_app")
+}
+
+model NodeDefinition {
+  type          String   @id @db.VarChar(80)
+  category      String   @db.VarChar(30)
+  label         String   @db.VarChar(120)
+  description   String   @db.Text
+  iconKey       String   @map("icon_key") @db.VarChar(120)
+  enabled       Boolean  @default(true)
+  runtimeKind   String   @map("runtime_kind") @db.VarChar(50)
+  inputPorts    Json     @map("input_ports")
+  outputPorts   Json     @map("output_ports")
+  propertyPanel Json     @map("property_panel")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([category, enabled, label])
+  @@map("node_definitions")
+  @@schema("celesnity_app")
+}
+
+model Pipeline {
+  id                   String            @id @db.Uuid
+  organizationId       String            @default(dbgenerated()) @map("organization_id") @db.Uuid
+  name                 String            @db.VarChar(160)
+  databaseName         String?           @map("database_name") @db.VarChar(120)
+  description          String?           @db.Text
+  status               String            @default("DRAFT") @db.VarChar(30)
+  version              Int               @default(1)
+  graph                Json
+  createdById          String            @map("created_by_id") @db.VarChar(120)
+  createdByDisplayName String            @map("created_by_display_name") @db.VarChar(200)
+  archivedAt           DateTime?         @map("archived_at") @db.Timestamptz(6)
+  createdAt            DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  versions             PipelineVersion[]
+  executions           Execution[]
+  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([status, updatedAt])
+  @@index([databaseName])
+  @@map("pipelines")
+  @@schema("celesnity_app")
+}
+
+model PipelineVersion {
+  id               String                    @id @db.Uuid
+  organizationId   String                    @default(dbgenerated()) @map("organization_id") @db.Uuid
+  pipelineId       String                    @map("pipeline_id") @db.Uuid
+  versionNumber    Int                       @map("version_number")
+  graphSnapshot    Json                      @map("graph_snapshot")
+  createdAt        DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  pipeline         Pipeline                  @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  compiledArtifact PipelineCompiledArtifact?
+  executions       Execution[]
+
+  @@unique([pipelineId, versionNumber])
+  @@index([pipelineId, createdAt])
+  @@map("pipeline_versions")
+  @@schema("celesnity_app")
+}
+
+model PipelineCompiledArtifact {
+  id                  String          @id @db.Uuid
+  organizationId      String          @default(dbgenerated()) @map("organization_id") @db.Uuid
+  pipelineVersionId   String          @unique @map("pipeline_version_id") @db.Uuid
+  compilerVersion     String          @map("compiler_version") @db.VarChar(50)
+  semanticGraphSha256 String          @map("semantic_graph_sha256") @db.Char(64)
+  bindingsSnapshot    Json            @map("bindings_snapshot")
+  artifactBucket      String          @map("artifact_bucket") @db.VarChar(255)
+  objectKey           String          @map("object_key") @db.VarChar(1000)
+  objectVersionId     String          @map("object_version_id") @db.VarChar(1024)
+  contentSha256       String          @map("content_sha256") @db.Char(64)
+  contentSize         Int             @map("content_size")
+  sourceMap           Json            @map("source_map")
+  compiledAt          DateTime        @map("compiled_at") @db.Timestamptz(6)
+  pipelineVersion     PipelineVersion @relation(fields: [pipelineVersionId], references: [id], onDelete: Cascade)
+
+  @@index([semanticGraphSha256, compilerVersion])
+  @@map("pipeline_compiled_artifacts")
+  @@schema("celesnity_app")
+}
+
+model Script {
+  id                String          @id @db.Uuid
+  organizationId    String          @default(dbgenerated()) @map("organization_id") @db.Uuid
+  name              String          @db.VarChar(160)
+  description       String?         @db.Text
+  databaseServiceId String          @map("database_service_id") @db.Uuid
+  artifactBucket    String          @map("artifact_bucket") @db.VarChar(255)
+  artifactPrefix    String          @map("artifact_prefix") @db.VarChar(1000)
+  status            ScriptStatus    @default(ACTIVE)
+  revision          Int             @default(0)
+  currentVersionId  String?         @unique @map("current_version_id") @db.Uuid
+  archivedAt        DateTime?       @map("archived_at") @db.Timestamptz(6)
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  databaseService   DatabaseService @relation(fields: [databaseServiceId], references: [id], onDelete: Restrict)
+  currentVersion    ScriptVersion?  @relation("CurrentScriptVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  versions          ScriptVersion[] @relation("ScriptVersions")
+  executions        Execution[]
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([databaseServiceId])
+  @@map("scripts")
+  @@schema("celesnity_app")
+}
+
+model ScriptVersion {
+  id              String      @id @db.Uuid
+  organizationId  String      @default(dbgenerated()) @map("organization_id") @db.Uuid
+  scriptId        String      @map("script_id") @db.Uuid
+  versionNumber   Int         @map("version_number")
+  objectKey       String      @unique @map("object_key") @db.VarChar(1000)
+  objectVersionId String      @map("object_version_id") @db.VarChar(1024)
+  contentSha256   String      @map("content_sha256") @db.Char(64)
+  contentSize     Int         @map("content_size")
+  publishedAt     DateTime    @default(now()) @map("published_at") @db.Timestamptz(6)
+  script          Script      @relation("ScriptVersions", fields: [scriptId], references: [id], onDelete: Cascade)
+  currentFor      Script?     @relation("CurrentScriptVersion")
+  executions      Execution[]
+
+  @@unique([scriptId, versionNumber])
+  @@index([scriptId])
+  @@map("script_versions")
+  @@schema("celesnity_app")
+}
+
+model Execution {
+  id                      String                   @id @db.Uuid
+  organizationId          String                   @default(dbgenerated()) @map("organization_id") @db.Uuid
+  workloadKind            String                   @default("SCRIPT") @map("workload_kind") @db.VarChar(20)
+  workloadVersionNumber   Int                      @map("workload_version_number")
+  scriptId                String?                  @map("script_id") @db.Uuid
+  scriptVersionId         String?                  @map("script_version_id") @db.Uuid
+  pipelineId              String?                  @map("pipeline_id") @db.Uuid
+  pipelineVersionId       String?                  @map("pipeline_version_id") @db.Uuid
+  databaseServiceId       String?                  @map("database_service_id") @db.Uuid
+  authorizationIdentityId String?                  @map("authorization_identity_id") @db.VarChar(320)
+  status                  ExecutionStatus          @default(QUEUED)
+  sparkApplicationId      String?                  @map("spark_application_id") @db.VarChar(255)
+  resourceProfile         Json?                    @map("resource_profile")
+  exitCode                Int?                     @map("exit_code")
+  errorSummary            String?                  @map("error_summary") @db.Text
+  outputConditionPlan     Json?                    @map("output_condition_plan")
+  outputFacts             Json?                    @map("output_facts")
+  outputFactsError        String?                  @map("output_facts_error") @db.Text
+  logObjectKey            String?                  @map("log_object_key") @db.VarChar(1000)
+  queuedAt                DateTime                 @default(now()) @map("queued_at") @db.Timestamptz(6)
+  startedAt               DateTime?                @map("started_at") @db.Timestamptz(6)
+  finishedAt              DateTime?                @map("finished_at") @db.Timestamptz(6)
+  cancelledAt             DateTime?                @map("cancelled_at") @db.Timestamptz(6)
+  updatedAt               DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  script                  Script?                  @relation(fields: [scriptId], references: [id], onDelete: Restrict)
+  scriptVersion           ScriptVersion?           @relation(fields: [scriptVersionId], references: [id], onDelete: Restrict)
+  pipeline                Pipeline?                @relation(fields: [pipelineId], references: [id], onDelete: Restrict)
+  pipelineVersion         PipelineVersion?         @relation(fields: [pipelineVersionId], references: [id], onDelete: Restrict)
+  databaseService         DatabaseService?         @relation(fields: [databaseServiceId], references: [id], onDelete: Restrict)
+  organization            Organization             @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  dataWorkflowNodeAttempt DataWorkflowNodeAttempt?
+
+  @@unique([id, organizationId])
+  @@index([status, queuedAt])
+  @@index([scriptId])
+  @@index([pipelineId])
+  @@map("executions")
+  @@schema("celesnity_app")
+}
+
+model SqlExecution {
+  id             String             @id @db.Uuid
+  organizationId String             @default(dbgenerated()) @map("organization_id") @db.Uuid
+  sqlText        String             @map("sql_text") @db.Text
+  catalog        String             @db.VarChar(255)
+  namespace      String?            @db.VarChar(255)
+  status         SqlExecutionStatus @default(QUEUED)
+  trinoQueryId   String?            @map("trino_query_id") @db.VarChar(255)
+  columnMetadata Json?              @map("column_metadata")
+  rowCount       Int?               @map("row_count")
+  statistics     Json?
+  errorCode      String?            @map("error_code") @db.VarChar(255)
+  errorMessage   String?            @map("error_message") @db.Text
+  errorLocation  Json?              @map("error_location")
+  queuedAt       DateTime           @default(now()) @map("queued_at") @db.Timestamptz(6)
+  startedAt      DateTime?          @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime?          @map("finished_at") @db.Timestamptz(6)
+  updatedAt      DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([status, queuedAt])
+  @@map("sql_executions")
+  @@schema("celesnity_app")
+}
+
+model OutboxEvent {
+  id             String       @id @db.Uuid
+  organizationId String       @default(dbgenerated()) @map("organization_id") @db.Uuid
+  aggregateType  String       @map("aggregate_type") @db.VarChar(120)
+  aggregateId    String       @map("aggregate_id") @db.Uuid
+  eventName      String       @map("event_name") @db.VarChar(160)
+  payload        Json
+  status         OutboxStatus @default(PENDING)
+  attempts       Int          @default(0)
+  occurredAt     DateTime     @map("occurred_at") @db.Timestamptz(6)
+  availableAt    DateTime     @default(now()) @map("available_at") @db.Timestamptz(6)
+  publishedAt    DateTime?    @map("published_at") @db.Timestamptz(6)
+  lastError      String?      @map("last_error") @db.Text
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([status, availableAt])
+  @@map("outbox_events")
+  @@schema("celesnity_app")
+}
+
+model MetadataCrawler {
+  id                      String                           @id @db.Uuid
+  organizationId          String                           @default(dbgenerated()) @map("organization_id") @db.Uuid
+  name                    String                           @db.VarChar(160)
+  serviceFamily           MetadataCrawlerServiceFamily     @default(DATABASE) @map("service_family")
+  enabled                 Boolean                          @default(true)
+  scheduleCron            String                           @map("schedule_cron") @db.VarChar(120)
+  scheduleTimezone        String                           @map("schedule_timezone") @db.VarChar(100)
+  nextRunAt               DateTime                         @map("next_run_at") @db.Timestamptz(6)
+  concurrencyPolicy       MetadataCrawlerConcurrencyPolicy @default(SKIP) @map("concurrency_policy")
+  timeoutSeconds          Int                              @default(3600) @map("timeout_seconds")
+  revision                Int                              @default(1)
+  discoveryConfig         Json                             @map("discovery_config")
+  configSchemaVersion     Int                              @default(1) @map("config_schema_version")
+  archivedAt              DateTime?                        @map("archived_at") @db.Timestamptz(6)
+  createdAt               DateTime                         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  databaseMetadataCrawler DatabaseMetadataCrawler?
+  runs                    MetadataCrawlerRun[]
+  organization            Organization                     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([nextRunAt, id])
+  @@map("metadata_crawlers")
+  @@schema("celesnity_app")
+}
+
+model DatabaseMetadataCrawler {
+  crawlerId         String          @id @map("crawler_id") @db.Uuid
+  organizationId    String          @default(dbgenerated()) @map("organization_id") @db.Uuid
+  databaseServiceId String          @unique @map("database_service_id") @db.Uuid
+  crawler           MetadataCrawler @relation(fields: [crawlerId], references: [id], onDelete: Cascade)
+  databaseService   DatabaseService @relation(fields: [databaseServiceId], references: [id], onDelete: Restrict)
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@map("database_metadata_crawlers")
+  @@schema("celesnity_app")
+}
+
+model MetadataCrawlerRun {
+  id                    String                     @id @db.Uuid
+  organizationId        String                     @default(dbgenerated()) @map("organization_id") @db.Uuid
+  crawlerId             String                     @map("crawler_id") @db.Uuid
+  triggerType           MetadataCrawlerTriggerType @map("trigger_type")
+  status                MetadataCrawlerRunStatus
+  deduplicationKey      String                     @unique @map("deduplication_key") @db.VarChar(255)
+  scheduledFor          DateTime?                  @map("scheduled_for") @db.Timestamptz(6)
+  queuedAt              DateTime                   @default(now()) @map("queued_at") @db.Timestamptz(6)
+  claimedAt             DateTime?                  @map("claimed_at") @db.Timestamptz(6)
+  startedAt             DateTime?                  @map("started_at") @db.Timestamptz(6)
+  finishedAt            DateTime?                  @map("finished_at") @db.Timestamptz(6)
+  heartbeatAt           DateTime?                  @map("heartbeat_at") @db.Timestamptz(6)
+  leaseExpiresAt        DateTime?                  @map("lease_expires_at") @db.Timestamptz(6)
+  workerId              String?                    @map("worker_id") @db.VarChar(160)
+  attempt               Int                        @default(0)
+  crawlerRevision       Int                        @map("crawler_revision")
+  connectorTypeSnapshot String                     @map("connector_type_snapshot") @db.VarChar(50)
+  safeConfigSnapshot    Json                       @map("safe_config_snapshot")
+  databaseCount         Int                        @default(0) @map("database_count")
+  schemaCount           Int                        @default(0) @map("schema_count")
+  relationCount         Int                        @default(0) @map("relation_count")
+  columnCount           Int                        @default(0) @map("column_count")
+  createdCount          Int                        @default(0) @map("created_count")
+  updatedCount          Int                        @default(0) @map("updated_count")
+  unchangedCount        Int                        @default(0) @map("unchanged_count")
+  deletedCount          Int                        @default(0) @map("deleted_count")
+  warningCount          Int                        @default(0) @map("warning_count")
+  errorCategory         String?                    @map("error_category") @db.VarChar(40)
+  errorSummary          String?                    @map("error_summary") @db.Text
+  logObjectKey          String?                    @map("log_object_key") @db.VarChar(1000)
+  crawler               MetadataCrawler            @relation(fields: [crawlerId], references: [id], onDelete: Restrict)
+  scopes                MetadataCrawlerRunScope[]
+  namespaceFirstSeen    CatalogNamespace[]         @relation("NamespaceFirstSeen")
+  namespaceLastSeen     CatalogNamespace[]         @relation("NamespaceLastSeen")
+  relationFirstSeen     CatalogRelation[]          @relation("RelationFirstSeen")
+  relationLastSeen      CatalogRelation[]          @relation("RelationLastSeen")
+  columnFirstSeen       CatalogColumn[]            @relation("ColumnFirstSeen")
+  columnLastSeen        CatalogColumn[]            @relation("ColumnLastSeen")
+  constraintFirstSeen   CatalogConstraint[]        @relation("ConstraintFirstSeen")
+  constraintLastSeen    CatalogConstraint[]        @relation("ConstraintLastSeen")
+
+  @@index([status, queuedAt])
+  @@index([leaseExpiresAt, status])
+  @@map("metadata_crawler_runs")
+  @@schema("celesnity_app")
+}
+
+model MetadataCrawlerRunScope {
+  id              String                     @id @db.Uuid
+  organizationId  String                     @default(dbgenerated()) @map("organization_id") @db.Uuid
+  runId           String                     @map("run_id") @db.Uuid
+  scopeKey        String                     @map("scope_key") @db.VarChar(2048)
+  scopeType       MetadataCrawlerScopeType   @map("scope_type")
+  status          MetadataCrawlerScopeStatus
+  discoveredCount Int                        @default(0) @map("discovered_count")
+  relationCount   Int                        @default(0) @map("relation_count")
+  columnCount     Int                        @default(0) @map("column_count")
+  errorCategory   String?                    @map("error_category") @db.VarChar(40)
+  errorSummary    String?                    @map("error_summary") @db.Text
+  startedAt       DateTime                   @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt      DateTime?                  @map("finished_at") @db.Timestamptz(6)
+  run             MetadataCrawlerRun         @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, scopeKey])
+  @@index([scopeKey, status])
+  @@map("metadata_crawler_run_scopes")
+  @@schema("celesnity_app")
+}
+
+model CatalogNamespace {
+  id                String               @id @db.Uuid
+  organizationId    String               @default(dbgenerated()) @map("organization_id") @db.Uuid
+  databaseServiceId String               @map("database_service_id") @db.Uuid
+  parentId          String?              @map("parent_id") @db.Uuid
+  namespaceType     CatalogNamespaceType @map("namespace_type")
+  name              String               @db.VarChar(255)
+  canonicalPath     String               @map("canonical_path") @db.VarChar(2048)
+  nativeIdentifier  String               @map("native_identifier") @db.VarChar(1024)
+  deletionScopeKey  String               @map("deletion_scope_key") @db.VarChar(2048)
+  description       String?              @db.Text
+  sourceHash        String               @map("source_hash") @db.Char(64)
+  properties        Json                 @default("{}")
+  firstSeenRunId    String               @map("first_seen_run_id") @db.Uuid
+  lastSeenRunId     String               @map("last_seen_run_id") @db.Uuid
+  deletedAt         DateTime?            @map("deleted_at") @db.Timestamptz(6)
+  databaseService   DatabaseService      @relation(fields: [databaseServiceId], references: [id], onDelete: Restrict)
+  parent            CatalogNamespace?    @relation("NamespaceHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children          CatalogNamespace[]   @relation("NamespaceHierarchy")
+  firstSeenRun      MetadataCrawlerRun   @relation("NamespaceFirstSeen", fields: [firstSeenRunId], references: [id], onDelete: Restrict)
+  lastSeenRun       MetadataCrawlerRun   @relation("NamespaceLastSeen", fields: [lastSeenRunId], references: [id], onDelete: Restrict)
+  relations         CatalogRelation[]
+
+  @@unique([databaseServiceId, canonicalPath])
+  @@index([databaseServiceId, deletionScopeKey])
+  @@index([databaseServiceId, deletedAt, name, id])
+  @@map("catalog_namespaces")
+  @@schema("celesnity_app")
+}
+
+model CatalogRelation {
+  id               String              @id @db.Uuid
+  organizationId   String              @default(dbgenerated()) @map("organization_id") @db.Uuid
+  namespaceId      String              @map("namespace_id") @db.Uuid
+  name             String              @db.VarChar(255)
+  canonicalPath    String              @map("canonical_path") @db.VarChar(2048)
+  relationType     CatalogRelationType @map("relation_type")
+  nativeIdentifier String              @map("native_identifier") @db.VarChar(1024)
+  deletionScopeKey String              @map("deletion_scope_key") @db.VarChar(2048)
+  description      String?             @db.Text
+  ddl              String?             @db.Text
+  sourceHash       String              @map("source_hash") @db.Char(64)
+  properties       Json                @default("{}")
+  firstSeenRunId   String              @map("first_seen_run_id") @db.Uuid
+  lastSeenRunId    String              @map("last_seen_run_id") @db.Uuid
+  deletedAt        DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  namespace        CatalogNamespace    @relation(fields: [namespaceId], references: [id], onDelete: Restrict)
+  firstSeenRun     MetadataCrawlerRun  @relation("RelationFirstSeen", fields: [firstSeenRunId], references: [id], onDelete: Restrict)
+  lastSeenRun      MetadataCrawlerRun  @relation("RelationLastSeen", fields: [lastSeenRunId], references: [id], onDelete: Restrict)
+  columns          CatalogColumn[]
+  constraints      CatalogConstraint[]
+
+  @@unique([namespaceId, name])
+  @@index([deletionScopeKey, lastSeenRunId])
+  @@index([namespaceId, deletedAt, name, id])
+  @@map("catalog_relations")
+  @@schema("celesnity_app")
+}
+
+model CatalogColumn {
+  id                String                    @id @db.Uuid
+  organizationId    String                    @default(dbgenerated()) @map("organization_id") @db.Uuid
+  relationId        String                    @map("relation_id") @db.Uuid
+  name              String                    @db.VarChar(255)
+  ordinalPosition   Int                       @map("ordinal_position")
+  nativeType        String                    @map("native_type") @db.VarChar(255)
+  canonicalType     String                    @map("canonical_type") @db.VarChar(255)
+  nullable          Boolean
+  defaultValue      String?                   @map("default_value") @db.Text
+  description       String?                   @db.Text
+  sourceHash        String                    @map("source_hash") @db.Char(64)
+  properties        Json                      @default("{}")
+  firstSeenRunId    String                    @map("first_seen_run_id") @db.Uuid
+  lastSeenRunId     String                    @map("last_seen_run_id") @db.Uuid
+  deletedAt         DateTime?                 @map("deleted_at") @db.Timestamptz(6)
+  relation          CatalogRelation           @relation(fields: [relationId], references: [id], onDelete: Cascade)
+  firstSeenRun      MetadataCrawlerRun        @relation("ColumnFirstSeen", fields: [firstSeenRunId], references: [id], onDelete: Restrict)
+  lastSeenRun       MetadataCrawlerRun        @relation("ColumnLastSeen", fields: [lastSeenRunId], references: [id], onDelete: Restrict)
+  constraintColumns CatalogConstraintColumn[]
+
+  @@unique([relationId, name])
+  @@unique([relationId, ordinalPosition])
+  @@index([relationId, deletedAt, ordinalPosition, id])
+  @@map("catalog_columns")
+  @@schema("celesnity_app")
+}
+
+model CatalogConstraint {
+  id                     String                    @id @db.Uuid
+  organizationId         String                    @default(dbgenerated()) @map("organization_id") @db.Uuid
+  relationId             String                    @map("relation_id") @db.Uuid
+  name                   String                    @db.VarChar(255)
+  constraintType         CatalogConstraintType     @map("constraint_type")
+  checkExpression        String?                   @map("check_expression") @db.Text
+  referencedRelationPath String?                   @map("referenced_relation_path") @db.VarChar(2048)
+  properties             Json                      @default("{}")
+  firstSeenRunId         String                    @map("first_seen_run_id") @db.Uuid
+  lastSeenRunId          String                    @map("last_seen_run_id") @db.Uuid
+  deletedAt              DateTime?                 @map("deleted_at") @db.Timestamptz(6)
+  relation               CatalogRelation           @relation(fields: [relationId], references: [id], onDelete: Cascade)
+  firstSeenRun           MetadataCrawlerRun        @relation("ConstraintFirstSeen", fields: [firstSeenRunId], references: [id], onDelete: Restrict)
+  lastSeenRun            MetadataCrawlerRun        @relation("ConstraintLastSeen", fields: [lastSeenRunId], references: [id], onDelete: Restrict)
+  columns                CatalogConstraintColumn[]
+
+  @@unique([relationId, name])
+  @@index([relationId, deletedAt, id])
+  @@map("catalog_constraints")
+  @@schema("celesnity_app")
+}
+
+model CatalogConstraintColumn {
+  id                   String            @id @db.Uuid
+  organizationId       String            @default(dbgenerated()) @map("organization_id") @db.Uuid
+  constraintId         String            @map("constraint_id") @db.Uuid
+  columnId             String            @map("column_id") @db.Uuid
+  position             Int
+  referencedColumnName String?           @map("referenced_column_name") @db.VarChar(255)
+  constraint           CatalogConstraint @relation(fields: [constraintId], references: [id], onDelete: Cascade)
+  column               CatalogColumn     @relation(fields: [columnId], references: [id], onDelete: Cascade)
+
+  @@unique([constraintId, position])
+  @@unique([constraintId, columnId])
+  @@map("catalog_constraint_columns")
+  @@schema("celesnity_app")
+}
+
+model MessageBlock {
+  id             String       @id @db.Uuid
+  organizationId String       @default(dbgenerated()) @map("organization_id") @db.Uuid
+  roomId         String       @map("room_id") @db.VarChar(255)
+  runId          String?      @map("run_id") @db.VarChar(255)
+  blockType      String       @map("block_type") @db.VarChar(30)
+  version        Int          @default(1)
+  payload        Json
+  fallbackText   String       @map("fallback_text") @db.Text
+  publishedAt    DateTime     @default(now()) @map("published_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([roomId, publishedAt])
+  @@map("message_blocks")
+  @@schema("celesnity_app")
+}
+
+model Chart {
+  id                    String           @id @db.Uuid
+  organizationId        String?          @map("organization_id") @db.Uuid
+  collectionId          String?          @map("collection_id") @db.Uuid
+  ownerIdentityId       String?          @map("owner_identity_id") @db.Uuid
+  runId                 String?          @map("run_id") @db.VarChar(255)
+  title                 String           @db.VarChar(500)
+  description           String?          @db.Text
+  provenance            String           @default("LEGACY") @db.VarChar(20)
+  currentRevisionNumber Int?             @map("current_revision_number")
+  legacyState           String           @default("MIGRATION_REQUIRED") @map("legacy_state") @db.VarChar(30)
+  archivedAt            DateTime?        @map("archived_at") @db.Timestamptz(6)
+  chartType             String           @map("chart_type") @db.VarChar(30)
+  encodings             Json             @default("{}")
+  data                  Json             @default("[]")
+  config                Json             @default("{}")
+  vlSpec                Json?            @map("vl_spec")
+  sql                   String?          @db.Text
+  status                String           @default("draft") @db.VarChar(20)
+  errorMessage          String?          @map("error_message") @db.Text
+  version               Int              @default(1)
+  createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization          Organization?    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  collection            ChartCollection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  revisions             ChartRevision[]
+  dashboardCards        DashboardCard[]
+
+  @@index([updatedAt])
+  @@index([organizationId, collectionId, updatedAt])
+  @@map("charts")
+  @@schema("celesnity_app")
+}
+
+model ChartRevision {
+  id                      String   @id @db.Uuid
+  chartId                 String   @map("chart_id") @db.Uuid
+  revisionNumber          Int      @map("revision_number")
+  queryDefinition         Json     @map("query_definition")
+  visualizationDefinition Json     @map("visualization_definition")
+  outputSchema            Json     @map("output_schema")
+  queryHash               String   @map("query_hash") @db.Char(64)
+  createdByIdentityId     String   @map("created_by_identity_id") @db.Uuid
+  restoredFromRevision    Int?     @map("restored_from_revision")
+  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  chart                   Chart    @relation(fields: [chartId], references: [id], onDelete: Cascade)
+
+  @@unique([chartId, revisionNumber])
+  @@map("chart_revisions")
+  @@schema("celesnity_app")
+}
+
+model ChartCollection {
+  id              String                 @id @db.Uuid
+  organizationId  String                 @map("organization_id") @db.Uuid
+  parentId        String?                @map("parent_id") @db.Uuid
+  ownerIdentityId String?                @map("owner_identity_id") @db.Uuid
+  type            String                 @db.VarChar(20)
+  name            String                 @db.VarChar(255)
+  archivedAt      DateTime?              @map("archived_at") @db.Timestamptz(6)
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization    Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent          ChartCollection?       @relation("ChartCollectionHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children        ChartCollection[]      @relation("ChartCollectionHierarchy")
+  charts          Chart[]
+  dashboards      Dashboard[]
+  grants          ChartCollectionGrant[]
+
+  @@index([organizationId, parentId, name])
+  @@map("chart_collections")
+  @@schema("celesnity_app")
+}
+
+model ChartCollectionGrant {
+  id                   String             @id @db.Uuid
+  collectionId         String             @map("collection_id") @db.Uuid
+  authorizationGroupId String             @map("authorization_group_id") @db.Uuid
+  access               String             @db.VarChar(20)
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  collection           ChartCollection    @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  authorizationGroup   AuthorizationGroup @relation(fields: [authorizationGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, authorizationGroupId])
+  @@index([authorizationGroupId])
+  @@map("chart_collection_grants")
+  @@schema("celesnity_app")
+}
+
+model Dashboard {
+  id                  String                      @id @db.Uuid
+  organizationId      String                      @map("organization_id") @db.Uuid
+  collectionId        String                      @map("collection_id") @db.Uuid
+  title               String                      @db.VarChar(500)
+  description         String?                     @db.Text
+  currentRevision     Int                         @default(1) @map("current_revision")
+  createdByIdentityId String                      @map("created_by_identity_id") @db.Uuid
+  archivedAt          DateTime?                   @map("archived_at") @db.Timestamptz(6)
+  createdAt           DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization        Organization                @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  collection          ChartCollection             @relation(fields: [collectionId], references: [id], onDelete: Restrict)
+  createdBy           UserIdentity                @relation("DashboardCreatedBy", fields: [createdByIdentityId], references: [id], onDelete: Restrict)
+  tabs                DashboardTab[]
+  cards               DashboardCard[]
+  filters             DashboardFilter[]
+  mappings            DashboardFilterMapping[]
+  plantAssociations   PlantDashboardAssociation[]
+
+  @@index([organizationId, collectionId, archivedAt, updatedAt])
+  @@map("dashboards")
+  @@schema("celesnity_app")
+}
+
+model DashboardTab {
+  id          String          @id @db.Uuid
+  dashboardId String          @map("dashboard_id") @db.Uuid
+  name        String          @db.VarChar(255)
+  order       Int
+  dashboard   Dashboard       @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  cards       DashboardCard[]
+
+  @@unique([dashboardId, order])
+  @@index([dashboardId, order])
+  @@map("dashboard_tabs")
+  @@schema("celesnity_app")
+}
+
+model DashboardCard {
+  id                     String                   @id @db.Uuid
+  dashboardId            String                   @map("dashboard_id") @db.Uuid
+  tabId                  String                   @map("tab_id") @db.Uuid
+  kind                   String                   @db.VarChar(20)
+  chartId                String?                  @map("chart_id") @db.Uuid
+  chartRevisionNumber    Int?                     @map("chart_revision_number")
+  x                      Int
+  y                      Int
+  width                  Int
+  height                 Int
+  content                Json?
+  visualizationOverrides Json?                    @map("visualization_overrides")
+  dashboard              Dashboard                @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  tab                    DashboardTab             @relation(fields: [tabId], references: [id], onDelete: Cascade)
+  chart                  Chart?                   @relation(fields: [chartId], references: [id], onDelete: SetNull)
+  inlineFilters          DashboardFilter[]        @relation("DashboardFilterInlineCard")
+  filterMappings         DashboardFilterMapping[]
+
+  @@index([tabId, y, x])
+  @@index([dashboardId])
+  @@index([chartId])
+  @@map("dashboard_cards")
+  @@schema("celesnity_app")
+}
+
+model DashboardFilter {
+  id              String                   @id @db.Uuid
+  dashboardId     String                   @map("dashboard_id") @db.Uuid
+  slug            String                   @db.VarChar(100)
+  label           String                   @db.VarChar(255)
+  semanticType    String                   @map("semantic_type") @db.VarChar(40)
+  operator        String                   @db.VarChar(40)
+  defaultValue    Json?                    @map("default_value")
+  required        Boolean                  @default(false)
+  multiple        Boolean                  @default(false)
+  valuesSource    Json?                    @map("values_source")
+  placementKind   String                   @map("placement_kind") @db.VarChar(30)
+  placementCardId String?                  @map("placement_card_id") @db.Uuid
+  order           Int
+  dashboard       Dashboard                @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  placementCard   DashboardCard?           @relation("DashboardFilterInlineCard", fields: [placementCardId], references: [id], onDelete: SetNull)
+  mappings        DashboardFilterMapping[]
+
+  @@unique([dashboardId, slug])
+  @@index([dashboardId, order])
+  @@index([placementCardId])
+  @@map("dashboard_filters")
+  @@schema("celesnity_app")
+}
+
+model DashboardFilterMapping {
+  id          String          @id @db.Uuid
+  dashboardId String          @map("dashboard_id") @db.Uuid
+  filterId    String          @map("filter_id") @db.Uuid
+  cardId      String          @map("card_id") @db.Uuid
+  targetKind  String          @map("target_kind") @db.VarChar(40)
+  target      Json
+  dashboard   Dashboard       @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  filter      DashboardFilter @relation(fields: [filterId], references: [id], onDelete: Cascade)
+  card        DashboardCard   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@unique([filterId, cardId])
+  @@index([dashboardId])
+  @@index([cardId])
+  @@map("dashboard_filter_mappings")
+  @@schema("celesnity_app")
+}
+
+model PendingAction {
+  id           String    @id @db.Uuid
+  actionName   String    @map("action_name") @db.VarChar(100)
+  input        Json
+  actor        Json
+  status       String    @default("pending") @db.VarChar(20)
+  rationale    String?   @db.Text
+  result       Json?
+  errorMessage String?   @map("error_message") @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  decidedAt    DateTime? @map("decided_at") @db.Timestamptz(6)
+  expiresAt    DateTime  @map("expires_at") @db.Timestamptz(6)
+
+  @@index([status, createdAt])
+  @@map("pending_actions")
+  @@schema("celesnity_app")
+}
+
+model Document {
+  id               String        @id @db.Uuid
+  organizationId   String?       @map("organization_id") @db.Uuid
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  filename         String        @db.VarChar(500)
+  mimeType         String        @map("mime_type") @db.VarChar(100)
+  storageKey       String        @map("storage_key") @db.VarChar(500)
+  pages            Json          @default("[]")
+  pageCount        Int           @map("page_count")
+  extractionStatus String        @default("extracted") @map("extraction_status") @db.VarChar(20)
+  chartPreviews    Json          @default("[]") @map("chart_previews")
+  sourceRunId      String?       @map("source_run_id") @db.Uuid
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt])
+  @@index([organizationId, createdAt])
+  @@index([sourceRunId])
+  @@map("documents")
+  @@schema("celesnity_app")
+}
+
+model AuditLogEntry {
+  id         String   @id @db.Uuid
+  actionName String   @map("action_name") @db.VarChar(100)
+  actor      Json
+  input      Json
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([actionName, createdAt])
+  @@map("audit_log_entries")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflow {
+  id               String                 @id @db.Uuid
+  organizationId   String                 @default(dbgenerated()) @map("organization_id") @db.Uuid
+  name             String                 @db.VarChar(160)
+  draft            Json
+  revision         Int                    @default(1)
+  publishedVersion Int?                   @map("published_version")
+  paused           Boolean                @default(false)
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization     Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  versions         DataWorkflowVersion[]
+  schedules        DataWorkflowSchedule[]
+  runs             DataWorkflowRun[]
+
+  @@unique([id, organizationId])
+  @@index([organizationId, updatedAt])
+  @@map("data_workflows")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowVersion {
+  id                       String                                      @id @db.Uuid
+  organizationId           String                                      @default(dbgenerated()) @map("organization_id") @db.Uuid
+  workflowId               String                                      @map("workflow_id") @db.Uuid
+  versionNumber            Int                                         @map("version_number")
+  graphSnapshot            Json                                        @map("graph_snapshot")
+  triggerSnapshot          Json                                        @map("trigger_snapshot")
+  pipelineDisplayNames     Json                                        @default("{}") @map("pipeline_display_names")
+  publishedAt              DateTime                                    @map("published_at") @db.Timestamptz(6)
+  organization             Organization                                @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  workflow                 DataWorkflow                                @relation(fields: [workflowId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  schedules                DataWorkflowSchedule[]
+  runs                     DataWorkflowRun[]
+  watchSubscriptions       DataWorkflowWatchSourceSubscription[]
+  watchDeliveryAssignments DataWorkflowWatchSourceDeliveryAssignment[]
+
+  @@unique([id, organizationId])
+  @@unique([workflowId, id, organizationId])
+  @@unique([workflowId, versionNumber])
+  @@index([organizationId, publishedAt])
+  @@map("data_workflow_versions")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowSchedule {
+  id                 String              @id @db.Uuid
+  organizationId     String              @default(dbgenerated()) @map("organization_id") @db.Uuid
+  workflowId         String              @map("workflow_id") @db.Uuid
+  versionId          String              @map("version_id") @db.Uuid
+  actor              String              @db.VarChar(320)
+  triggerKind        String              @map("trigger_kind") @db.VarChar(16)
+  nextDueAt          DateTime            @map("next_due_at") @db.Timestamptz(6)
+  intervalAnchorAt   DateTime?           @map("interval_anchor_at") @db.Timestamptz(6)
+  coalescedFromAt    DateTime?           @map("coalesced_from_at") @db.Timestamptz(6)
+  coalescedThroughAt DateTime?           @map("coalesced_through_at") @db.Timestamptz(6)
+  coalescedCount     Int                 @default(0) @map("coalesced_count")
+  revision           Int                 @default(1)
+  enabled            Boolean             @default(true)
+  supersededAt       DateTime?           @map("superseded_at") @db.Timestamptz(6)
+  leaseOwner         String?             @map("lease_owner") @db.VarChar(160)
+  leaseToken         String?             @map("lease_token") @db.Uuid
+  leaseExpiresAt     DateTime?           @map("lease_expires_at") @db.Timestamptz(6)
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  workflow           DataWorkflow        @relation(fields: [workflowId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  version            DataWorkflowVersion @relation(fields: [workflowId, versionId, organizationId], references: [workflowId, id, organizationId], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@unique([workflowId, versionId, organizationId])
+  @@index([organizationId, workflowId, enabled])
+  @@index([enabled, supersededAt, nextDueAt])
+  @@map("data_workflow_schedules")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowRun {
+  id                    String                             @id @db.Uuid
+  organizationId        String                             @default(dbgenerated()) @map("organization_id") @db.Uuid
+  workflowId            String                             @map("workflow_id") @db.Uuid
+  versionId             String                             @map("version_id") @db.Uuid
+  actor                 String                             @db.VarChar(320)
+  delegation            Json?
+  parameters            Json
+  triggerContext        Json                               @map("trigger_context")
+  status                String                             @db.VarChar(16)
+  revision              Int                                @default(1)
+  leaseOwner            String?                            @map("lease_owner") @db.VarChar(160)
+  leaseToken            String?                            @map("lease_token") @db.Uuid
+  leaseExpiresAt        DateTime?                          @map("lease_expires_at") @db.Timestamptz(6)
+  nextReconciliationAt  DateTime                           @default(now()) @map("next_reconciliation_at") @db.Timestamptz(6)
+  createdAt             DateTime                           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization          Organization                       @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  workflow              DataWorkflow                       @relation(fields: [workflowId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  version               DataWorkflowVersion                @relation(fields: [workflowId, versionId, organizationId], references: [workflowId, id, organizationId], onDelete: Restrict)
+  nodeAttempts          DataWorkflowNodeAttempt[]
+  edgeStates            DataWorkflowEdgeState[]
+  retryAcknowledgements DataWorkflowRetryAcknowledgement[]
+  watchSourceDeliveryAssignments DataWorkflowWatchSourceDeliveryAssignment[] @relation("WatchSourceDeliveryRun")
+
+  @@unique([id, organizationId])
+  @@index([organizationId, status, nextReconciliationAt])
+  @@index([nextReconciliationAt, createdAt, id], map: "data_workflow_runs_global_due_claim_idx")
+  @@map("data_workflow_runs")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowNodeAttempt {
+  id                   String                            @id @db.Uuid
+  organizationId       String                            @default(dbgenerated()) @map("organization_id") @db.Uuid
+  runId                String                            @map("run_id") @db.Uuid
+  nodeId               String                            @map("node_id") @db.VarChar(255)
+  attemptNumber        Int                               @map("attempt_number")
+  state                String                            @db.VarChar(16)
+  executionId          String?                           @map("execution_id") @db.Uuid
+  error                String?                           @db.Text
+  failureKind          String?                           @map("failure_kind") @db.VarChar(16)
+  createdAt            DateTime                          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization         Organization                      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  run                  DataWorkflowRun                   @relation(fields: [runId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  execution            Execution?                        @relation(fields: [executionId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  retryAcknowledgement DataWorkflowRetryAcknowledgement?
+
+  @@unique([id, organizationId])
+  @@unique([id, organizationId, runId])
+  @@unique([runId, nodeId, attemptNumber])
+  @@unique([executionId, organizationId])
+  @@index([organizationId, runId])
+  @@map("data_workflow_node_attempts")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowRetryAcknowledgement {
+  id                    String                  @id @db.Uuid
+  organizationId        String                  @default(dbgenerated()) @map("organization_id") @db.Uuid
+  runId                 String                  @map("run_id") @db.Uuid
+  nodeAttemptId         String                  @map("node_attempt_id") @db.Uuid
+  nodeId                String                  @map("node_id") @db.VarChar(255)
+  attemptNumber         Int                     @map("attempt_number")
+  approvedBy            String                  @map("approved_by") @db.VarChar(320)
+  acknowledgementSignal Boolean                 @map("acknowledgement_signal")
+  purpose               String                  @db.VarChar(80)
+  acknowledgedAt        DateTime                @map("acknowledged_at") @db.Timestamptz(6)
+  organization          Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  run                   DataWorkflowRun         @relation(fields: [runId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  nodeAttempt           DataWorkflowNodeAttempt @relation(fields: [nodeAttemptId, organizationId, runId], references: [id, organizationId, runId], onDelete: Restrict)
+
+  @@unique([nodeAttemptId, organizationId, runId])
+  @@index([organizationId, runId, acknowledgedAt])
+  @@map("data_workflow_retry_acknowledgements")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowEdgeState {
+  id             String          @id @db.Uuid
+  organizationId String          @default(dbgenerated()) @map("organization_id") @db.Uuid
+  runId          String          @map("run_id") @db.Uuid
+  edgeId         String          @map("edge_id") @db.VarChar(255)
+  state          String          @db.VarChar(16)
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  run            DataWorkflowRun @relation(fields: [runId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([runId, edgeId])
+  @@index([organizationId, runId])
+  @@map("data_workflow_edge_states")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowWatchSource {
+  id                  String                                     @id @db.Uuid
+  organizationId      String                                     @default(dbgenerated()) @map("organization_id") @db.Uuid
+  databaseServiceId   String                                     @map("database_service_id") @db.Uuid
+  adapterKey          String                                     @map("adapter_key") @db.VarChar(80)
+  adapterVersion      String                                     @map("adapter_version") @db.VarChar(80)
+  trigger             Json
+  enabled             Boolean                                    @default(true)
+  revision            Int                                        @default(1)
+  nextCaptureAt       DateTime                                   @default(now()) @map("next_capture_at") @db.Timestamptz(6)
+  lastCaptureAt       DateTime?                                  @map("last_capture_at") @db.Timestamptz(6)
+  leaseOwner          String?                                    @map("lease_owner") @db.VarChar(160)
+  leaseToken          String?                                    @map("lease_token") @db.Uuid
+  leaseExpiresAt      DateTime?                                  @map("lease_expires_at") @db.Timestamptz(6)
+  createdAt           DateTime                                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization        Organization                               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  databaseService     DatabaseService                            @relation(fields: [databaseServiceId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  subscriptions       DataWorkflowWatchSourceSubscription[]
+  checkpoints         DataWorkflowWatchSourceCheckpoint[]
+  cdcWindows          DataWorkflowWatchSourceCdcWindow[]
+  cdcEvents           DataWorkflowWatchSourceCdcEvent[]
+  notificationBatches DataWorkflowWatchSourceNotificationBatch[]
+  notifications       DataWorkflowWatchSourceNotification[]
+
+  @@unique([id, organizationId])
+  @@index([organizationId, enabled, nextCaptureAt, id])
+  @@index([enabled, nextCaptureAt, leaseExpiresAt, id], map: "data_workflow_watch_sources_global_claim_idx")
+  @@map("data_workflow_watch_sources")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowWatchSourceSubscription {
+  id                String                                      @id @db.Uuid
+  organizationId    String                                      @default(dbgenerated()) @map("organization_id") @db.Uuid
+  watchSourceId     String                                      @map("watch_source_id") @db.Uuid
+  workflowId        String                                      @map("workflow_id") @db.Uuid
+  workflowVersionId String                                      @map("workflow_version_id") @db.Uuid
+  actor             String                                      @db.VarChar(320)
+  enabled           Boolean                                     @default(true)
+  revision          Int                                         @default(1)
+  createdAt         DateTime                                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization      Organization                                @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  watchSource       DataWorkflowWatchSource                     @relation(fields: [watchSourceId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  workflowVersion   DataWorkflowVersion                         @relation(fields: [workflowId, workflowVersionId, organizationId], references: [workflowId, id, organizationId], onDelete: Restrict)
+  assignments       DataWorkflowWatchSourceDeliveryAssignment[]
+
+  @@unique([id, organizationId])
+  @@unique([watchSourceId, workflowId, workflowVersionId, organizationId])
+  @@index([organizationId, watchSourceId, enabled])
+  @@map("data_workflow_watch_source_subscriptions")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowWatchSourceCheckpoint {
+  id               String                  @id @db.Uuid
+  organizationId   String                  @default(dbgenerated()) @map("organization_id") @db.Uuid
+  watchSourceId    String                  @map("watch_source_id") @db.Uuid
+  schemaName       String                  @map("schema_name") @db.VarChar(255)
+  tableName        String                  @map("table_name") @db.VarChar(255)
+  opaqueCheckpoint String                  @map("opaque_checkpoint") @db.Text
+  revision         Int                     @default(1)
+  establishedAt    DateTime                @map("established_at") @db.Timestamptz(6)
+  advancedAt       DateTime                @map("advanced_at") @db.Timestamptz(6)
+  organization     Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  watchSource      DataWorkflowWatchSource @relation(fields: [watchSourceId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@unique([watchSourceId, schemaName, tableName, organizationId])
+  @@index([organizationId, watchSourceId])
+  @@map("data_workflow_watch_source_checkpoints")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowWatchSourceCdcWindow {
+  id             String                              @id @db.Uuid
+  organizationId String                              @default(dbgenerated()) @map("organization_id") @db.Uuid
+  watchSourceId  String                              @map("watch_source_id") @db.Uuid
+  openedAt       DateTime                            @map("opened_at") @db.Timestamptz(6)
+  closesAt       DateTime                            @map("closes_at") @db.Timestamptz(6)
+  status         String                              @db.VarChar(16)
+  eventCount     Int                                 @default(0) @map("event_count")
+  createdAt      DateTime                            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime                            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization                        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  watchSource    DataWorkflowWatchSource             @relation(fields: [watchSourceId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  relations      DataWorkflowWatchSourceCdcRelation[]
+  events         DataWorkflowWatchSourceCdcEvent[]
+
+  @@unique([id, organizationId])
+  @@index([status, closesAt, id])
+  @@index([organizationId, watchSourceId, status, closesAt])
+  @@map("data_workflow_watch_source_cdc_windows")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowWatchSourceCdcRelation {
+  id             String                              @id @db.Uuid
+  organizationId String                              @default(dbgenerated()) @map("organization_id") @db.Uuid
+  windowId       String                              @map("window_id") @db.Uuid
+  schemaName     String                              @map("schema_name") @db.VarChar(255)
+  tableName      String                              @map("table_name") @db.VarChar(255)
+  changeTypes    String[]                            @map("change_types")
+  eventCount     Int                                 @default(0) @map("event_count")
+  firstEventAt   DateTime                            @map("first_event_at") @db.Timestamptz(6)
+  lastEventAt    DateTime                            @map("last_event_at") @db.Timestamptz(6)
+  organization   Organization                        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  window         DataWorkflowWatchSourceCdcWindow    @relation(fields: [windowId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@unique([windowId, schemaName, tableName, organizationId])
+  @@index([organizationId, windowId])
+  @@map("data_workflow_watch_source_cdc_relations")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowWatchSourceCdcEvent {
+  id                   String                           @id @db.Uuid
+  organizationId       String                           @default(dbgenerated()) @map("organization_id") @db.Uuid
+  windowId             String                           @map("window_id") @db.Uuid
+  watchSourceId        String                           @map("watch_source_id") @db.Uuid
+  connectorId          String                           @map("connector_id") @db.VarChar(255)
+  topic                String                           @db.VarChar(512)
+  partition            Int
+  positionFingerprint  String                           @map("position_fingerprint") @db.VarChar(255)
+  schemaName           String                           @map("schema_name") @db.VarChar(255)
+  tableName            String                           @map("table_name") @db.VarChar(255)
+  operation            String                           @db.VarChar(16)
+  committedAt          DateTime                         @map("committed_at") @db.Timestamptz(6)
+  createdAt            DateTime                         @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization         Organization                     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  window               DataWorkflowWatchSourceCdcWindow @relation(fields: [windowId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  watchSource          DataWorkflowWatchSource             @relation(fields: [watchSourceId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([watchSourceId, connectorId, topic, partition, positionFingerprint, organizationId])
+  @@unique([id, organizationId])
+  @@index([organizationId, windowId])
+  @@map("data_workflow_watch_source_cdc_events")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowWatchSourceCdcCheckpoint {
+  id                  String       @id @db.Uuid
+  organizationId      String       @default(dbgenerated()) @map("organization_id") @db.Uuid
+  connectorId         String       @map("connector_id") @db.VarChar(255)
+  topic               String       @db.VarChar(512)
+  partition           Int
+  positionFingerprint String       @map("position_fingerprint") @db.VarChar(255)
+  updatedAt           DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([connectorId, topic, partition, organizationId])
+  @@unique([id, organizationId])
+  @@map("data_workflow_watch_source_cdc_checkpoints")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowWatchSourceNotificationBatch {
+  id             String                                @id @db.Uuid
+  organizationId String                                @default(dbgenerated()) @map("organization_id") @db.Uuid
+  watchSourceId  String                                @map("watch_source_id") @db.Uuid
+  captureKey     String                                @map("capture_key") @db.VarChar(512)
+  capturedAt     DateTime                              @map("captured_at") @db.Timestamptz(6)
+  organization   Organization                          @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  watchSource    DataWorkflowWatchSource               @relation(fields: [watchSourceId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  notifications  DataWorkflowWatchSourceNotification[]
+
+  @@unique([id, organizationId])
+  @@unique([watchSourceId, captureKey, organizationId])
+  @@index([organizationId, capturedAt])
+  @@map("data_workflow_watch_source_notification_batches")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowWatchSourceNotification {
+  id                    String                                      @id @db.Uuid
+  organizationId        String                                      @default(dbgenerated()) @map("organization_id") @db.Uuid
+  watchSourceId         String                                      @map("watch_source_id") @db.Uuid
+  batchId               String                                      @map("batch_id") @db.Uuid
+  schemaName            String                                      @map("schema_name") @db.VarChar(255)
+  tableName             String                                      @map("table_name") @db.VarChar(255)
+  changeTypes           String[]                                    @map("change_types")
+  checkpointFingerprint String                                      @map("checkpoint_fingerprint") @db.VarChar(255)
+  idempotencyKey        String                                      @map("idempotency_key") @db.VarChar(768)
+  adapterKey            String                                      @map("adapter_key") @db.VarChar(80)
+  adapterVersion        String                                      @map("adapter_version") @db.VarChar(80)
+  capturedAt            DateTime                                    @map("captured_at") @db.Timestamptz(6)
+  organization          Organization                                @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  watchSource           DataWorkflowWatchSource                     @relation(fields: [watchSourceId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  batch                 DataWorkflowWatchSourceNotificationBatch    @relation(fields: [batchId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  assignments           DataWorkflowWatchSourceDeliveryAssignment[]
+
+  @@unique([id, organizationId])
+  @@unique([watchSourceId, idempotencyKey, organizationId])
+  @@index([organizationId, watchSourceId, capturedAt])
+  @@map("data_workflow_watch_source_notifications")
+  @@schema("celesnity_app")
+}
+
+model DataWorkflowWatchSourceDeliveryAssignment {
+  id                String                              @id @db.Uuid
+  organizationId    String                              @default(dbgenerated()) @map("organization_id") @db.Uuid
+  subscriptionId    String                              @map("subscription_id") @db.Uuid
+  notificationId    String                              @map("notification_id") @db.Uuid
+  workflowId        String                              @map("workflow_id") @db.Uuid
+  workflowVersionId String                              @map("workflow_version_id") @db.Uuid
+  workflowRunId     String?                             @map("workflow_run_id") @db.Uuid
+  status            String                              @db.VarChar(16)
+  revision          Int                                 @default(1)
+  leaseOwner        String?                             @map("lease_owner") @db.VarChar(160)
+  leaseToken        String?                             @map("lease_token") @db.Uuid
+  leaseExpiresAt    DateTime?                           @map("lease_expires_at") @db.Timestamptz(6)
+  deliveredAt       DateTime?                           @map("delivered_at") @db.Timestamptz(6)
+  createdAt         DateTime                            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization      Organization                        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  subscription      DataWorkflowWatchSourceSubscription @relation(fields: [subscriptionId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  notification      DataWorkflowWatchSourceNotification @relation(fields: [notificationId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  workflowVersion   DataWorkflowVersion                 @relation(fields: [workflowId, workflowVersionId, organizationId], references: [workflowId, id, organizationId], onDelete: Restrict)
+  workflowRun       DataWorkflowRun?                    @relation("WatchSourceDeliveryRun", fields: [workflowRunId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@unique([subscriptionId, notificationId, organizationId])
+  @@index([organizationId, status, createdAt])
+  @@index([status, workflowRunId, createdAt], map: "data_workflow_watch_assignments_run_idx")
+  @@index([status, leaseExpiresAt, createdAt, id], map: "data_workflow_watch_assignments_global_claim_idx")
+  @@map("data_workflow_watch_source_delivery_assignments")
+  @@schema("celesnity_app")
+}
+
+model AutomationWorkflow {
+  id               String    @id @db.Uuid
+  organizationId   String    @map("organization_id") @db.Uuid
+  name             String    @db.VarChar(255)
+  status           String    @default("draft") @db.VarChar(16)
+  triggerType      String    @map("trigger_type") @db.VarChar(16)
+  eventTopic       String?   @map("event_topic") @db.VarChar(255)
+  scheduleCron     String?   @map("schedule_cron") @db.VarChar(255)
+  scheduleTimezone String?   @map("schedule_timezone") @db.VarChar(64)
+  nextRunAt        DateTime? @map("next_run_at") @db.Timestamptz(6)
+  triggerFields    Json      @default("[]") @map("trigger_fields")
+  createdBy        String    @map("created_by") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  steps        AutomationWorkflowStep[]
+  runs         AutomationWorkflowRun[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, eventTopic])
+  @@index([triggerType, nextRunAt])
+  @@map("automation_workflows")
+  @@schema("celesnity_app")
+}
+
+model AutomationWorkflowStep {
+  id            String  @id @db.Uuid
+  workflowId    String  @map("workflow_id") @db.Uuid
+  order         Int
+  agentId       String  @map("agent_id") @db.VarChar(255)
+  inputTemplate Json    @map("input_template")
+  systemPrompt  String? @map("system_prompt")
+
+  workflow AutomationWorkflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stepRuns AutomationWorkflowStepRun[]
+
+  @@unique([workflowId, order])
+  @@map("automation_workflow_steps")
+  @@schema("celesnity_app")
+}
+
+model AutomationWorkflowRun {
+  id             String    @id @db.Uuid
+  workflowId     String    @map("workflow_id") @db.Uuid
+  triggeredBy    String    @map("triggered_by") @db.VarChar(16)
+  status         String    @db.VarChar(16)
+  triggerPayload Json      @map("trigger_payload")
+  startedAt      DateTime  @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime? @map("finished_at") @db.Timestamptz(6)
+
+  workflow AutomationWorkflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stepRuns AutomationWorkflowStepRun[]
+
+  @@index([workflowId, startedAt])
+  @@map("automation_workflow_runs")
+  @@schema("celesnity_app")
+}
+
+model AutomationWorkflowStepRun {
+  id         String    @id @db.Uuid
+  runId      String    @map("run_id") @db.Uuid
+  stepId     String    @map("step_id") @db.Uuid
+  agentRunId String?   @map("agent_run_id") @db.Uuid
+  status     String    @default("queued") @db.VarChar(16)
+  output     String?   @db.Text
+  startedAt  DateTime? @map("started_at") @db.Timestamptz(6)
+  finishedAt DateTime? @map("finished_at") @db.Timestamptz(6)
+
+  run  AutomationWorkflowRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  step AutomationWorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@map("automation_workflow_step_runs")
+  @@schema("celesnity_app")
+}
+
+model TutorialDefinition {
+  id                  String             @id @db.VarChar(120)
+  metadata            Json
+  steps               Json
+  requiredFeatures    String[]           @default([]) @map("required_features")
+  prerequisites       Json
+  contextRequirements Json               @map("context_requirements")
+  revision            Int                @default(1)
+  publishedAt         DateTime           @default(now()) @map("published_at") @db.Timestamptz(6)
+  updatedAt           DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  progress            TutorialProgress[]
+
+  @@map("tutorial_definitions")
+  @@schema("celesnity_app")
+}
+
+model TutorialProgress {
+  id                String                 @id @db.Uuid
+  organizationId    String                 @map("organization_id") @db.Uuid
+  identityId        String                 @map("identity_id") @db.Uuid
+  tutorialId        String                 @map("tutorial_id") @db.VarChar(120)
+  status            TutorialProgressStatus
+  currentStepId     String                 @map("current_step_id") @db.VarChar(120)
+  completedStepIds  String[]               @default([]) @map("completed_step_ids")
+  contextSelections Json                   @map("context_selections")
+  updatedAt         DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization      Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  identity          UserIdentity           @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  tutorial          TutorialDefinition     @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, identityId, tutorialId])
+  @@index([organizationId, identityId, status])
+  @@map("tutorial_progress")
+  @@schema("celesnity_app")
+}
+
+model TutorialOnboardingDecision {
+  id             String                          @id @db.Uuid
+  organizationId String                          @map("organization_id") @db.Uuid
+  identityId     String                          @map("identity_id") @db.Uuid
+  decision       TutorialOnboardingDecisionValue
+  createdAt      DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime                        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  identity       UserIdentity                    @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, identityId])
+  @@map("tutorial_onboarding_decisions")
+  @@schema("celesnity_app")
+}
+
+model TutorialCompletion {
+  id             String       @id @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  identityId     String       @map("identity_id") @db.Uuid
+  runId          String       @map("run_id") @db.VarChar(160)
+  completedAt    DateTime     @default(now()) @map("completed_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  identity       UserIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, identityId, runId])
+  @@index([organizationId, identityId, completedAt])
+  @@map("tutorial_completions")
+  @@schema("celesnity_app")
+}

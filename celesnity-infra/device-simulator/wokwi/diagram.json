@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "author": "Celesnity",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "temperature",
+      "top": 38,
+      "left": 300,
+      "attrs": { "value": "512" }
+    }
+  ],
+  "connections": [
+    ["temperature:VCC", "esp:3V3", "red", []],
+    ["temperature:GND", "esp:GND.1", "black", []],
+    ["temperature:SIG", "esp:34", "green", []],
+    ["esp:TX", "$serialMonitor:RX", "", []],
+    ["esp:RX", "$serialMonitor:TX", "", []]
+  ],
+  "dependencies": {},
+  "serialMonitor": { "display": "always" }
+}

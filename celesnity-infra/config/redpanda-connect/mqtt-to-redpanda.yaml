@@ -1,0 +1,58 @@
+input:
+  label: mqtt_ingress
+  mqtt:
+    urls:
+      - ${MQTT_BROKER_INTERNAL_URL}
+    # The ingestion stream is always-on and telemetry remains buffered in
+    # Redpanda after receipt. A clean MQTT session forces a fresh subscription
+    # after an EMQX restart; relying on a broker-side session can leave this
+    # connected client with zero subscriptions and silently drop telemetry.
+    client_id: ${MQTT_CONNECT_CLIENT_ID}
+    user: ${MQTT_CONNECT_USERNAME}
+    password: ${MQTT_CONNECT_PASSWORD}
+    topics:
+      - $share/celesnity-ingest/tenants/+/adapters/+/devices/+/telemetry
+    qos: 1
+    clean_session: true
+    auto_replay_nacks: true
+
+pipeline:
+  processors:
+    - mapping: |
+        let segments = meta("mqtt_topic").split("/")
+        root.tenantId = $segments.index(1)
+        root.adapterId = $segments.index(3)
+        root.deviceId = $segments.index(5)
+        root.eventId = uuid_v4()
+        root.sourceEventId = if this.eventId != null { this.eventId.string() } else { null }
+        root.eventTime = if this.eventTime != null { this.eventTime.string() } else { null }
+        root.receivedAt = now()
+        root.mqttTopic = meta("mqtt_topic")
+        root.mqttQos = meta("mqtt_qos").number().catch(0)
+        root.mqttRetained = meta("mqtt_retained").bool().catch(false)
+        root.mqttDuplicate = meta("mqtt_duplicate").bool().catch(false)
+        root.schemaVersion = 1
+        root.payload = this
+
+output:
+  label: redpanda_raw
+  redpanda:
+    seed_brokers:
+      - ${REDPANDA_BROKERS}
+    topic: celesnity.mqtt.raw.shared-0.v1
+    key: '${! json("tenantId") + ":" + json("adapterId") + ":" + json("deviceId") }'
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: ${REDPANDA_USERNAME}
+        password: ${REDPANDA_PASSWORD}
+    tls:
+      enabled: ${REDPANDA_TLS_ENABLED:false}
+      root_cas_file: ${REDPANDA_CA_CERT_PATH:/etc/redpanda/tls/ca.crt}
+    idempotent_write: true
+    acks: all
+    compression: zstd
+    allow_auto_topic_creation: false
+    max_in_flight: 256
+    batching:
+      byte_size: 1048576
+      period: 250ms

@@ -1,0 +1,181 @@
+{
+  "month": "2026-09",
+  "entries": [
+    {
+      "id": "2026-09-30-successful-requests-return-correctly",
+      "date": "2026-09-30",
+      "areas": ["web"],
+      "kind": "fix",
+      "version": "0.5.0",
+      "authors": ["Dat Pham"],
+      "title": {
+        "vi": "Thao tác thành công không còn báo lỗi máy chủ",
+        "en": "Successful actions no longer show a server error"
+      },
+      "summary": {
+        "vi": "Một số thao tác đã được hệ thống xử lý thành công nhưng trang vẫn báo lỗi máy chủ. Trang nay hiển thị đúng kết quả của thao tác, gồm cả cập nhật dữ liệu và tiến trình trực tiếp.",
+        "en": "Some actions completed successfully but the page still showed a server error. The page now displays the actual result, including data updates and live progress."
+      }
+    },
+    {
+      "id": "2026-09-28-chart-buttons-open-by-themselves",
+      "date": "2026-09-28",
+      "areas": ["web"],
+      "kind": "improvement",
+      "version": "0.5.0",
+      "authors": ["Nguyễn Đăng Mạnh Tú"],
+      "title": {
+        "vi": "Bảng bên phải tự mở, mỗi biểu đồ một nút ngay dưới tiêu đề bảng",
+        "en": "The side panel opens by itself, one button per chart right under its title"
+      },
+      "summary": {
+        "vi": "Trước đây biểu đồ chỉ lên bảng bên phải khi bạn bấm, nên bảng hay hiện biểu đồ cũ trong khi câu trả lời mới đã có biểu đồ mới. Nay khi trợ lý vẽ xong, bảng bên phải tự mở và hiện biểu đồ đó; mọi biểu đồ của cuộc trò chuyện xếp thành một hàng nút đánh số ngay dưới tiêu đề bảng. Bấm một nút, bảng chuyển sang biểu đồ đó và cuộc trò chuyện cuộn tới đúng đoạn có nó. Nút Save chart trên thẻ trong chat được bỏ: lưu bằng nút Keep ở bảng bên phải.",
+        "en": "A chart only reached the side panel when you clicked, so the panel often showed an old chart while the newest answer already had a new one. Now the panel opens by itself when the assistant finishes a chart and shows it; every chart in the conversation sits in a numbered row of buttons right under the panel's title. Press one and the panel switches to that chart while the conversation scrolls to the passage that holds it. The Save chart button on the card in the chat is gone: keep a chart with Keep on the side panel."
+      },
+      "details": {
+        "vi": [
+          "Nút của biểu đồ đang xem được tô đậm; viền thẻ trong chat cũng đổi màu khi biểu đồ đó đang hiện ở bảng bên phải.",
+          "Mở lại một cuộc trò chuyện cũ, hàng nút biểu đồ của nó được dựng lại đầy đủ; nút của cuộc trò chuyện trước đó được đóng.",
+          "Dấu X trên một nút đóng biểu đồ đó khỏi bảng; nó không tự mở lại, còn biểu đồ mới vẫn mở."
+        ],
+        "en": [
+          "The button of the chart on show is filled in; the card in the chat also changes its border while that chart is on the panel.",
+          "Reopening an older conversation rebuilds its row of chart buttons in full; buttons from the previous conversation are closed.",
+          "The X on a button removes that chart from the panel; it does not reopen on its own, new charts still do."
+        ]
+      }
+    },
+    {
+      "id": "2026-09-28-composer-shrinks-after-send",
+      "date": "2026-09-28",
+      "areas": ["web"],
+      "kind": "fix",
+      "version": "0.5.0",
+      "authors": ["Nguyễn Đăng Mạnh Tú"],
+      "title": {
+        "vi": "Ô nhập câu hỏi co lại sau khi gửi",
+        "en": "The question box shrinks back after sending"
+      },
+      "summary": {
+        "vi": "Dán một đoạn nhiều dòng rồi gửi, ô nhập vẫn giữ nguyên chiều cao của đoạn đó dù đã trống. Nay sau khi gửi hoặc xoá hết chữ, ô nhập trở về kích thước ban đầu.",
+        "en": "After pasting a multi-line paragraph and sending it, the question box stayed as tall as that paragraph even though it was empty. It now returns to its normal size after sending or clearing the text."
+      }
+    },
+    {
+      "id": "2026-09-28-chart-in-conversation",
+      "authors": ["Nguyễn Đăng Mạnh Tú"],
+      "date": "2026-09-28",
+      "areas": ["web"],
+      "kind": "feature",
+      "version": "0.5.0",
+      "title": {
+        "vi": "Biểu đồ hiện ngay trong cuộc trò chuyện",
+        "en": "Charts appear right in the conversation"
+      },
+      "summary": {
+        "vi": "Khi bạn hỏi trợ lý vẽ biểu đồ, biểu đồ hiện ngay dưới câu trả lời thay vì chỉ là một dòng để bấm mở. Bạn có thể đổi qua dạng bảng, mở rộng sang bảng bên phải, hoặc lưu vào bộ sưu tập chỉ với một nút.",
+        "en": "When you ask the assistant for a chart, the chart is drawn right under the answer instead of a one-line card to click. Switch it to a table, open it in the side panel, or save it to a collection with one button."
+      },
+      "details": {
+        "vi": [
+          "Biểu đồ nằm đúng chỗ trong câu trả lời: ngay sau câu trợ lý báo sẽ vẽ, và phần nhận xét đi tiếp bên dưới, thay vì bị đẩy lên đầu.",
+          "Trong lúc biểu đồ đang được vẽ, một khung giữ chỗ xuất hiện đúng kích thước nên nội dung bên dưới không bị nhảy.",
+          "Thẻ trạng thái \"Đang suy nghĩ\" hiển thị số giây đã trôi qua của bước hiện tại.",
+          "Bảng bên phải không còn tự bật cho mỗi biểu đồ; bạn mở khi cần.",
+          "Biểu đồ không có dữ liệu sẽ nói rõ \"không có dòng nào\" thay vì hiện ô trống."
+        ],
+        "en": [
+          "The chart sits where it belongs in the answer: right after the sentence in which the assistant says it will draw it, with the commentary continuing below, instead of being pushed to the top.",
+          "While a chart is being drawn, a placeholder of the same size holds its spot so the text under it does not jump.",
+          "The \"Thinking\" card shows how many seconds the current step has been running.",
+          "The side panel no longer opens by itself for every chart; open it when you need it.",
+          "A chart with no data says \"no rows\" instead of showing an empty box."
+        ]
+      }
+    },
+    {
+      "id": "2026-09-28-one-answer-per-question",
+      "authors": ["Nguyễn Đăng Mạnh Tú"],
+      "date": "2026-09-28",
+      "areas": ["web"],
+      "kind": "fix",
+      "version": "0.5.0",
+      "title": {
+        "vi": "Mở lại cuộc trò chuyện: mỗi câu hỏi chỉ còn một câu trả lời",
+        "en": "Reopened conversations show one answer per question"
+      },
+      "summary": {
+        "vi": "Trước đây, mở lại một cuộc trò chuyện cũ có thể thấy một câu trả lời bị tách thành hai, ba đoạn, mỗi đoạn kèm nút sao chép riêng. Nay câu trả lời được gộp lại như lúc bạn nhận nó, và thời gian hiển thị là lúc trợ lý trả lời chứ không phải lúc bạn mở lại.",
+        "en": "Reopening an older conversation could show one answer split into two or three pieces, each with its own copy button. The answer is now shown whole, as you received it, and its time is when the assistant answered, not when you reopened the page."
+      }
+    },
+    {
+      "id": "2026-09-27-assistant-shows-progress",
+      "authors": ["Nguyễn Đăng Mạnh Tú"],
+      "date": "2026-09-27",
+      "areas": ["web", "agent"],
+      "kind": "feature",
+      "version": "0.5.0",
+      "title": {
+        "vi": "Trợ lý cho biết nó đang làm gì trong lúc chờ",
+        "en": "The assistant tells you what it is doing while you wait"
+      },
+      "summary": {
+        "vi": "Trợ lý trả lời bằng ngôn ngữ bạn dùng và nói trước một câu ngắn về việc sắp làm (ví dụ \"Tôi sẽ liệt kê các bảng rồi tính doanh thu\"). Trong lúc tra cứu dữ liệu, một thẻ \"Đang suy nghĩ\" hiện từng bước đang chạy, nên bạn không còn nhìn vào màn hình trống.",
+        "en": "The assistant replies in your language and says one short sentence about what it is about to do (for example \"I will list the tables and then total the revenue\"). While it looks through your data, a \"Thinking\" card shows the step in progress, so you are never looking at a blank screen."
+      },
+      "details": {
+        "vi": [
+          "Câu trả lời cuối cùng bắt đầu ở một đoạn mới, tách khỏi câu mở đầu.",
+          "Mỗi bước (liệt kê bảng, chạy truy vấn, vẽ biểu đồ) được gọi bằng tên dễ hiểu, không phải mã kỹ thuật."
+        ],
+        "en": [
+          "The final answer starts in a new paragraph, apart from the opening sentence.",
+          "Each step (listing tables, running a query, drawing a chart) is named in plain words, not technical codes."
+        ]
+      }
+    },
+    {
+      "id": "2026-09-27-smoother-reading",
+      "authors": ["Nguyễn Đăng Mạnh Tú"],
+      "date": "2026-09-27",
+      "areas": ["web"],
+      "kind": "improvement",
+      "version": "0.5.0",
+      "title": {
+        "vi": "Đọc câu trả lời mượt hơn, chữ và biểu tượng lớn hơn",
+        "en": "Answers are smoother to read, with larger text and icons"
+      },
+      "summary": {
+        "vi": "Chữ trong câu trả lời hiện dần theo từng từ, không còn giật. Khi bạn gửi câu hỏi, câu hỏi được đưa lên đầu màn hình và trang đứng yên trong lúc trợ lý trả lời; muốn xuống cuối thì bấm nút mũi tên. Cỡ chữ và biểu tượng trên toàn ứng dụng được tăng một bậc để dễ đọc hơn.",
+        "en": "Answer text fades in word by word instead of jumping. When you send a question it moves to the top of the screen and the page stays still while the assistant answers; an arrow button takes you to the end. Text and icons across the whole app are one step larger for easier reading."
+      },
+      "details": {
+        "vi": [
+          "Dưới mỗi câu trả lời có danh sách \"Hỏi thêm về chủ đề này\" và hàng nút: sao chép, tạo lại câu trả lời, thích, không thích.",
+          "\"Tạo lại\" trả lời lại đúng câu hỏi đó tại chỗ, không gửi thêm câu hỏi mới."
+        ],
+        "en": [
+          "Under each answer there is an \"Ask more about this\" list and an action row: copy, regenerate, like, dislike.",
+          "\"Regenerate\" answers the same question again in place; it does not send a new question."
+        ]
+      }
+    },
+    {
+      "id": "2026-09-26-google-drive-plugin",
+      "authors": ["daobathanhh"],
+      "date": "2026-09-26",
+      "areas": ["all"],
+      "kind": "feature",
+      "version": "0.5.0",
+      "title": {
+        "vi": "Kết nối Google Drive từ trang Plugins",
+        "en": "Connect Google Drive from the Plugins page"
+      },
+      "summary": {
+        "vi": "Trang Plugins mới cho phép bạn kết nối tài khoản Google Drive của mình. Sau khi kết nối, trợ lý có thể đọc và tạo tệp trong Drive của bạn khi bạn yêu cầu; nó không sửa hay xoá tệp có sẵn.",
+        "en": "The new Plugins page lets you connect your Google Drive account. Once connected, the assistant can read and create files in your Drive when you ask; it never edits or deletes an existing file."
+      }
+    }
+  ]
+}

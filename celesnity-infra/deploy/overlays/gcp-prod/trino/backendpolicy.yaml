@@ -1,0 +1,37 @@
+---
+# Backend service settings for the Trino coordinator: source restriction and
+# timeouts. Replaces the remaining parts of the Ingress-era BackendConfig.
+#
+# Only ONE GCPBackendPolicy may target a Service. If a second is created the older
+# wins and the newer reports Conflicted, so everything for this Service belongs in
+# this single file.
+apiVersion: networking.gke.io/v1
+kind: GCPBackendPolicy
+metadata:
+  name: trino-coordinator
+spec:
+  default:
+    # Cloud Armor. This is the only way to restrict source addresses on a GKE
+    # load balancer — there is no equivalent of the AWS ALB inbound-cidrs
+    # annotation. Created by Terraform as "${local.name}-trino-lb"; the name is
+    # spelled out because a policy manifest cannot interpolate. Keep in step with
+    # infra/environments/gcp-prod (project + environment).
+    #
+    # The global GatewayClass requires a GLOBAL Cloud Armor policy. A regional
+    # Gateway would need a regional one, and referencing the wrong scope fails
+    # with "The given security policy does not exist".
+    securityPolicy: celesnity-gcp-prod-trino-lb
+
+    # Analytical queries outlive the 30-second default, which would cut the
+    # connection mid-result and present as a client-side network error. This is a
+    # ceiling on a single request, not an idle timeout.
+    timeoutSec: 3600
+
+    # Let in-flight queries finish when a coordinator pod is replaced.
+    connectionDraining:
+      drainingTimeoutSec: 60
+
+  targetRef:
+    group: ""
+    kind: Service
+    name: trino-coordinator

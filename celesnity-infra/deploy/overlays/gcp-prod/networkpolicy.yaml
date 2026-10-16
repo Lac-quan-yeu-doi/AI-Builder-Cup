@@ -1,0 +1,275 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: trino-coordinator-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: trino
+      app.kubernetes.io/component: coordinator
+  policyTypes:
+    - Ingress
+  ingress:
+    # Internal discovery/RPC from Trino workers.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: trino
+              app.kubernetes.io/component: worker
+      ports:
+        - protocol: TCP
+          port: 8080
+    # Only Core and the MCP adapter can open the authenticated client port.
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values: [celesnity-core, mcp-trino]
+      ports:
+        - protocol: TCP
+          port: 8443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: trino-worker-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: trino
+      app.kubernetes.io/component: worker
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: trino
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: spark-master-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: spark
+      app.kubernetes.io/component: master
+  policyTypes:
+    - Ingress
+  ingress:
+    # Spark workers, managed execution drivers, and the static bronze stream
+    # are the only clients of the standalone master.
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values: [spark, celesnity-spark-execution, mqtt-bronze-stream]
+      ports:
+        - protocol: TCP
+          port: 7077
+    # Spark workers verify their active-master registration through the internal
+    # UI; Core Worker uses the same endpoint for capacity admission.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: spark
+              app.kubernetes.io/component: worker
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: celesnity-core
+              app.kubernetes.io/component: worker
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: spark-driver-ingress
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values: [celesnity-spark-execution, mqtt-bronze-stream]
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: spark
+              app.kubernetes.io/component: worker
+      ports:
+        - { protocol: TCP, port: 7078 }
+        - { protocol: TCP, port: 7079 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mcp-trino-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mcp-trino
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              celesnity.io/gateway-access: "false"
+      ports:
+        - { protocol: TCP, port: 8080 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: spark-worker-jdbc-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: spark
+      app.kubernetes.io/component: worker
+  policyTypes: [Egress]
+  egress:
+    # Spark executors open JDBC connections themselves when partitions are read.
+    # Customer database endpoints can be public, so RFC1918-only rules are not
+    # sufficient for the PostgreSQL and MySQL connector contract.
+    - to:
+        - ipBlock: { cidr: 0.0.0.0/0 }
+      ports:
+        - { protocol: TCP, port: 5432 }
+        - { protocol: TCP, port: 3306 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: spark-execution-jdbc-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: celesnity-spark-execution
+  policyTypes: [Egress]
+  egress:
+    # The client-mode Spark driver resolves JDBC schemas before distributing
+    # reads, so it needs the same connector ports as the executors.
+    - to:
+        - ipBlock: { cidr: 0.0.0.0/0 }
+      ports:
+        - { protocol: TCP, port: 5432 }
+        - { protocol: TCP, port: 3306 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: platform-runtime-egress
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - trino
+          - spark
+          - celesnity-spark-execution
+          - iceberg-maintenance
+          - mqtt-bronze-stream
+          - mcp-trino
+          - redpanda-connect
+          - redpanda-topic-bootstrap
+          - catalog-bootstrap
+  policyTypes: [Egress]
+  egress:
+    # Cluster DNS.
+    - ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    # GKE metadata server for Workload Identity.
+    - to:
+        - ipBlock: { cidr: 169.254.169.254/32 }
+      ports:
+        - { protocol: TCP, port: 80 }
+    # Google APIs/GCS and other explicitly TLS-protected runtime endpoints.
+    - to:
+        - ipBlock: { cidr: 0.0.0.0/0 }
+      ports:
+        - { protocol: TCP, port: 443 }
+        - { protocol: TCP, port: 8883 }
+    # Redpanda is a pod endpoint in a separate namespace. Select it explicitly;
+    # ipBlock behavior for pod IPs is implementation-dependent after service
+    # address translation and is not a reliable cross-namespace allowance.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: celesnity-streaming
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: redpanda
+              app.kubernetes.io/name: redpanda
+      ports:
+        - { protocol: TCP, port: 9093 }
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: celesnity-streaming
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: emqx
+      ports:
+        - { protocol: TCP, port: 1883 }
+    # Trino discovery and internal RPC use pod endpoints in this namespace.
+    # Select them explicitly: GKE does not reliably match pod traffic against
+    # ipBlock rules after Service destination NAT.
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: trino
+      ports:
+        - { protocol: TCP, port: 8080 }
+    # Spark workers and drivers must reach the standalone master, and executors
+    # must call back to their driver. Keep this as an explicit pod contract for
+    # the same reason as Trino above.
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: spark
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values: [celesnity-spark-execution, mqtt-bronze-stream]
+      ports:
+        - { protocol: TCP, port: 7077 }
+        - { protocol: TCP, port: 7078 }
+        - { protocol: TCP, port: 7079 }
+        - { protocol: TCP, port: 8080 }
+    # Private service paths: Cloud SQL, Spark, Trino, MQTT, and Redpanda.
+    - to:
+        - ipBlock: { cidr: 10.0.0.0/8 }
+        - ipBlock: { cidr: 172.16.0.0/12 }
+        - ipBlock: { cidr: 192.168.0.0/16 }
+      ports:
+        - { protocol: TCP, port: 1883 }
+        - { protocol: TCP, port: 5432 }
+        - { protocol: TCP, port: 7077 }
+        - { protocol: TCP, port: 7078 }
+        - { protocol: TCP, port: 7079 }
+        - { protocol: TCP, port: 8080 }
+        - { protocol: TCP, port: 8443 }
+        - { protocol: TCP, port: 9092 }
+        - { protocol: TCP, port: 9093 }

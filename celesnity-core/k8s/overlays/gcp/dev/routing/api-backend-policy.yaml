@@ -1,0 +1,14 @@
+apiVersion: networking.gke.io/v1
+kind: GCPBackendPolicy
+metadata:
+  name: celesnity-core
+spec:
+  default:
+    securityPolicy: celesnity-gcp-dev-trino-lb
+    timeoutSec: 60
+    connectionDraining:
+      drainingTimeoutSec: 60
+  targetRef:
+    group: ""
+    kind: Service
+    name: celesnity-core

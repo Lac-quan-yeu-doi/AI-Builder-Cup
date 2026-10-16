@@ -1,0 +1,656 @@
+# Global development stack for the minder-sys workspace.
+#
+# Brings up all services in one command:
+#   docker compose up -d --build --wait
+#
+# Services:
+#   - Infrastructure: postgres, minio, spark-master, spark-worker, trino-coordinator, trino-worker
+#   - Celesnity Core: api + worker (NestJS)
+#   - Celesnity Web: Next.js frontend
+#   - Minder Agent: runtime only (Rust minder-serve)
+#
+# Prerequisites:
+#   - Copy .env.example to .env and fill in required values
+#   - Docker Desktop running
+#
+# Port map:
+#   3000  celesnity-web
+#   3001  celesnity-core API
+#   5433  minder-agent postgres
+#   7077  spark master
+#   8080  trino coordinator
+#   8081  spark master UI
+#   8090  minder-agent runtime
+#   9000  minio S3 API
+#   9001  minio console
+#   15432 celesnity postgres
+
+name: minder-sys
+
+# ============================================================================
+# Shared config anchors
+# ============================================================================
+
+x-spark-image: &spark-image
+  build:
+    context: ./celesnity-infra/images/spark
+    args:
+      ICEBERG_VERSION: ${ICEBERG_VERSION:-1.11.0}
+      POSTGRES_JDBC_VERSION: ${POSTGRES_JDBC_VERSION:-42.7.13}
+  image: celesnity/spark:3.5.7-iceberg-1.11.0
+
+x-spark-env: &spark-env
+  AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-celesnity}
+  AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+  AWS_REGION: ${MINIO_REGION:-ap-southeast-1}
+  AWS_ENDPOINT_URL: http://minio:9000
+  POSTGRES_DB: ${POSTGRES_DB:-celesnity}
+  POSTGRES_USER: ${POSTGRES_USER:-celesnity}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
+  POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-celesnity}
+  SPARK_MASTER_HOST: spark-master
+  SPARK_MASTER_INTERNAL_PORT: "7077"
+
+x-trino-env: &trino-env
+  POSTGRES_DB: ${POSTGRES_DB:-celesnity}
+  POSTGRES_USER: ${POSTGRES_USER:-celesnity}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
+  MINIO_ROOT_USER: ${MINIO_ROOT_USER:-celesnity}
+  MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+  MINIO_BUCKET: ${MINIO_BUCKET:-warehouse}
+  MINIO_REGION: ${MINIO_REGION:-ap-southeast-1}
+  TRINO_QUERY_MAX_MEMORY: ${TRINO_QUERY_MAX_MEMORY:-600MB}
+  TRINO_QUERY_MAX_MEMORY_PER_NODE: ${TRINO_QUERY_MAX_MEMORY_PER_NODE:-600MB}
+
+x-core-env: &core-env
+  NODE_ENV: development
+  CELESNITY_AUTH_MODE: ${CELESNITY_AUTH_MODE:-local-development}
+  LOCAL_DEV_AUTH_SIGNING_KEY: ${LOCAL_DEV_AUTH_SIGNING_KEY:-local-development-only-signing-key-do-not-use-in-prod}
+  IDENTITY_PLATFORM_TENANT_ID: ${IDENTITY_PLATFORM_TENANT_ID:-local-dev-tenant}
+  IDENTITY_BOOTSTRAP_ADMIN_SUBJECTS: ${IDENTITY_BOOTSTRAP_ADMIN_SUBJECTS:-},local-owner
+  GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+  GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
+  # Chart share-link signing (ChartShareToken) — required, no default in
+  # celesnity-core itself. Dev-only placeholder key; 7-day max TTL matches
+  # .env.example.
+  CHART_SHARE_SIGNING_KEY: ${CHART_SHARE_SIGNING_KEY:-local-development-only-chart-share-signing-key-not-for-prod}
+  CHART_SHARE_TOKEN_MAX_TTL_MS: ${CHART_SHARE_TOKEN_MAX_TTL_MS:-604800000}
+  # Agent write-throttling (RateLimitModule) and pending-action expiry
+  # (ChartModule) — required, no default in celesnity-core itself.
+  AGENT_WRITE_RATE_WINDOW_MS: ${AGENT_WRITE_RATE_WINDOW_MS:-60000}
+  AGENT_WRITE_RATE_LIMIT: ${AGENT_WRITE_RATE_LIMIT:-120}
+  PENDING_ACTION_TTL_MS: ${PENDING_ACTION_TTL_MS:-86400000}
+  DATABASE_URL: postgresql://celesnity:celesnity_dev_password@postgres:5432/celesnity?schema=celesnity_app
+  MINIO_ENDPOINT: http://minio:9000
+  MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-celesnity}
+  MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+  MINIO_WAREHOUSE_BUCKET: warehouse
+  MINIO_ARTIFACTS_BUCKET: celesnity-artifacts
+  TRINO_URL: http://trino-coordinator:8080
+  CONNECTION_ALLOW_PRIVATE_DESTINATIONS: "true"
+  CONNECTION_ALLOWED_HOSTS: postgres,sample-postgres,host.docker.internal
+  # AgentWebhookClient (automation dispatch → minder-runtime) reads this
+  # exact key — celesnity-core's own config schema never declares
+  # MINDER_SERVE_URL (dead name, never read anywhere), so automations were
+  # silently dispatching to MINDER_AGENT_URL's broken default
+  # (http://minder-agent.internal, unresolvable in this network) instead.
+  MINDER_AGENT_URL: http://minder-runtime:8080/api/v2
+  MINDER_CHAT_AGENT_NAME: chat-assistant
+  REDPANDA_BROKERS: ""
+  REDPANDA_TLS_ENABLED: "false"
+
+# ============================================================================
+# Services
+# ============================================================================
+
+services:
+
+  # --------------------------------------------------------------------------
+  # Infrastructure: PostgreSQL (shared by celesnity-core)
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:17.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-celesnity}
+      POSTGRES_USER: ${POSTGRES_USER:-celesnity}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-15432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./celesnity-infra/config/sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Infrastructure: MinIO (S3-compatible object storage)
+  # --------------------------------------------------------------------------
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-celesnity}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - infra
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-celesnity}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+      MINIO_BUCKET: ${MINIO_BUCKET:-warehouse}
+      MINIO_ARTIFACTS_BUCKET: ${MINIO_ARTIFACTS_BUCKET:-celesnity-artifacts}
+      MINIO_WORKSPACE_BUCKET: ${MINIO_WORKSPACE_BUCKET:-minder-workspace}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        /usr/bin/mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"
+        /usr/bin/mc mb --ignore-existing "local/$${MINIO_BUCKET}"
+        /usr/bin/mc mb --ignore-existing "local/$${MINIO_ARTIFACTS_BUCKET}"
+        /usr/bin/mc mb --ignore-existing "local/$${MINIO_WORKSPACE_BUCKET}"
+        /usr/bin/mc version enable "local/$${MINIO_ARTIFACTS_BUCKET}"
+        printf '' | /usr/bin/mc pipe "local/$${MINIO_ARTIFACTS_BUCKET}/scripts/.keep"
+        printf '' | /usr/bin/mc pipe "local/$${MINIO_ARTIFACTS_BUCKET}/executions/.keep"
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Infrastructure: Spark (master + worker)
+  # --------------------------------------------------------------------------
+  spark-master:
+    <<: *spark-image
+    restart: unless-stopped
+    command: ["/bin/bash", "/opt/celesnity/start-master.sh"]
+    environment: *spark-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${SPARK_MASTER_PORT:-7077}:7077"
+      - "127.0.0.1:${SPARK_MASTER_UI_PORT:-8081}:8080"
+    volumes:
+      - ./celesnity-infra/images/spark/start-master.sh:/opt/celesnity/start-master.sh:ro
+      - spark_ivy:/opt/spark/ivy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ': >/dev/tcp/spark-master/7077' && bash -c ': >/dev/tcp/0.0.0.0/8080'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    networks:
+      - infra
+
+  spark-worker:
+    <<: *spark-image
+    restart: unless-stopped
+    command: ["/bin/bash", "/opt/celesnity/start-worker.sh"]
+    environment:
+      <<: *spark-env
+      SPARK_WORKER_CORES: ${SPARK_WORKER_CORES:-2}
+      SPARK_WORKER_MEMORY: ${SPARK_WORKER_MEMORY:-1g}
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    deploy:
+      replicas: ${SPARK_WORKER_REPLICAS:-1}
+    volumes:
+      - ./celesnity-infra/images/spark/start-worker.sh:/opt/celesnity/start-worker.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ': >/dev/tcp/localhost/8081'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Infrastructure: Trino (coordinator + worker)
+  # --------------------------------------------------------------------------
+  trino-coordinator:
+    image: trinodb/trino:483
+    restart: unless-stopped
+    environment: *trino-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${TRINO_PORT:-8080}:8080"
+    volumes:
+      - ./celesnity-infra/config/trino/coordinator.properties:/etc/trino/config.properties:ro
+      - ./celesnity-infra/config/trino/node.properties:/etc/trino/node.properties:ro
+      - ./celesnity-infra/config/trino/access-control.properties:/etc/trino/access-control.properties:ro
+      - ./celesnity-infra/config/trino/access-control-rules.json:/etc/trino/access-control-rules.json:ro
+      - ./celesnity-infra/local/catalog:/etc/trino/catalog:ro
+      - trino_data:/data/trino
+    deploy:
+      resources:
+        limits:
+          memory: ${TRINO_COORDINATOR_MEMORY:-1536m}
+    healthcheck:
+      test: ["CMD", "/usr/lib/trino/bin/health-check"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - infra
+
+  trino-worker:
+    image: trinodb/trino:483
+    restart: unless-stopped
+    environment: *trino-env
+    depends_on:
+      trino-coordinator:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./celesnity-infra/config/trino/worker.properties:/etc/trino/config.properties:ro
+      - ./celesnity-infra/config/trino/node.properties:/etc/trino/node.properties:ro
+      - ./celesnity-infra/local/catalog:/etc/trino/catalog:ro
+    deploy:
+      replicas: ${TRINO_WORKER_REPLICAS:-1}
+      resources:
+        limits:
+          memory: ${TRINO_WORKER_MEMORY:-1536m}
+    healthcheck:
+      test: ["CMD", "/usr/lib/trino/bin/health-check"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Trino: demo warehouse seed (one-shot)
+  #
+  # Loads the committed iceberg.demo fixture (customers + orders) into the
+  # managed Iceberg catalog so the platform's shared read-only demo namespace
+  # (iceberg.demo bypass in AdministrationUseCases.authorizeCatalog) has data
+  # to browse and query out of the box. Runs the trino CLI bundled in the
+  # trino image as the write-capable 'celesnity' identity (the only principal
+  # the file access-control policy lets create/populate iceberg schemas).
+  # Idempotent: the fixture DROPs then CREATEs its tables before INSERT, so
+  # re-running on every `up` converges to the same 300 customers / 2000 orders.
+  # --------------------------------------------------------------------------
+  trino-seed:
+    image: trinodb/trino:483
+    restart: "no"
+    depends_on:
+      trino-coordinator:
+        condition: service_healthy
+    volumes:
+      - ./trino/seed/demo-tabular.sql:/seed/demo-tabular.sql:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        /usr/bin/trino --server http://trino-coordinator:8080 \
+          --catalog iceberg --user celesnity -f /seed/demo-tabular.sql
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Celesnity Core: DB migrations (one-shot)
+  #
+  # Uses the Dockerfile `migrator` target, which bundles the Prisma CLI and
+  # migration files. Local-development identity data is persisted in the
+  # Postgres volume.
+  # --------------------------------------------------------------------------
+  celesnity-migrate:
+    build:
+      context: ./celesnity-core
+      target: migrator
+    image: celesnity/core-migrate:dev
+    restart: "no"
+    environment:
+      <<: *core-env
+      NODE_ENV: development
+    command: ["/app/node_modules/.bin/prisma", "migrate", "deploy"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Celesnity Core: API server
+  # --------------------------------------------------------------------------
+  celesnity-api:
+    build:
+      context: ./celesnity-core
+    image: celesnity/core:dev
+    restart: unless-stopped
+    command: ["node", "dist/bootstrap/api-main.js"]
+    environment:
+      <<: *core-env
+      PORT: "3001"
+      API_BIND_ADDRESS: 0.0.0.0
+      API_AUTH_ENABLED: "false"
+      WEB_ORIGIN: http://localhost:3000,https://dev.celesnity.com
+      SPARK_MASTER_URL: spark://spark-master:7077
+    ports:
+      - "127.0.0.1:3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      celesnity-migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      trino-coordinator:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3001/api/v1/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Celesnity Core: Execution worker
+  # --------------------------------------------------------------------------
+  celesnity-worker:
+    build:
+      context: ./celesnity-core
+    image: celesnity/core:dev
+    restart: unless-stopped
+    command: ["node", "dist/bootstrap/worker-main.js"]
+    environment:
+      <<: *core-env
+      SPARK_EXECUTION_BACKEND: docker
+      SPARK_SUBMIT_MASTER_URL: spark://spark-master:7077
+      SPARK_CONTAINER: minder-sys-spark-master-1
+      INTEGRATION_EVENT_PUBLISHER_BACKEND: logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+      celesnity-migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      spark-master:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Celesnity Web: Next.js frontend
+  # --------------------------------------------------------------------------
+  celesnity-web:
+    build:
+      context: ./celesnity-web
+      args:
+        NEXT_PUBLIC_CORE_API_URL: http://localhost:3001/api/v1
+        NEXT_PUBLIC_AGENT_API_URL: /api/agent
+        NEXT_PUBLIC_CHAT_AGENT_NAME: chat-assistant
+        NEXT_PUBLIC_SKILL_CHAT_AGENT_NAME: skill-creator
+        NEXT_PUBLIC_AUTOMATION_WORKFLOW_CHAT_AGENT_NAME: automation-workflow-editor
+        NEXT_PUBLIC_PLANT_MODEL_CHAT_AGENT_NAME: plant-model-assistant
+    image: celesnity/web:dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_CORE_API_URL: http://localhost:3001/api/v1
+      NEXT_PUBLIC_AGENT_API_URL: /api/agent
+      NEXT_PUBLIC_CHAT_AGENT_NAME: chat-assistant
+      NEXT_PUBLIC_SKILL_CHAT_AGENT_NAME: skill-creator
+      NEXT_PUBLIC_AUTOMATION_WORKFLOW_CHAT_AGENT_NAME: automation-workflow-editor
+      NEXT_PUBLIC_PLANT_MODEL_CHAT_AGENT_NAME: plant-model-assistant
+      CELESNITY_AUTH_MODE: ${CELESNITY_AUTH_MODE:-local-development}
+      LOCAL_DEV_AUTH_SIGNING_KEY: ${LOCAL_DEV_AUTH_SIGNING_KEY:-local-development-only-signing-key-do-not-use-in-prod}
+      IDENTITY_PLATFORM_PROJECT_ID: ${IDENTITY_PLATFORM_PROJECT_ID:-}
+      IDENTITY_PLATFORM_TENANT_ID: ${IDENTITY_PLATFORM_TENANT_ID:-local-dev-tenant}
+      IDENTITY_PLATFORM_API_KEY: ${IDENTITY_PLATFORM_API_KEY:-}
+      IDENTITY_PLATFORM_AUTH_DOMAIN: ${IDENTITY_PLATFORM_AUTH_DOMAIN:-}
+      IDENTITY_BOOTSTRAP_ADMIN_SUBJECTS: ${IDENTITY_BOOTSTRAP_ADMIN_SUBJECTS:-}
+      GOOGLE_APPLICATION_CREDENTIALS: /gcloud/application_default_credentials.json
+      WEB_ORIGIN: http://localhost:3000
+      CORE_API_URL: http://celesnity-api:3001/api/v1
+      AGENT_API_URL: http://minder-runtime:8080/api/v2
+      AGENT_AUTH_MODE: core-assertion
+    volumes:
+      - ${HOME}/.config/gcloud:/gcloud:ro
+    tmpfs:
+      - /app/.next/cache:mode=1777
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      celesnity-api:
+        condition: service_healthy
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Minder Agent: PostgreSQL (agent's own database)
+  # --------------------------------------------------------------------------
+  minder-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: minder
+      POSTGRES_PASSWORD: minder
+      POSTGRES_DB: minder_platform
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - minder_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U minder -d minder_platform"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - infra
+
+  minder-migrate:
+    image: minder/runtime:dev
+    restart: "no"
+    environment:
+      DATABASE_URL: postgres://minder:minder@minder-db:5432/minder_platform?schema=minder_agent
+      MINDER_DATABASE_SCHEMA: minder_agent
+    command:
+      - node_modules/prisma/build/index.js
+      - migrate
+      - deploy
+      - --schema
+      - src/infrastructure/prisma/schema.prisma
+    depends_on:
+      minder-db:
+        condition: service_healthy
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+   # Minder Agent: Runtime (native TypeScript minder-serve)
+  # --------------------------------------------------------------------------
+  minder-runtime:
+    build:
+      context: ./minder-agent
+      args:
+        AGENT_BASE_IMAGE: minder/runtime-base:dev
+    image: minder/runtime:dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      LLM_BASE_URL: ${LLM_BASE_URL:?set LLM_BASE_URL in .env}
+      LLM_API_KEY: ${LLM_API_KEY:?set LLM_API_KEY in .env}
+      LLM_MODEL: ${LLM_MODEL:-gpt-5-mini}
+      LLM_TEMPERATURE: "${LLM_TEMPERATURE:-}"
+      DATABASE_URL: postgres://minder:minder@minder-db:5432/minder_platform?schema=minder_agent
+      MINDER_DATABASE_SCHEMA: minder_agent
+      MINDER_SERVE_ADDR: 0.0.0.0:8080
+      MINDER_WORKSPACE_DIR: /tmp/minder-workspaces
+      MINDER_SANDBOX_SOCKET: /run/minder-sandbox/runner.sock
+      MINDER_AUTH_MODE: core-assertion
+      MINDER_ASSERTION_ISSUER: celesnity-core
+      MINDER_ASSERTION_AUDIENCE: minder-agent
+      MINDER_ASSERTION_PUBLIC_KEYS_JSON: >-
+        {"local-development-2026":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAl1Av5WiH2hZW9SMhYdkzCLnjjIcnWbiukpuSdUa/iwU=\n-----END PUBLIC KEY-----\n"}
+      MINDER_ASSERTION_REPLAY_CACHE_CAPACITY: "1024"
+
+      TRINO_MCP_URL: http://celesnity-api:3001/api/v1/trino-mcp
+      CHART_MCP_URL: http://celesnity-api:3001/api/v1/chart-mcp
+      DOCUMENT_MCP_URL: http://celesnity-api:3001/api/v1/document-mcp
+      PLANT_MODEL_MCP_URL: http://celesnity-api:3001/api/v1/plant-model-mcp
+      AUTOMATION_WORKFLOW_MCP_URL: http://celesnity-api:3001/api/v1/automation-workflow-mcp
+      SKILL_MCP_URL: http://celesnity-api:3001/api/v1/skill-mcp
+      CLOUD_FILE_MCP_URL: http://celesnity-api:3001/api/v1/cloud-file-mcp
+      MCP_SHARED_SECRET: ${MCP_SHARED_SECRET:-local-development-mcp-shared-secret}
+      CELESNITY_CORE_AUDIENCE: http://celesnity-api:3001
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-celesnity}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+      MINIO_WORKSPACE_BUCKET: ${MINIO_WORKSPACE_BUCKET:-minder-workspace}
+      MINIO_SECURE: "false"
+      CELESNITY_CORE_URL: http://celesnity-api:3001
+    ports:
+      - "127.0.0.1:8090:8080"
+    volumes:
+      - ./minder-agent/.minder/skills:/app/.minder/skills
+      - minder_workspace_cache:/tmp/minder-workspaces
+      - minder_sandbox_socket:/run/minder-sandbox
+    depends_on:
+      minder-db:
+        condition: service_healthy
+      minder-migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      celesnity-api:
+        condition: service_healthy
+      minder-sandbox-runner:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - /nodejs/bin/node
+        - -e
+        - >-
+          fetch('http://127.0.0.1:8080/api/v2/healthz').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))
+      interval: 10s
+      timeout: 3s
+      start_period: 15s
+      retries: 5
+    networks:
+      - infra
+
+  minder-sandbox-runner:
+    build:
+      context: ./minder-agent
+      dockerfile: docker/sandbox-runtime.Dockerfile
+      args:
+        SANDBOX_BASE_IMAGE: minder/sandbox-runner-base:dev
+    image: minder/sandbox-runner:dev
+    restart: unless-stopped
+    environment:
+      MINDER_SANDBOX_SOCKET: /run/minder-sandbox/runner.sock
+      MINDER_WORKSPACE_CACHE: /tmp/minder-workspaces
+      MINDER_SANDBOX_SCRATCH: /sandbox-scratch
+    volumes:
+      - minder_workspace_cache:/tmp/minder-workspaces
+      - minder_sandbox_socket:/run/minder-sandbox
+    tmpfs:
+      - /sandbox-scratch:uid=65532,gid=65532,mode=0700
+    network_mode: none
+    # Keep Docker's default syscall policy, with the namespace/mount calls
+    # Bubblewrap needs enabled only for this isolated runner.
+    security_opt:
+      - seccomp:./minder-agent/sandbox-runner/seccomp.json
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          require('node:fs').accessSync(process.env.MINDER_SANDBOX_SOCKET)
+      interval: 3s
+      timeout: 2s
+      start_period: 60s
+      retries: 10
+
+  # --------------------------------------------------------------------------
+  # Dev base images (build-only, `base` profile)
+  #
+  # Pre-built dependency layers for the minder-runtime and minder-sandbox-runner
+  # builds above, from the same docker/*-base.Dockerfile files GKE uses. Build
+  # them once before the first `docker compose build`, and again after changing:
+  #   - minder-agent package.json / package-lock.json (runtime base; the runtime
+  #     build falls back to `npm ci` if they differ, so a stale base is only slow)
+  #   - sandbox-runner package.json / package-lock.json, sandbox-requirements.*.lock,
+  #     XlsWorkbookTool.java, or either docker/*-base.Dockerfile (apt packages,
+  #     Typst/Pandoc versions)
+  #
+  #   docker compose build minder-runtime-base minder-sandbox-runner-base
+  # --------------------------------------------------------------------------
+  minder-runtime-base:
+    build:
+      context: ./minder-agent
+      dockerfile: docker/agent-base.Dockerfile
+    image: minder/runtime-base:dev
+    profiles: ["base"]
+
+  minder-sandbox-runner-base:
+    build:
+      context: ./minder-agent
+      dockerfile: docker/sandbox-base.Dockerfile
+    image: minder/sandbox-runner-base:dev
+    profiles: ["base"]
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  infra:
+    name: minder-sys
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres_data:
+  minio_data:
+  spark_ivy:
+  trino_data:
+  minder_pgdata:
+  minder_workspace_cache:
+  minder_sandbox_socket:

@@ -1,0 +1,776 @@
+name: celesnity-poc
+
+x-spark-image: &spark-image
+  build:
+    context: ../images/spark
+    args:
+      ICEBERG_VERSION: ${ICEBERG_VERSION:-1.11.0}
+      POSTGRES_JDBC_VERSION: ${POSTGRES_JDBC_VERSION:-42.7.13}
+      MYSQL_JDBC_VERSION: ${MYSQL_JDBC_VERSION:-26.7.0}
+  image: celesnity/spark:3.5.7-iceberg-1.11.0
+
+x-spark-env: &spark-env
+  WAREHOUSE_PATH: s3://${MINIO_BUCKET:-warehouse}
+  AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-celesnity}
+  AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+  AWS_REGION: ${MINIO_REGION:-ap-southeast-1}
+  AWS_ENDPOINT_URL: http://minio:9000
+  POSTGRES_DB: ${POSTGRES_DB:-celesnity}
+  POSTGRES_USER: ${POSTGRES_USER:-celesnity}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
+  POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-celesnity}
+  SPARK_MASTER_HOST: spark-master
+  SPARK_MASTER_INTERNAL_PORT: "7077"
+
+x-trino-env: &trino-env
+  POSTGRES_DB: ${POSTGRES_DB:-celesnity}
+  POSTGRES_USER: ${POSTGRES_USER:-celesnity}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
+  MINIO_ROOT_USER: ${MINIO_ROOT_USER:-celesnity}
+  MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+  MINIO_BUCKET: ${MINIO_BUCKET:-warehouse}
+  MINIO_REGION: ${MINIO_REGION:-ap-southeast-1}
+  # TRINO_QUERY_MAX_MEMORY is the cluster-wide budget, so it tracks
+  # TRINO_WORKER_REPLICAS: 1 worker x 400MB. Raise both together, otherwise the
+  # planner admits queries needing more memory than the workers actually have.
+  # Matches deploy/base/trino/{coordinator,worker}.yaml.
+  TRINO_QUERY_MAX_MEMORY: ${TRINO_QUERY_MAX_MEMORY:-400MB}
+  TRINO_QUERY_MAX_MEMORY_PER_NODE: ${TRINO_QUERY_MAX_MEMORY_PER_NODE:-400MB}
+
+services:
+  emqx:
+    profiles: [streaming]
+    image: emqx/emqx:5.8.9
+    restart: unless-stopped
+    environment:
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD:-celesnity_emqx_dashboard_password}
+    ports:
+      - "127.0.0.1:${MQTT_PORT:-1883}:1883"
+      - "127.0.0.1:${EMQX_DASHBOARD_PORT:-18083}:18083"
+    volumes:
+      - ../config/emqx/base.hocon:/opt/emqx/etc/base.hocon:ro
+      - ../config/emqx/default_api_key.conf:/opt/emqx/etc/default_api_key.conf:ro
+      - ../config/emqx/auth-built-in-db-bootstrap.csv:/opt/emqx/etc/auth-built-in-db-bootstrap.csv:ro
+      - ../config/emqx/acl.conf:/opt/emqx/etc/acl.conf:ro
+      - emqx_data:/opt/emqx/data
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx_ctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - celesnity
+
+  redpanda:
+    profiles: [streaming, cdc]
+    image: docker.redpanda.com/redpandadata/redpanda:v26.1.14
+    restart: unless-stopped
+    command:
+      - redpanda
+      - start
+      - --kafka-addr=internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr=internal://redpanda:9092,external://localhost:${REDPANDA_PORT:-19092}
+      - --schema-registry-addr=internal://0.0.0.0:8081,external://0.0.0.0:18081
+      - --rpc-addr=redpanda:33145
+      - --advertise-rpc-addr=redpanda:33145
+      - --mode=dev-container
+      - --smp=1
+      - --memory=1G
+      - --reserve-memory=0M
+      - --default-log-level=info
+    environment:
+      RP_BOOTSTRAP_USER: ${REDPANDA_USERNAME:-celesnity-admin}:${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+    ports:
+      - "127.0.0.1:${REDPANDA_PORT:-19092}:19092"
+      - "127.0.0.1:${REDPANDA_SCHEMA_REGISTRY_PORT:-18081}:18081"
+      - "127.0.0.1:${REDPANDA_ADMIN_PORT:-19644}:9644"
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+      - ../config/redpanda/bootstrap.yaml:/etc/redpanda/.bootstrap.yaml:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "rpk cluster info -X brokers=127.0.0.1:9092 -X user=$${REDPANDA_USERNAME:-celesnity-admin} -X pass=$${REDPANDA_PASSWORD:-celesnity_redpanda_password} -X sasl.mechanism=SCRAM-SHA-256",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+    networks:
+      - celesnity
+
+  redpanda-init:
+    profiles: [streaming, cdc]
+    image: docker.redpanda.com/redpandadata/redpanda:v26.1.14
+    restart: "no"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-ceu"]
+    command:
+      - |
+        RPK_ARGS=(-X brokers=redpanda:9092 -X user="$${REDPANDA_USERNAME}" -X pass="$${REDPANDA_PASSWORD}" -X sasl.mechanism=SCRAM-SHA-256)
+        rpk topic create celesnity.streaming.control.v1 --partitions 1 --replicas 1 --topic-config cleanup.policy=compact "$${RPK_ARGS[@]}" || true
+        rpk topic create celesnity.mqtt.raw.shared-0.v1 --partitions "$${REDPANDA_RAW_PARTITIONS:-12}" --replicas 1 --topic-config retention.ms="$${REDPANDA_RAW_RETENTION_MS:-604800000}" "$${RPK_ARGS[@]}" || true
+        rpk topic create celesnity.mqtt.dlq.v1 --partitions 3 --replicas 1 --topic-config retention.ms="$${REDPANDA_DLQ_RETENTION_MS:-604800000}" "$${RPK_ARGS[@]}" || true
+        rpk topic create celesnity.streaming.audit.v1 --partitions 3 --replicas 1 --topic-config retention.ms="$${REDPANDA_AUDIT_RETENTION_MS:-2592000000}" "$${RPK_ARGS[@]}" || true
+        rpk topic create "$${DATA_WORKFLOW_CDC_TOPIC:-celesnity.data-workflow.cdc.v1}" --partitions "$${DATA_WORKFLOW_CDC_PARTITIONS:-6}" --replicas 1 --topic-config retention.ms="$${DATA_WORKFLOW_CDC_RETENTION_MS:-604800000}" "$${RPK_ARGS[@]}" || true
+        rpk topic create "$${DEBEZIUM_CONFIG_STORAGE_TOPIC:-celesnity.debezium.configs}" --partitions 1 --replicas 1 --topic-config cleanup.policy=compact "$${RPK_ARGS[@]}" || true
+        rpk topic create "$${DEBEZIUM_OFFSET_STORAGE_TOPIC:-celesnity.debezium.offsets}" --partitions 25 --replicas 1 --topic-config cleanup.policy=compact "$${RPK_ARGS[@]}" || true
+        rpk topic create "$${DEBEZIUM_STATUS_STORAGE_TOPIC:-celesnity.debezium.status}" --partitions 5 --replicas 1 --topic-config cleanup.policy=compact "$${RPK_ARGS[@]}" || true
+        rpk registry schema create celesnity.mqtt.raw.v1-value --schema /schemas/mqtt-bronze-envelope.schema.json --type json -X registry.hosts=redpanda:8081 -X user="$${REDPANDA_USERNAME}" -X pass="$${REDPANDA_PASSWORD}" || true
+    environment:
+      DATA_WORKFLOW_CDC_TOPIC: ${DATA_WORKFLOW_CDC_TOPIC:-celesnity.data-workflow.cdc.v1}
+      DATA_WORKFLOW_CDC_PARTITIONS: ${DATA_WORKFLOW_CDC_PARTITIONS:-6}
+      DATA_WORKFLOW_CDC_RETENTION_MS: ${DATA_WORKFLOW_CDC_RETENTION_MS:-604800000}
+      DEBEZIUM_CONFIG_STORAGE_TOPIC: ${DEBEZIUM_CONFIG_STORAGE_TOPIC:-celesnity.debezium.configs}
+      DEBEZIUM_OFFSET_STORAGE_TOPIC: ${DEBEZIUM_OFFSET_STORAGE_TOPIC:-celesnity.debezium.offsets}
+      DEBEZIUM_STATUS_STORAGE_TOPIC: ${DEBEZIUM_STATUS_STORAGE_TOPIC:-celesnity.debezium.status}
+      REDPANDA_USERNAME: ${REDPANDA_USERNAME:-celesnity-admin}
+      REDPANDA_PASSWORD: ${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+    volumes:
+      - ../config/redpanda:/schemas:ro
+    networks:
+      - celesnity
+
+  debezium-connect:
+    profiles: [cdc]
+    build:
+      context: ../images
+      dockerfile: debezium-connect/Dockerfile
+    image: celesnity/debezium-connect:3.6-metadata-only
+    restart: unless-stopped
+    depends_on:
+      redpanda-init:
+        condition: service_completed_successfully
+    environment:
+      BOOTSTRAP_SERVERS: ${DEBEZIUM_BOOTSTRAP_SERVERS:-redpanda:9092}
+      GROUP_ID: ${DEBEZIUM_GROUP_ID:-celesnity-debezium-connect}
+      CONFIG_STORAGE_TOPIC: ${DEBEZIUM_CONFIG_STORAGE_TOPIC:-celesnity.debezium.configs}
+      OFFSET_STORAGE_TOPIC: ${DEBEZIUM_OFFSET_STORAGE_TOPIC:-celesnity.debezium.offsets}
+      STATUS_STORAGE_TOPIC: ${DEBEZIUM_STATUS_STORAGE_TOPIC:-celesnity.debezium.status}
+      CONFIG_STORAGE_REPLICATION_FACTOR: ${DEBEZIUM_CONFIG_STORAGE_REPLICATION_FACTOR:-1}
+      OFFSET_STORAGE_REPLICATION_FACTOR: ${DEBEZIUM_OFFSET_STORAGE_REPLICATION_FACTOR:-1}
+      STATUS_STORAGE_REPLICATION_FACTOR: ${DEBEZIUM_STATUS_STORAGE_REPLICATION_FACTOR:-1}
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_REST_ADVERTISED_HOST_NAME: debezium-connect
+      CONNECT_PLUGIN_PATH: /kafka/connect,/kafka/connect/celesnity-metadata-transform
+      CONNECT_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      CONNECT_SASL_MECHANISM: SCRAM-SHA-256
+      CONNECT_SASL_JAAS_CONFIG: org.apache.kafka.common.security.scram.ScramLoginModule required username="${REDPANDA_USERNAME:-celesnity-admin}" password="${REDPANDA_PASSWORD:-celesnity_redpanda_password}";
+      CONNECT_PRODUCER_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      CONNECT_PRODUCER_SASL_MECHANISM: SCRAM-SHA-256
+      CONNECT_PRODUCER_SASL_JAAS_CONFIG: org.apache.kafka.common.security.scram.ScramLoginModule required username="${REDPANDA_USERNAME:-celesnity-admin}" password="${REDPANDA_PASSWORD:-celesnity_redpanda_password}";
+      CONNECT_CONSUMER_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      CONNECT_CONSUMER_SASL_MECHANISM: SCRAM-SHA-256
+      CONNECT_CONSUMER_SASL_JAAS_CONFIG: org.apache.kafka.common.security.scram.ScramLoginModule required username="${REDPANDA_USERNAME:-celesnity-admin}" password="${REDPANDA_PASSWORD:-celesnity_redpanda_password}";
+    ports:
+      - "127.0.0.1:${DEBEZIUM_CONNECT_PORT:-18083}:8083"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:8083/connectors >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - celesnity
+
+  redpanda-connect:
+    profiles: [streaming]
+    image: docker.redpanda.com/redpandadata/connect:4.104.0
+    # The 4.104.0 arm64 binary segfaults on Apple Silicon before configuration
+    # is loaded. The amd64 image runs correctly through Docker Desktop's
+    # emulation; Linux/amd64 hosts use it natively.
+    platform: ${REDPANDA_CONNECT_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    depends_on:
+      emqx:
+        condition: service_healthy
+      redpanda-init:
+        condition: service_completed_successfully
+    command:
+      [
+        "streams",
+        "--observability",
+        "/etc/redpanda-connect/root.yaml",
+        "/etc/redpanda-connect/streams/mqtt-to-redpanda.yaml",
+      ]
+    environment:
+      MQTT_CONNECT_CLIENT_ID: ${MQTT_CONNECT_CLIENT_ID:-celesnity-redpanda-connect-shared-0}
+      MQTT_CONNECT_USERNAME: ${MQTT_CONNECT_USERNAME:-celesnity-connect}
+      MQTT_CONNECT_PASSWORD: ${MQTT_CONNECT_PASSWORD:-celesnity_connect_password}
+      MQTT_BROKER_INTERNAL_URL: tcp://emqx:1883
+      REDPANDA_BROKERS: ${REDPANDA_BROKERS:-redpanda:9092}
+      REDPANDA_USERNAME: ${REDPANDA_USERNAME:-celesnity-admin}
+      REDPANDA_PASSWORD: ${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+    ports:
+      - "127.0.0.1:${REDPANDA_CONNECT_PORT:-14195}:4195"
+    volumes:
+      - ../config/redpanda-connect/root.yaml:/etc/redpanda-connect/root.yaml:ro
+      - ../config/redpanda-connect/mqtt-to-redpanda.yaml:/etc/redpanda-connect/streams/mqtt-to-redpanda.yaml:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://127.0.0.1:4195/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - celesnity
+
+  redpanda-console:
+    profiles: [streaming]
+    image: docker.redpanda.com/redpandadata/console:v3.9.0
+    restart: unless-stopped
+    depends_on:
+      redpanda-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+      KAFKA_SASL_ENABLED: "true"
+      KAFKA_SASL_USERNAME: ${REDPANDA_USERNAME:-celesnity-admin}
+      KAFKA_SASL_PASSWORD: ${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+      KAFKA_SASL_MECHANISM: SCRAM-SHA-256
+      KAFKA_SCHEMAREGISTRY_ENABLED: "true"
+      KAFKA_SCHEMAREGISTRY_URLS: http://redpanda:8081
+      REDPANDA_ADMINAPI_ENABLED: "true"
+      REDPANDA_ADMINAPI_URLS: http://redpanda:9644
+    ports:
+      - "127.0.0.1:${REDPANDA_CONSOLE_PORT:-18080}:8080"
+    networks:
+      - celesnity
+
+  postgres:
+    image: postgres:17.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-celesnity}
+      POSTGRES_USER: ${POSTGRES_USER:-celesnity}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-15432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Same DDL the EKS deployment applies through a bootstrap Job.
+      - ../config/sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - celesnity
+
+  # Disposable direct PostgreSQL source used by the local Data Workflow CDC
+  # smoke test. It is separate from the platform database so logical
+  # replication settings and test data cannot affect Core state.
+  cdc-fixture-postgres:
+    profiles: [cdc]
+    image: postgres:17.6-alpine
+    restart: unless-stopped
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=10
+      - -c
+      - max_wal_senders=10
+    environment:
+      POSTGRES_DB: ${CDC_FIXTURE_DATABASE:-cdc_fixture}
+      POSTGRES_USER: ${CDC_FIXTURE_ADMIN_USER:-cdc_admin}
+      POSTGRES_PASSWORD: ${CDC_FIXTURE_ADMIN_PASSWORD:-cdc_fixture_admin_password}
+    ports:
+      - "127.0.0.1:${CDC_FIXTURE_PORT:-15433}:5432"
+    volumes:
+      - cdc_fixture_postgres_data:/var/lib/postgresql/data
+      - ./cdc-fixture/init.sql:/docker-entrypoint-initdb.d/001-cdc-fixture.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\"",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+    networks:
+      - celesnity
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-celesnity}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - celesnity
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-celesnity}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+      MINIO_BUCKET: ${MINIO_BUCKET:-warehouse}
+      MINIO_ARTIFACTS_BUCKET: ${MINIO_ARTIFACTS_BUCKET:-celesnity-artifacts}
+      FTPS_INGRESS_BUCKET: ${FTPS_INGRESS_BUCKET:-celesnity-ingress}
+      FTPS_TENANT_PREFIX: ${FTPS_TENANT_PREFIX:-tnt_localdemo000}
+      FTPS_DEMO_USERNAME: ${FTPS_DEMO_USERNAME:-ftps-demo-user}
+      FTPS_MINIO_ACCESS_KEY: ${FTPS_MINIO_ACCESS_KEY:-celesnity-ftps}
+      FTPS_MINIO_ACCESS_SECRET: ${FTPS_MINIO_ACCESS_SECRET:-replace-with-a-local-storage-secret}
+      MINIO_WORKSPACE_BUCKET: ${MINIO_WORKSPACE_BUCKET:-minder-workspace}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        /usr/bin/mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"
+        /usr/bin/mc mb --ignore-existing "local/$${MINIO_BUCKET}"
+        /usr/bin/mc mb --ignore-existing "local/$${MINIO_ARTIFACTS_BUCKET}"
+        /usr/bin/mc mb --ignore-existing "local/$${FTPS_INGRESS_BUCKET}"
+        /usr/bin/mc mb --ignore-existing "local/$${MINIO_WORKSPACE_BUCKET}"
+        /usr/bin/mc version enable "local/$${MINIO_ARTIFACTS_BUCKET}"
+        printf '' | /usr/bin/mc pipe "local/$${MINIO_ARTIFACTS_BUCKET}/scripts/.keep"
+        printf '' | /usr/bin/mc pipe "local/$${MINIO_ARTIFACTS_BUCKET}/executions/.keep"
+        printf '' | /usr/bin/mc pipe "local/$${MINIO_ARTIFACTS_BUCKET}/firmware/.keep"
+        cat > /tmp/ftps-inbound-policy.json <<EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": ["s3:GetBucketLocation"],
+              "Resource": ["arn:aws:s3:::$${FTPS_INGRESS_BUCKET}"]
+            },
+            {
+              "Effect": "Allow",
+              "Action": ["s3:ListBucket"],
+              "Resource": ["arn:aws:s3:::$${FTPS_INGRESS_BUCKET}"],
+              "Condition": {
+                "StringLike": {
+                  "s3:prefix": ["$${FTPS_TENANT_PREFIX}/landing/ftps/$${FTPS_DEMO_USERNAME}/incoming", "$${FTPS_TENANT_PREFIX}/landing/ftps/$${FTPS_DEMO_USERNAME}/incoming/*"]
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": ["s3:AbortMultipartUpload", "s3:GetObject", "s3:ListMultipartUploadParts", "s3:PutObject"],
+              "Resource": ["arn:aws:s3:::$${FTPS_INGRESS_BUCKET}/$${FTPS_TENANT_PREFIX}/landing/ftps/$${FTPS_DEMO_USERNAME}/incoming/*"]
+            }
+          ]
+        }
+        EOF
+        /usr/bin/mc admin policy create local ftps-inbound /tmp/ftps-inbound-policy.json 2>/dev/null || true
+        /usr/bin/mc admin user add local "$${FTPS_MINIO_ACCESS_KEY}" "$${FTPS_MINIO_ACCESS_SECRET}" 2>/dev/null || true
+        /usr/bin/mc admin policy attach local ftps-inbound --user "$${FTPS_MINIO_ACCESS_KEY}" 2>/dev/null || true
+    networks:
+      - celesnity
+
+  # Generate a development-only certificate once. The bind-mounted directory
+  # is ignored by Git so the private key never enters the repository.
+  ftps-cert-init:
+    profiles: [ftps]
+    image: alpine:3.20
+    restart: "no"
+    entrypoint: ["/bin/sh", "-ceu"]
+    command:
+      - |
+        apk add --no-cache openssl >/dev/null
+        mkdir -p /certs
+        if [ "$${FTPS_CERT_REGENERATE:-0}" = "1" ]; then
+          rm -f /certs/server.crt /certs/server.key
+        fi
+        if [ ! -s /certs/server.crt ] || [ ! -s /certs/server.key ]; then
+          umask 077
+          openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+            -keyout /certs/server.key \
+            -out /certs/server.crt \
+            -subj "/CN=localhost" \
+            -addext "subjectAltName=DNS:localhost,DNS:sftpgo,DNS:host.docker.internal,IP:127.0.0.1"
+        fi
+        # SFTPGo runs as uid/gid 1000 in the official image. Keep the key
+        # unreadable to other container users while granting that account
+        # access to the bind-mounted certificate.
+        chown 1000:1000 /certs/server.key /certs/server.crt
+        chmod 640 /certs/server.key
+        chmod 644 /certs/server.crt
+        openssl x509 -in /certs/server.crt -noout
+    volumes:
+      - ./secrets/ftps:/certs
+    environment:
+      FTPS_CERT_REGENERATE: ${FTPS_CERT_REGENERATE:-0}
+    networks:
+      - celesnity
+
+  # SFTPGo exposes only explicit FTPS on the published ports. Its REST API is
+  # needed by ftps-bootstrap but has no host port and is reachable only inside
+  # the Compose network.
+  sftpgo:
+    profiles: [ftps]
+    image: drakkan/sftpgo:v2.7.5
+    restart: unless-stopped
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+      ftps-cert-init:
+        condition: service_completed_successfully
+    command: ["sftpgo", "serve", "--config-dir", "/var/lib/sftpgo"]
+    environment:
+      SFTPGO_DATA_PROVIDER__DRIVER: sqlite
+      SFTPGO_DATA_PROVIDER__NAME: /var/lib/sftpgo/sftpgo.db
+      SFTPGO_DATA_PROVIDER__USERS_BASE_DIR: /srv/sftpgo/data
+      SFTPGO_DATA_PROVIDER__CREATE_DEFAULT_ADMIN: "true"
+      SFTPGO_DEFAULT_ADMIN_USERNAME: ${FTPS_BOOTSTRAP_ADMIN_USERNAME:-ftps-bootstrap-admin}
+      SFTPGO_DEFAULT_ADMIN_PASSWORD: ${FTPS_BOOTSTRAP_ADMIN_PASSWORD:-replace-with-a-local-bootstrap-password}
+      SFTPGO_KMS__SECRETS__MASTER_KEY: ${FTPS_SFTPGO_MASTER_KEY:-replace-with-a-high-entropy-local-master-key}
+      SFTPGO_COMMON__SETSTAT_MODE: "1"
+      SFTPGO_SFTPD__BINDINGS__0__PORT: "0"
+      SFTPGO_FTPD__BINDINGS__0__PORT: ${FTPS_CONTROL_PORT:-2121}
+      SFTPGO_FTPD__BINDINGS__0__TLS_MODE: "1"
+      SFTPGO_FTPD__BINDINGS__0__MIN_TLS_VERSION: "12"
+      # The local host-client path advertises loopback. Override these values
+      # with the externally reachable address/hostname in a deployed environment.
+      SFTPGO_FTPD__BINDINGS__0__FORCE_PASSIVE_IP: ${FTPS_PASSIVE_IP-127.0.0.1}
+      SFTPGO_FTPD__BINDINGS__0__PASSIVE_HOST: ${FTPS_PASSIVE_HOST-}
+      SFTPGO_FTPD__BINDINGS__0__PASSIVE_CONNECTIONS_SECURITY: "0"
+      SFTPGO_FTPD__BINDINGS__0__ACTIVE_CONNECTIONS_SECURITY: "0"
+      SFTPGO_FTPD__BINDINGS__0__CLIENT_AUTH_TYPE: "0"
+      SFTPGO_FTPD__CERTIFICATE_FILE: /etc/sftpgo/certs/server.crt
+      SFTPGO_FTPD__CERTIFICATE_KEY_FILE: /etc/sftpgo/certs/server.key
+      SFTPGO_FTPD__PASSIVE_PORT_RANGE__START: ${FTPS_PASSIVE_PORT_START:-50000}
+      SFTPGO_FTPD__PASSIVE_PORT_RANGE__END: ${FTPS_PASSIVE_PORT_END:-50009}
+      SFTPGO_FTPD__DISABLE_ACTIVE_MODE: "true"
+      SFTPGO_HTTPD__BINDINGS__0__PORT: "8080"
+      SFTPGO_HTTPD__BINDINGS__0__ENABLE_WEB_ADMIN: "false"
+      SFTPGO_HTTPD__BINDINGS__0__ENABLE_WEB_CLIENT: "false"
+      SFTPGO_HTTPD__BINDINGS__0__ENABLE_REST_API: "true"
+    ports:
+      - "127.0.0.1:${FTPS_CONTROL_PORT:-2121}:${FTPS_CONTROL_PORT:-2121}"
+      - "127.0.0.1:${FTPS_PASSIVE_PORT_START:-50000}-${FTPS_PASSIVE_PORT_END:-50009}:${FTPS_PASSIVE_PORT_START:-50000}-${FTPS_PASSIVE_PORT_END:-50009}"
+      # The optional FileZilla profile shares this network namespace so its
+      # browser UI can be published through the SFTPGo namespace as well.
+      - "127.0.0.1:${FILEZILLA_WEB_PORT:-5800}:5800"
+    volumes:
+      - sftpgo_config:/var/lib/sftpgo
+      - sftpgo_data:/srv/sftpgo/data
+      - ./secrets/ftps:/etc/sftpgo/certs:ro
+    healthcheck:
+      test: ["CMD", "sftpgo", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
+    networks:
+      - celesnity
+
+  # Optional local FTPS client for smoke-testing the server from the same
+  # network namespace. It deliberately shares SFTPGo's loopback so the local
+  # passive address 127.0.0.1 remains valid for both control and data channels.
+  # Start it with: --profile ftps-client up -d --wait
+  filezilla:
+    image: jlesage/filezilla:v26.07.1
+    profiles: [ftps-client]
+    restart: unless-stopped
+    depends_on:
+      sftpgo:
+        condition: service_healthy
+    network_mode: service:sftpgo
+    environment:
+      DISPLAY_WIDTH: ${FILEZILLA_DISPLAY_WIDTH:-1440}
+      DISPLAY_HEIGHT: ${FILEZILLA_DISPLAY_HEIGHT:-900}
+    volumes:
+      - filezilla_config:/config
+
+  # One-shot, idempotent reconciliation of the SFTPGo folder, FTPS user, and
+  # view-only connection monitor. It has no published port and never prints
+  # credential values.
+  ftps-bootstrap:
+    profiles: [ftps]
+    image: python:3.13-alpine
+    restart: "no"
+    depends_on:
+      sftpgo:
+        condition: service_healthy
+    environment:
+      FTPS_SFTPGO_API_URL: http://sftpgo:8080
+      FTPS_BOOTSTRAP_ADMIN_USERNAME: ${FTPS_BOOTSTRAP_ADMIN_USERNAME:-ftps-bootstrap-admin}
+      FTPS_BOOTSTRAP_ADMIN_PASSWORD: ${FTPS_BOOTSTRAP_ADMIN_PASSWORD:-replace-with-a-local-bootstrap-password}
+      FTPS_STATUS_USERNAME: ${FTPS_STATUS_USERNAME:-ftps-status-monitor}
+      FTPS_STATUS_PASSWORD: ${FTPS_STATUS_PASSWORD:-replace-with-a-local-ftps-status-password}
+      FTPS_STATUS_RESET_PASSWORD: ${FTPS_STATUS_RESET_PASSWORD:-0}
+      FTPS_DEMO_USERNAME: ${FTPS_DEMO_USERNAME:-ftps-demo-user}
+      FTPS_DEMO_PASSWORD: ${FTPS_DEMO_PASSWORD:-replace-with-a-local-ftps-password}
+      # Local FTPS keeps the S3/MinIO payload path. The GKE bootstrap Job sets
+      # this to gcs and authenticates through Workload Identity instead.
+      FTPS_STORAGE_BACKEND: ${FTPS_STORAGE_BACKEND:-s3}
+      FTPS_INGRESS_BUCKET: ${FTPS_INGRESS_BUCKET:-celesnity-ingress}
+      FTPS_MINIO_ACCESS_KEY: ${FTPS_MINIO_ACCESS_KEY:-celesnity-ftps}
+      FTPS_MINIO_ACCESS_SECRET: ${FTPS_MINIO_ACCESS_SECRET:-replace-with-a-local-storage-secret}
+      FTPS_S3_ENDPOINT: http://minio:9000
+      MINIO_REGION: ${MINIO_REGION:-ap-southeast-1}
+      FTPS_TENANT_PREFIX: ${FTPS_TENANT_PREFIX:-tnt_localdemo000}
+      FTPS_SFTPGO_FOLDER_NAME: ${FTPS_SFTPGO_FOLDER_NAME:-ftps-demo-incoming}
+    volumes:
+      - ../scripts/ftps/bootstrap.py:/opt/ftps/bootstrap.py:ro
+    command: ["python", "/opt/ftps/bootstrap.py"]
+    networks:
+      - celesnity
+
+  # Spark standalone master. Submit jobs from this container so the driver runs
+  # inside the celesnity network and executors can reach it by address.
+  spark-master:
+    <<: *spark-image
+    restart: unless-stopped
+    command: ["/bin/bash", "/opt/celesnity/start-master.sh"]
+    environment: *spark-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${SPARK_MASTER_PORT:-7077}:7077"
+      - "127.0.0.1:${SPARK_MASTER_UI_PORT:-8081}:8080"
+    volumes:
+      # Baked into the image too; mounted here so edits apply without a rebuild.
+      - ../images/spark/start-master.sh:/opt/celesnity/start-master.sh:ro
+      - spark_ivy:/opt/spark/ivy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ': >/dev/tcp/spark-master/7077' && bash -c ': >/dev/tcp/spark-master/8080'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - celesnity
+
+  mqtt-stream-init:
+    profiles: [streaming]
+    <<: *spark-image
+    user: "0:0"
+    restart: "no"
+    command: ["/bin/bash", "-ceu", "mkdir -p /opt/spark/checkpoints/mqtt/shared-0 && chown -R 185:185 /opt/spark/checkpoints"]
+    volumes:
+      - mqtt_stream_checkpoints:/opt/spark/checkpoints
+    networks:
+      - celesnity
+
+  # One always-running shared Structured Streaming driver consumes the raw
+  # Redpanda topic. Registering adapters updates EMQX principals and ACLs; it
+  # does not create another Spark application.
+  mqtt-bronze-stream:
+    profiles: [streaming]
+    <<: *spark-image
+    restart: unless-stopped
+    command:
+      - /opt/spark/bin/spark-submit
+      - --master
+      - spark://spark-master:7077
+      - --deploy-mode
+      - client
+      - --driver-memory
+      - 1g
+      - --executor-memory
+      - 1g
+      - --executor-cores
+      - "1"
+      - --conf
+      - spark.cores.max=1
+      - /opt/celesnity/streaming/mqtt_bronze_stream.py
+    environment:
+      <<: *spark-env
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_SSLMODE: disable
+      WAREHOUSE_PATH: s3://${MINIO_BUCKET:-warehouse}
+      ARTIFACTS_BUCKET: ${MINIO_ARTIFACTS_BUCKET:-celesnity-artifacts}
+      REDPANDA_BOOTSTRAP_SERVERS: redpanda:9092
+      REDPANDA_USERNAME: ${REDPANDA_USERNAME:-celesnity-admin}
+      REDPANDA_PASSWORD: ${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+      REDPANDA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      REDPANDA_RAW_TOPIC: celesnity.mqtt.raw.shared-0.v1
+      STREAMING_DEPLOYMENT_ID: shared-0
+      STREAMING_TRIGGER_INTERVAL: 5 seconds
+      STREAMING_CHECKPOINT_LOCATION: file:///opt/spark/checkpoints/mqtt/shared-0
+      SPARK_DRIVER_HOST: mqtt-bronze-stream
+    depends_on:
+      spark-master:
+        condition: service_healthy
+      spark-worker:
+        condition: service_healthy
+      redpanda-init:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      mqtt-stream-init:
+        condition: service_completed_successfully
+    volumes:
+      - ../config/spark/mqtt_bronze_stream.py:/opt/celesnity/streaming/mqtt_bronze_stream.py:ro
+      - mqtt_stream_checkpoints:/opt/spark/checkpoints
+      - spark_ivy:/opt/spark/ivy
+    networks:
+      - celesnity
+
+  # Spark standalone workers. The lightweight default runs one worker for
+  # on-demand pipeline/script execution. The streaming profile consumes that
+  # worker continuously, so opt into a second worker when enabling it:
+  #   SPARK_WORKER_REPLICAS=2 docker compose --profile streaming up -d --wait
+  # Scale further with:
+  #   docker compose up -d --scale spark-worker=3
+  # No ports are published and no named volume is mounted, so every replica is
+  # independent. Worker state is visible through the master UI.
+  spark-worker:
+    <<: *spark-image
+    restart: unless-stopped
+    command: ["/bin/bash", "/opt/celesnity/start-worker.sh"]
+    environment:
+      <<: *spark-env
+      SPARK_WORKER_CORES: ${SPARK_WORKER_CORES:-1}
+      SPARK_WORKER_MEMORY: ${SPARK_WORKER_MEMORY:-1g}
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    deploy:
+      replicas: ${SPARK_WORKER_REPLICAS:-1}
+    volumes:
+      - ../images/spark/start-worker.sh:/opt/celesnity/start-worker.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ': >/dev/tcp/$$(hostname)/8081'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - celesnity
+
+  # Trino coordinator. Plans queries, serves the HTTP API and web UI, and hosts
+  # the discovery service that workers register against.
+  trino-coordinator:
+    image: trinodb/trino:483
+    restart: unless-stopped
+    environment: *trino-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${TRINO_PORT:-18082}:8080"
+    volumes:
+      # Shared with deploy/base via kustomize configMapGenerator.
+      - ../config/trino/coordinator.properties:/etc/trino/config.properties:ro
+      - ../config/trino/node.properties:/etc/trino/node.properties:ro
+      - ../config/trino/access-control.properties:/etc/trino/access-control.properties:ro
+      - ../config/trino/access-control-rules.json:/etc/trino/access-control-rules.json:ro
+      # Local-only: MinIO endpoint and static keys. The AWS variant lives in
+      # deploy/overlays/dev/catalog/.
+      - ./catalog:/etc/trino/catalog:ro
+      - trino_data:/data/trino
+    deploy:
+      resources:
+        limits:
+          memory: ${TRINO_COORDINATOR_MEMORY:-1024m}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent --show-error http://127.0.0.1:8080/v1/info | grep -q 'starting.*false'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - celesnity
+
+  # Trino workers. Scale with:
+  #   docker compose up -d --scale trino-worker=3
+  # node.data-dir is left on the container filesystem so each replica generates
+  # its own node identity; sharing a named volume here would collide.
+  trino-worker:
+    image: trinodb/trino:483
+    restart: unless-stopped
+    environment: *trino-env
+    depends_on:
+      trino-coordinator:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    volumes:
+      - ../config/trino/worker.properties:/etc/trino/config.properties:ro
+      - ../config/trino/node.properties:/etc/trino/node.properties:ro
+      - ./catalog:/etc/trino/catalog:ro
+    deploy:
+      replicas: ${TRINO_WORKER_REPLICAS:-1}
+      resources:
+        limits:
+          memory: ${TRINO_WORKER_MEMORY:-1024m}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent --show-error http://127.0.0.1:8080/v1/info | grep -q 'starting.*false'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - celesnity
+
+  # MCP server for Trino — exposes Trino query/browse/describe tools via the
+  # Model Context Protocol (stdio transport). The minder-agent connects by
+  # spawning `docker run --rm -i` against this image so no local binary install
+  # is required on the host machine.
+  mcp-trino:
+    profiles: [agent-tools]
+    image: ghcr.io/txn2/mcp-trino:latest
+    restart: unless-stopped
+    stdin_open: true
+    environment:
+      TRINO_HOST: trino-coordinator
+      TRINO_PORT: "8080"
+      TRINO_USER: ${POSTGRES_USER:-celesnity}
+      TRINO_SSL: "false"
+      TRINO_CATALOG: iceberg
+      TRINO_SCHEMA: default
+      MCP_TRINO_EXT_READONLY: "true"
+      MCP_TRINO_EXT_LOGGING: "true"
+      MCP_TRINO_EXT_ERRORS: "true"
+    depends_on:
+      trino-coordinator:
+        condition: service_healthy
+    networks:
+      - celesnity
+
+networks:
+  celesnity:
+    name: celesnity-poc
+    enable_ipv6: true
+
+volumes:
+  emqx_data:
+  redpanda_data:
+  postgres_data:
+  cdc_fixture_postgres_data:
+  minio_data:
+  sftpgo_config:
+  sftpgo_data:
+  filezilla_config:
+  spark_ivy:
+  mqtt_stream_checkpoints:
+  trino_data:

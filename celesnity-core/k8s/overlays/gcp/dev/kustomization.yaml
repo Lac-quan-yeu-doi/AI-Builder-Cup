@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: celesnity
+
+resources:
+  - ../common
+  - config/core-config.yaml
+  - secrets/core-runtime-secret.template.yaml
+  - scaling/api-hpa.yaml
+  - policy/api-pdb.yaml
+  - networking/agent-egress-network-policy.yaml
+  - routing/api-backend-policy.yaml
+  - routing/api-http-route.yaml
+
+images:
+  - name: celesnity/core
+    newName: asia-southeast1-docker.pkg.dev/cosmos3-mmad-research/celesnity-gcp-dev-apps/core
+    newTag: development-latest
+
+replicas:
+  - name: celesnity-core-worker
+    count: 1

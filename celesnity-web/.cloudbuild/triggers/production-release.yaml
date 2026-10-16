@@ -1,0 +1,26 @@
+name: celesnity-web-production-release
+description: Deploy Web from semantic-version tags created at the reviewed release/0.1.0 head.
+repositoryEventConfig:
+  repository: projects/celesnity-minder-platform/locations/europe-west2/connections/celesnity/repositories/celesnity-celesnity-web
+  repositoryType: GITHUB
+  push:
+    tag: ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$
+filename: cloudbuild.yaml
+serviceAccount: projects/celesnity-minder-platform/serviceAccounts/celesnity-apps-cloud-build@celesnity-minder-platform.iam.gserviceaccount.com
+approvalConfig:
+  approvalRequired: true
+includeBuildLogs: INCLUDE_BUILD_LOGS_WITH_STATUS
+substitutions:
+  _AR_HOST: europe-west2-docker.pkg.dev
+  _AR_REPO: celesnity-gcp-prod-apps
+  _CLUSTER: celesnity-gcp-prod
+  _CLUSTER_LOCATION_TYPE: region
+  _CLUSTER_LOCATION: europe-west2
+  _NAMESPACE: celesnity-prod
+  _ENV: gcp-prod
+  _KUSTOMIZE_VERSION: 5.8.1
+  _CORE_API_URL: https://api.celesnity.com/api/v1
+  _AGENT_API_URL: /api/agent
+  _CHAT_AGENT_NAME: chat-assistant
+  _AUTOMATION_WORKFLOW_CHAT_AGENT_NAME: automation-workflow-editor
+  _MOVING_TAG: production-latest

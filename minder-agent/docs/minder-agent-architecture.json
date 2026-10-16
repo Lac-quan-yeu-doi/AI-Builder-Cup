@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "minder-agent Runtime Architecture",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "viewBox": [1390, 1220],
+    "views": [
+      {
+        "id": "request-path",
+        "label": "Run request path",
+        "focus": ["callers", "api", "runtime", "loop", "gateway", "provider"],
+        "note": "Follow a caller-scoped request from the versioned HTTP API through run admission and execution to the configured model endpoint."
+      },
+      {
+        "id": "room-durability",
+        "label": "Room queue and durability",
+        "focus": ["api", "runtime", "postgres"],
+        "note": "Room actors coordinate queued runs; PostgreSQL stores runtime and room state when DATABASE_URL is configured."
+      },
+      {
+        "id": "tools-workspace",
+        "label": "Tools and workspace",
+        "focus": ["loop", "workspace", "mcp"],
+        "note": "The execution loop uses governed tools, owner-scoped workspace files, and configured MCP servers."
+      }
+    ]
+  },
+  "components": [
+    { "id": "callers", "type": "external", "label": "Core / API callers", "sublabel": "Authenticated clients", "pos": [40, 500], "size": [145, 76] },
+    { "id": "cli", "type": "backend", "label": "CLI", "sublabel": "Direct runtime composition", "pos": [445, 220], "size": [180, 76] },
+    { "id": "api", "type": "security", "label": "Nest HTTP / SSE", "sublabel": "Versioned v1 + v2 · owner auth", "pos": [220, 500], "size": [190, 80] },
+    { "id": "runtime", "type": "backend", "label": "Run + room runtime", "sublabel": "RuntimeRunManager · room actors", "pos": [445, 500], "size": [200, 84] },
+    { "id": "loop", "type": "backend", "label": "Agent execution", "sublabel": "ReAct or LangChain · governed tools", "pos": [680, 500], "size": [205, 84] },
+    { "id": "gateway", "type": "backend", "label": "Model gateway", "sublabel": "OpenAI-compatible streaming", "pos": [920, 500], "size": [185, 80] },
+    { "id": "provider", "type": "external", "label": "LLM provider", "sublabel": "Configured endpoint", "pos": [1140, 500], "size": [180, 76] },
+    { "id": "postgres", "type": "database", "label": "PostgreSQL", "sublabel": "Runs · rooms · approvals · checkpoints", "pos": [445, 870], "size": [230, 84] },
+    { "id": "workspace", "type": "backend", "label": "Workspace provider", "sublabel": "Owner / room scoped · local or S3", "pos": [680, 150], "size": [230, 84] },
+    { "id": "mcp", "type": "external", "label": "MCP servers", "sublabel": "stdio / Streamable HTTP", "pos": [692, 870], "size": [180, 84] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Nest presentation", "wraps": ["api"], "pad": 28 },
+    { "kind": "region", "label": "Agent runtime", "wraps": ["runtime", "loop", "gateway"], "pad": 30 }
+  ],
+  "connections": [
+    { "id": "caller-request", "from": "callers", "to": "api", "label": "turns · runs · events", "variant": "emphasis", "labelDy": 74 },
+    { "id": "api-runtime", "from": "api", "to": "runtime", "label": "owner-scoped admission", "labelDy": 74 },
+    { "id": "cli-runtime", "from": "cli", "to": "runtime", "label": "CLI task / chat", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "runtime-loop", "from": "runtime", "to": "loop", "label": "admit · dispatch · resume", "labelDy": 74 },
+    { "id": "runtime-postgres", "from": "runtime", "to": "postgres", "label": "durable run + room state", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDx": 150 },
+    { "id": "loop-gateway", "from": "loop", "to": "gateway", "label": "completion requests", "labelDy": 74 },
+    { "id": "gateway-provider", "from": "gateway", "to": "provider", "label": "streaming chat completions", "labelDy": 74 },
+    { "id": "loop-mcp", "from": "loop", "to": "mcp", "label": "policy-checked MCP tools", "fromSide": "bottom", "toSide": "top", "labelDx": 155 },
+    { "id": "loop-workspace", "from": "loop", "to": "workspace", "label": "scoped file tools", "fromSide": "top", "toSide": "bottom", "labelDx": 150 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Request path", "items": ["Versioned HTTP and CLI enter the composed runtime", "Owner-scoped APIs expose runs, event streams, and files"] },
+    { "dot": "emerald", "title": "Execution + tools", "items": ["Select ReAct or LangChain with MINDER_AGENT_LOOP", "Tool allowlists, approvals, workspace, and MCP calls are governed"] },
+    { "dot": "violet", "title": "Durability", "items": ["DATABASE_URL enables PostgreSQL-backed run and room stores", "LangChain checkpointing also requires PostgreSQL"] }
+  ]
+}

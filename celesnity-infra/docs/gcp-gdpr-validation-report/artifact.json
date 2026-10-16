@@ -1,0 +1,351 @@
+{
+  "surface": "report",
+  "manifest": {
+    "version": 1,
+    "surface": "report",
+    "title": "Celesnity GCP architecture and GDPR readiness",
+    "description": "Validated architecture feedback and a combined production-readiness plan for Celesnity on Google Cloud.",
+    "generatedAt": "2026-08-16T20:49:00+07:00",
+    "cards": [],
+    "charts": [
+      {
+        "id": "actions_by_phase",
+        "title": "Actions by delivery phase",
+        "subtitle": "The roadmap intentionally concentrates foundational controls before production data is admitted.",
+        "type": "bar",
+        "dataset": "priority_counts",
+        "sourceId": "roadmap_counts_sql",
+        "encodings": {
+          "x": { "field": "priority", "type": "ordinal", "label": "Delivery phase" },
+          "y": { "field": "action_count", "type": "quantitative", "label": "Actions" },
+          "tooltip": [
+            { "field": "description", "type": "nominal", "label": "Gate" }
+          ]
+        },
+        "yAxisTitle": "Number of actions",
+        "valueFormat": "number",
+        "layout": "full"
+      }
+    ],
+    "tables": [
+      {
+        "id": "feedback_validation",
+        "title": "Validation of the Google Customer Engineer feedback",
+        "subtitle": "Checked against the live GCP deployment, current repository configuration, and official Google Cloud documentation on 16 August 2026.",
+        "dataset": "feedback_validation",
+        "sourceId": "feedback_sql",
+        "defaultSort": { "field": "order", "direction": "asc" },
+        "density": "spacious",
+        "columns": [
+          { "field": "order", "label": "No.", "type": "number" },
+          { "field": "area", "label": "Area", "type": "text" },
+          { "field": "verdict", "label": "Verdict", "type": "text" },
+          { "field": "validated_finding", "label": "Validated finding", "type": "text" },
+          { "field": "required_correction", "label": "Correction or decision", "type": "text" }
+        ]
+      },
+      {
+        "id": "gdpr_readiness",
+        "title": "GDPR readiness by control domain",
+        "subtitle": "Engineering evidence is separated from governance, contract, and operating-process evidence; none of the rows alone constitutes certification.",
+        "dataset": "gdpr_readiness",
+        "sourceId": "gdpr_sql",
+        "defaultSort": { "field": "order", "direction": "asc" },
+        "density": "spacious",
+        "columns": [
+          { "field": "order", "label": "No.", "type": "number" },
+          { "field": "domain", "label": "Domain", "type": "text" },
+          { "field": "current_evidence", "label": "Current evidence", "type": "text" },
+          { "field": "gap", "label": "Material gap", "type": "text" },
+          { "field": "status", "label": "Readiness", "type": "text" }
+        ]
+      },
+      {
+        "id": "combined_actions",
+        "title": "Combined architecture and GDPR action plan",
+        "subtitle": "Ordered by dependency and risk reduction; P0 items gate production personal data, P1 items gate customer pilot, and P2 items harden scale and operations.",
+        "dataset": "combined_actions",
+        "sourceId": "actions_sql",
+        "defaultSort": { "field": "order", "direction": "asc" },
+        "density": "spacious",
+        "columns": [
+          { "field": "order", "label": "Step", "type": "number" },
+          { "field": "priority", "label": "Priority", "type": "text" },
+          { "field": "action", "label": "Action", "type": "text" },
+          { "field": "architecture_value", "label": "Architecture outcome", "type": "text" },
+          { "field": "gdpr_value", "label": "GDPR outcome", "type": "text" },
+          { "field": "exit_gate", "label": "Evidence required to close", "type": "text" }
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "assessment_notes",
+        "label": "Celesnity repository, live GCP checks, and primary-source assessment notes",
+        "path": "celesnity-infra/docs/gcp-gdpr-validation-report/source-notes.md"
+      },
+      {
+        "id": "roadmap_counts_sql",
+        "label": "Roadmap action count by delivery phase",
+        "path": "celesnity-infra/docs/gcp-gdpr-validation-report/evidence.sqlite"
+      },
+      {
+        "id": "feedback_sql",
+        "label": "Reviewed feedback validation evidence",
+        "path": "celesnity-infra/docs/gcp-gdpr-validation-report/evidence.sqlite"
+      },
+      {
+        "id": "gdpr_sql",
+        "label": "Reviewed GDPR readiness evidence",
+        "path": "celesnity-infra/docs/gcp-gdpr-validation-report/evidence.sqlite"
+      },
+      {
+        "id": "actions_sql",
+        "label": "Reviewed combined action plan",
+        "path": "celesnity-infra/docs/gcp-gdpr-validation-report/evidence.sqlite"
+      },
+      {
+        "id": "gdpr_text",
+        "label": "Regulation (EU) 2016/679, consolidated text",
+        "path": "https://eur-lex.europa.eu/eli/reg/2016/679/ojv"
+      },
+      {
+        "id": "edpb_roles",
+        "label": "EDPB Guidelines 07/2020 on controller and processor concepts",
+        "path": "https://www.edpb.europa.eu/documents/guideline/guidelines-072020-on-the-concepts-of-controller-and-processor-in-the-gdpr_en"
+      },
+      {
+        "id": "edpb_transfers",
+        "label": "EDPB Guidelines 05/2021 on international transfers",
+        "path": "https://www.edpb.europa.eu/documents/guideline/guidelines-052021-on-the-interplay-between-the-application-of-article-3-and-the_ga"
+      },
+      {
+        "id": "google_cloud_gdpr",
+        "label": "Google Cloud GDPR resources and Cloud Data Processing Addendum",
+        "path": "https://cloud.google.com/privacy/gdpr"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "title",
+        "type": "markdown",
+        "body": "# Celesnity GCP architecture and GDPR readiness"
+      },
+      {
+        "id": "technical_summary",
+        "type": "markdown",
+        "body": "## The feedback is directionally right, but production must be rebuilt around identity, tenant isolation, and data lifecycle\n\n**Do not treat the current Singapore environment as a GDPR-ready production platform.** The live system is a healthy development deployment, but it remains zonal, unauthenticated at the application layer, weakly tenant-scoped, broadly permissioned through a shared workload identity, and incomplete in monitoring, recovery, and data-subject lifecycle controls.\n\n**The highest-value architecture changes are also the highest-value GDPR controls:** create a separate regional EU production landing zone; add OIDC authentication and tenant-aware authorization; split workload identities; enforce network segmentation; remove long-lived GCS HMAC credentials; move secrets to runtime delivery; add managed metrics, alerts, traces, and application audit events; and implement retention, export, restriction, and erasure across PostgreSQL, Iceberg, object versions, logs, and backups.\n\n**Some supplied recommendations need correction.** EU hosting reduces transfer and customer-contract risk but does not prove GDPR compliance. Regional GKE improves Article 32 resilience but is not a GDPR checkbox. The Core pipeline does not compile secrets into images; it substitutes them during deployment. Cloud Logging defaults to 30 days, while this project explicitly configures 90 days for selected logs. A GPU pool and Spot capacity should be workload-driven, not baseline requirements."
+      },
+      {
+        "id": "verified_snapshot",
+        "type": "markdown",
+        "body": "## The live deployment confirms the central risks and shows the platform has already grown beyond the reviewed prototype\n\nOn 16 August 2026, the cluster was still zonal in Singapore with private nodes and Workload Identity Federation. It had two `e2-standard-2` nodes plus a third `n2-standard-4` node for streaming workloads, all in the same zone. Core, Web, Spark, Trino, Loki/Grafana, MQTT ingestion, EMQX, and Redpanda were running, but there were no Kubernetes NetworkPolicies and several coordinators or stateful services remained single replicas. Managed Prometheus was not enabled. Cloud SQL remained a private, zonal `db-g1-small` instance with encrypted transport, seven backups, and no point-in-time recovery.\n\nThis means the engineer's qualitative direction remains useful, but the capacity description is stale and the production plan must include the newly added streaming plane."
+      },
+      {
+        "id": "feedback_intro",
+        "type": "markdown",
+        "body": "## Most infrastructure findings are valid; the CI/CD, residency, and workload-sizing claims need qualification\n\nUse the verdicts below as architecture decisions, not as a score. “Verified” means the claimed state or risk is directly supported. “Partly correct” means the recommendation is useful but the stated reason, scope, or current-state description is incomplete."
+      },
+      {
+        "id": "feedback_table",
+        "type": "table",
+        "tableId": "feedback_validation",
+        "layout": "full"
+      },
+      {
+        "id": "gdpr_scope",
+        "type": "markdown",
+        "body": "## GDPR applies to processing roles and data flows, not to a cloud-region checkbox\n\nCelesnity will probably act in two roles. For customer datasets, pipelines, MQTT telemetry, previews, logs, and warehouse tables processed on customer instructions, Celesnity is likely a **processor** and the customer is the controller. For Celesnity's own users, access logs, security telemetry, support records, and billing/product analytics, Celesnity is a **controller**. The exact split must be documented in the product terms, records of processing, and data-flow inventory, following the [EDPB controller/processor guidance](https://www.edpb.europa.eu/documents/guideline/guidelines-072020-on-the-concepts-of-controller-and-processor-in-the-gdpr_en).\n\nEU deployment is recommended because the target customers are European industrial organizations and the current environment is in Singapore. It reduces transfer complexity, latency, and procurement friction. It does not remove the need for the Google Cloud Data Processing Addendum, subprocessor transparency, lawful-basis and transparency work, data-subject procedures, a transfer analysis for non-EEA support access, or safeguards under Chapter V. The [EDPB transfer guidance](https://www.edpb.europa.eu/documents/guideline/guidelines-052021-on-the-interplay-between-the-application-of-article-3-and-the_ga) should be applied to each remote-access and disclosure flow."
+      },
+      {
+        "id": "gdpr_findings_intro",
+        "type": "markdown",
+        "body": "## Useful technical safeguards exist, but the application control plane is not yet accountable or tenant-safe\n\nPrivate infrastructure, encrypted transport, AES-GCM credential storage, bounded infrastructure retention, secret redaction, and Data Access logs are strong foundations. They do not solve the largest gaps: no end-user identity, no general tenant key on core domain records, no purpose-based application retention, no data-subject workflow, no complete record of processing, and no tested incident/restore evidence."
+      },
+      {
+        "id": "gdpr_table",
+        "type": "table",
+        "tableId": "gdpr_readiness",
+        "layout": "full"
+      },
+      {
+        "id": "methodology",
+        "type": "markdown",
+        "body": "## How this assessment was validated\n\nThe review compared each supplied claim with Terraform, Kubernetes manifests, application configuration, the Prisma data model, and Cloud Build wiring. Read-only live checks then confirmed cluster topology, nodes, workloads, service accounts, NetworkPolicy absence, logging/monitoring state, and Cloud SQL configuration. Legal conclusions were bounded to the text of Regulation (EU) 2016/679, EDPB guidelines, and Google Cloud's official documentation and processing terms.\n\nA control was counted as present only when evidence existed in code or the live environment. A comment, recommendation, or planned variable was not treated as implemented. Conversely, infrastructure audit logs were treated as operational evidence—not as a substitute for Article 30 records, Article 33 procedures, or application-level auditability."
+      },
+      {
+        "id": "combined_plan_intro",
+        "type": "markdown",
+        "body": "## One delivery plan can close the architecture and GDPR gaps together\n\nThe sequence matters. Governance and data mapping define what must be protected; identity and tenant boundaries define who may act; the EU production landing zone and workload segmentation define where and how processing occurs; lifecycle and observability controls make the result operable and auditable. Starting with node sizing or managed logging before these foundations would improve operations without making customer data processing safe.\n\nThe chart below counts planned actions, not risk or compliance. Its concentration in P0 shows that the first production decision is an admission gate for personal data; the detailed action table is authoritative."
+      },
+      {
+        "id": "actions_chart",
+        "type": "chart",
+        "chartId": "actions_by_phase",
+        "layout": "full"
+      },
+      {
+        "id": "combined_table",
+        "type": "table",
+        "tableId": "combined_actions",
+        "layout": "full"
+      },
+      {
+        "id": "phased_execution",
+        "type": "markdown",
+        "body": "## Gate production personal data through three evidence-based phases\n\n### P0 — before any production personal data\n\n1. Freeze production personal data out of the current Singapore PoC. Inventory every intended processing purpose, data category, data subject, recipient, storage system, log, derived table, support-access path, retention period, and transfer. Decide controller/processor roles and complete the Article 35 DPIA screening.\n2. Establish a separate EU production project/folder with organization policies applied before resource creation. Build a new regional GKE cluster with a supported network-policy dataplane, private operator access, regional Cloud SQL, EU-located GCS/log buckets, deletion protection, and remote Terraform state.\n3. Add enterprise OIDC authentication, per-tenant authorization, and tenant identifiers to connections, scripts, pipelines, executions, queries, artifacts, logs, and streaming resources. Remove the unauthenticated public Core API boundary.\n4. Split Kubernetes and Google service accounts by workload. Give Web no Google API permission and disable token automount. Give API, Spark, Trino, streaming, maintenance, and observability only the bucket, object-prefix, Secret Manager, database, and Kubernetes permissions they need. Replace Core's MinIO/GCS HMAC path with native GCS plus Workload Identity.\n5. Define default-deny NetworkPolicies and explicit ingress/egress for Web, API, worker, Spark, Trino, streaming, DNS, metadata server, Secret Manager, GCS, Cloud SQL, and controlled source databases.\n\n### P1 — before a customer pilot\n\n6. Implement data lifecycle orchestration: subject/customer lookup, export, correction, restriction, deletion, downstream propagation, Iceberg equality/position deletes or rewrites, snapshot/orphan expiry, artifact version expiry, live-database deletion, and backup-expiry evidence. Set retention by purpose rather than one global number.\n7. Add application audit events with actor, tenant, purpose/action, target, result, timestamp, request/correlation ID, and administrative override reason. Keep payload values and query results out of audit logs.\n8. Adopt Managed Service for Prometheus and OpenTelemetry/Cloud Trace, plus Cloud Monitoring alert policies and uptime checks. Keep or replace Loki only after a cost, data-location, retention, and operational comparison. Create breach triage, severity, evidence preservation, processor-to-controller notice, and 72-hour supervisory-notification decision procedures.\n9. Put secrets at runtime. Prefer Secret Manager volumes or secret synchronization where the application needs environment variables; do not merely move the same long-lived HMAC key. Implement rotation tests and ensure secret values do not enter logs, images, Terraform outputs, or build artifacts.\n10. Execute Google Cloud CDPA/SCC and subprocessor review, prepare the customer Article 28 DPA, document non-EEA support access, publish the privacy notice for Celesnity-controlled data, and define data-subject request ownership and service levels.\n\n### P2 — before production scale\n\n11. Separate stable system/API, data-processing, and streaming node pools with taints, tolerations, topology spread, PodDisruptionBudgets, and quotas. Use Spot only for interruption-tolerant Spark execution capacity. Add GPU capacity only for an approved training workload.\n12. Test restore, regional failover, credential rotation, node/zone disruption, tenant-isolation failures, erasure propagation, audit completeness, and incident response. Treat these test artifacts—not configuration presence—as the production gate."
+      },
+      {
+        "id": "limitations",
+        "type": "markdown",
+        "body": "## What this assessment does not establish\n\nThis is not legal advice, a DPIA, a transfer impact assessment, a penetration test, or a GDPR certification. It does not establish the lawful basis for any customer use case because the actual categories of industrial data, data subjects, purposes, countries, customer instructions, support model, and special-category data have not been provided.\n\nThe live review was configuration-focused and did not inspect secret values, customer payloads, IAM organization ancestry, Security Command Center findings, VPC flow logs, audit-log completeness, billing, backup-restoration success, or production load. “Underpowered” therefore remains a capacity risk to test, not a measured conclusion. A DPO is required only if Article 37 conditions are met; a DPIA is required when the planned processing is likely to create high risk, which must be assessed per use case."
+      },
+      {
+        "id": "further_questions",
+        "type": "markdown",
+        "body": "## Decisions that must be made before implementation\n\n1. Which customer data and industrial telemetry can identify workers, contractors, visitors, or other natural persons, and will any special-category, biometric, location, safety, or behavioral-monitoring data be processed?\n2. Is Celesnity sold as a processor-only platform, or will Celesnity reuse customer data or telemetry for product analytics, model training, threat detection, or benchmarking?\n3. Which EU region and disaster-recovery region satisfy customer contracts, latency, service availability, and transfer policy?\n4. Will staff or subcontractors in Vietnam or other non-EEA countries access production data, logs, or support sessions?\n5. What are the required recovery-time and recovery-point objectives, retention schedule per data category, and promised erasure completion window?\n6. Which identity provider, tenant model, administrative roles, and customer-managed access controls are required for the first pilot?\n7. Does customer SQL/PySpark run as trusted code, policy-constrained code, or untrusted code requiring sandboxing and stronger workload isolation?"
+      }
+    ]
+  },
+  "snapshot": {
+    "version": 1,
+    "generatedAt": "2026-08-16T20:49:00+07:00",
+    "status": "ready",
+    "datasets": {
+      "priority_counts": [
+        { "priority": "P0", "action_count": 6, "description": "Required before production personal data" },
+        { "priority": "P1", "action_count": 4, "description": "Required before a customer pilot" },
+        { "priority": "P2", "action_count": 2, "description": "Required before production scale" }
+      ],
+      "feedback_validation": [
+        { "order": 1, "area": "GKE availability", "verdict": "Verified", "validated_finding": "The live cluster is zonal in asia-southeast1-a, so control-plane and all observed node capacity share one zonal failure domain.", "required_correction": "Create a new regional EU production cluster; also make workloads, Cloud SQL, storage, and recovery multi-zone. Regional control plane alone is insufficient." },
+        { "order": 2, "area": "Compute capacity", "verdict": "Partly correct", "validated_finding": "The live platform has two e2-standard-2 nodes and one n2-standard-4 streaming node. Workloads are ready, but many share small nodes and several coordinators are singletons.", "required_correction": "Capacity-test Spark, Trino, streaming, API, and rollouts. Segment stable and burst pools. Do not label the system underpowered without measured concurrency, latency, saturation, and failure tests." },
+        { "order": 3, "area": "GPU or TPU pool", "verdict": "Not evidenced", "validated_finding": "No model-training workload, accelerator request, or GPU data path appears in the reviewed manifests.", "required_correction": "Add accelerator capacity only after an approved training use case, data classification, model/DPIA assessment, capacity profile, and cost model." },
+        { "order": 4, "area": "Public browser-to-API design", "verdict": "Verified", "validated_finding": "The browser calls a separately hosted public Core API and relies on CORS. Application authentication is disabled; Cloud Armor IP allow-listing is the primary public boundary.", "required_correction": "Use OIDC/IAP and tenant authorization. Prefer same-origin routing or a Next.js BFF when it simplifies private Core access; the BFF is an option, not the compliance control itself." },
+        { "order": 5, "area": "Build once, deploy anywhere", "verdict": "Verified for Web", "validated_finding": "NEXT_PUBLIC_CORE_API_URL is supplied during the Next.js image build, making the frontend image environment-specific.", "required_correction": "Move API routing to runtime server configuration or same-origin gateway/BFF routing, then promote the same image digest across environments." },
+        { "order": 6, "area": "Shared workload identity", "verdict": "Verified and high risk", "validated_finding": "Web, API, Spark, Trino, maintenance, and several streaming workloads use the celesnity Kubernetes service account mapped to a bucket-level object-admin Google service account.", "required_correction": "Create a Kubernetes and Google identity per workload; disable token automount for workloads that need neither Kubernetes nor Google APIs; scope storage access by bucket and purpose." },
+        { "order": 7, "area": "Secrets in CI/CD", "verdict": "Claim inaccurate; objective valid", "validated_finding": "Core secrets are fetched by Cloud Build at deploy time and substituted into a Kubernetes Secret manifest, not compiled into images. The API also uses long-lived GCS HMAC keys.", "required_correction": "Use runtime Secret Manager delivery and rotation. Prefer native GCS plus Workload Identity so the HMAC credentials disappear rather than merely moving storage location." },
+        { "order": 8, "area": "NetworkPolicy and Dataplane V2", "verdict": "Verified gap; remedy needs nuance", "validated_finding": "No NetworkPolicies are deployed. Dataplane V2 is recommended for a new cluster, while NetworkPolicy can be enabled on an existing Standard cluster with node recreation and a supported plugin.", "required_correction": "Use default-deny plus explicit flows now if the PoC persists; design Dataplane V2 into the new regional EU production cluster." },
+        { "order": 9, "area": "Observability", "verdict": "Verified", "validated_finding": "Loki/Grafana are self-managed; no managed Prometheus, formal SLOs, distributed tracing, alert policies, or uptime checks were evidenced. Workload logs are not sent by GKE to Cloud Logging.", "required_correction": "Adopt managed metrics, alerts, uptime checks, and OpenTelemetry traces. Decide Loki versus Cloud Logging using retention, EU location, breach evidence, cost, and operational load." },
+        { "order": 10, "area": "Cloud Logging retention", "verdict": "Feedback overstated", "validated_finding": "Cloud Logging _Default retention is 30 days by default. The repository explicitly configures 90 days for selected logs; Loki application logs retain 7 days.", "required_correction": "Define retention per log purpose and data class. Verify routing, regional location, access, immutability needs, and deletion—not merely the headline duration." },
+        { "order": 11, "area": "EU data residency", "verdict": "Recommended, not sufficient", "validated_finding": "The live region is Singapore and no effective EU-only resource-location policy was evidenced. Location policy is not retroactive and covers only supported resource types.", "required_correction": "Create new EU resources after policy enforcement; migrate data; configure service locations; execute CDPA/SCC and transfer analysis; govern non-EEA support and subprocessor access." },
+        { "order": 12, "area": "Spot node pools", "verdict": "Partly correct", "validated_finding": "Spot capacity can reduce cost for retryable workloads but interruptions are unsafe for coordinators, stateful brokers, and latency-sensitive Trino service without workload-specific design.", "required_correction": "Use Spot for interruption-tolerant Spark executors or isolated batch jobs with quotas, checkpoints, retries, and stable on-demand control components." }
+      ],
+      "gdpr_readiness": [
+        { "order": 1, "domain": "Roles, lawful basis, and transparency", "current_evidence": "No controller/processor register, processing-purpose inventory, customer DPA, or privacy notice was found in scope.", "gap": "Roles and lawful bases are not defined for customer data, Celesnity user data, telemetry, logs, support access, or future model training.", "status": "Not ready" },
+        { "order": 2, "domain": "Article 30 records and accountability", "current_evidence": "Cloud Data Access audit logging exists for GCS, Cloud SQL, and Secret Manager.", "gap": "Infrastructure logs do not record processing purposes, data-subject/data categories, recipients, transfers, erasure schedules, or all application actions.", "status": "Partial foundation" },
+        { "order": 3, "domain": "Authentication and tenant authorization", "current_evidence": "Cloud Armor default-deny source ranges and a static bearer guard exist, but API auth is disabled in GCP dev.", "gap": "No end-user identity, role model, tenant claims, resource ownership checks, or general tenant field on core domain records.", "status": "Critical gap" },
+        { "order": 4, "domain": "Data minimization and purpose limitation", "current_evidence": "Preview and query rows are bounded; credentials are encrypted; logs use secret redaction.", "gap": "Customer schemas/data can enter previews, query text, errors, logs, Iceberg, artifacts, and MQTT streams without classification, masking, purpose tags, or policy controls.", "status": "Partial foundation" },
+        { "order": 5, "domain": "Retention and erasure", "current_evidence": "Seven Cloud SQL backups, 30-day noncurrent artifact expiry, 7-day Loki retention, and Iceberg snapshot/orphan maintenance are configured.", "gap": "No end-to-end subject/customer deletion orchestration, application-row retention, restriction state, propagation ledger, restore-after-erasure rule, or verified erasure test.", "status": "Partial foundation" },
+        { "order": 6, "domain": "Data-subject rights", "current_evidence": "No dedicated access, export, correction, restriction, objection, or erasure workflow was found.", "gap": "The platform cannot reliably locate a person across source data, Iceberg snapshots, query/log metadata, artifacts, backups, and support systems or coordinate with the controller.", "status": "Not ready" },
+        { "order": 7, "domain": "Security of processing", "current_evidence": "Private nodes/SQL, encrypted transport, Google-managed at-rest encryption, AES-GCM credentials, non-root containers, seccomp, Cloud Armor, and scoped worker RBAC exist.", "gap": "No application auth, NetworkPolicy, split workload identities, runtime-only secrets, verified database identity, hardened control-plane access, regular security test evidence, or workload sandbox for customer code.", "status": "High risk" },
+        { "order": 8, "domain": "Resilience and restoration", "current_evidence": "Autoscaling and backups exist; deployments are currently healthy.", "gap": "Zonal GKE and Cloud SQL, single coordinators/brokers, PITR disabled, and no evidenced restore/failover test weaken Article 32 availability and restoration capability.", "status": "Not production ready" },
+        { "order": 9, "domain": "Breach detection and response", "current_evidence": "System logs, Loki application logs, selected Data Access logs, and secret redaction exist.", "gap": "No managed alerting/tracing/SLO evidence, application actor audit, incident classification, processor notice path, 72-hour decision workflow, or exercise evidence.", "status": "Partial foundation" },
+        { "order": 10, "domain": "International transfers and residency", "current_evidence": "Resources are intentionally co-located in Singapore; Google publishes a CDPA and transfer safeguards.", "gap": "No EU production boundary, effective EU location policy, service-by-service data-location inventory, transfer impact assessment, SCC mapping, or non-EEA support-access control was evidenced.", "status": "Not ready for EU production" },
+        { "order": 11, "domain": "Processor and subprocessor governance", "current_evidence": "Google Cloud contractual privacy materials are available.", "gap": "No evidence of executed Google terms, Celesnity customer Article 28 terms, subprocessor register/change notice, deletion/return instruction, audit assistance, or controller-rights assistance workflow.", "status": "Governance gap" },
+        { "order": 12, "domain": "DPIA, DPO, and special categories", "current_evidence": "No use-case risk assessment was provided.", "gap": "Industrial telemetry may involve workers, location, safety, behavior, biometrics, or large-scale monitoring. DPIA and DPO obligations cannot be decided without actual processing facts.", "status": "Decision required" }
+      ],
+      "combined_actions": [
+        { "order": 1, "priority": "P0", "action": "Map data flows, purposes, roles, retention, recipients, and transfers; complete ROPA and DPIA screening.", "architecture_value": "Defines system boundaries, ownership, data classes, and nonfunctional requirements before redesign.", "gdpr_value": "Creates the accountability basis for Articles 5, 24, 28, 30, 35, and Chapter V.", "exit_gate": "Approved data map, role matrix, ROPA, retention schedule, transfer register, and documented DPIA decision." },
+        { "order": 2, "priority": "P0", "action": "Build a separate regional EU production landing zone before migrating data.", "architecture_value": "Removes the zonal dev cluster from the production critical path and enables Dataplane V2, HA SQL, protected state, and clean promotion.", "gdpr_value": "Reduces transfer/residency risk and supports Article 32 availability and restoration.", "exit_gate": "Policy-validated Terraform plan, regional failure-domain review, EU locations for every data store/log, and approved migration/rollback plan." },
+        { "order": 3, "priority": "P0", "action": "Implement OIDC authentication, tenant-aware RBAC/ABAC, and tenant keys on all domain resources.", "architecture_value": "Replaces IP trust with user identity and prevents cross-tenant access through APIs, jobs, queries, artifacts, and streams.", "gdpr_value": "Supports confidentiality, accountability, processor instructions, and rights scoping.", "exit_gate": "Negative authorization tests, cross-tenant isolation tests, admin override audit, and no unauthenticated business endpoints." },
+        { "order": 4, "priority": "P0", "action": "Split workload identities and eliminate Core's GCS HMAC credentials.", "architecture_value": "Shrinks compromise blast radius and removes long-lived cloud credentials.", "gdpr_value": "Implements risk-appropriate access control and privacy by default under Articles 25 and 32.", "exit_gate": "Per-workload IAM matrix, token automount disabled where unused, native GCS/Workload Identity path, and denied-access tests." },
+        { "order": 5, "priority": "P0", "action": "Enforce default-deny NetworkPolicies and explicit service/data egress.", "architecture_value": "Limits lateral movement and makes intended flows testable.", "gdpr_value": "Protects confidentiality and integrity with defense in depth.", "exit_gate": "Policy tests cover DNS, metadata, SQL, GCS, Trino, Spark, streaming, ingress health checks, and approved source databases." },
+        { "order": 6, "priority": "P0", "action": "Make Core private behind same-origin routing/BFF or identity-aware gateway; move Web API routing to runtime.", "architecture_value": "Reduces public attack surface and allows one image digest to promote across environments.", "gdpr_value": "Supports privacy by default and access minimization; avoids treating CORS or IP ranges as authorization.", "exit_gate": "Core has no unauthenticated public route, browser flow uses verified identity, and identical image digest is promoted dev-to-prod." },
+        { "order": 7, "priority": "P1", "action": "Implement end-to-end retention, export, restriction, and erasure orchestration.", "architecture_value": "Makes deletion deterministic across SQL, Iceberg, artifacts, logs, backups, and derived datasets.", "gdpr_value": "Supports Articles 5(1)(e), 15-20, and processor assistance under Article 28.", "exit_gate": "Automated lifecycle tests and an evidence ledger prove live deletion, derived-copy propagation, snapshot expiry, and backup handling." },
+        { "order": 8, "priority": "P1", "action": "Add application audit events plus managed metrics, alerts, traces, and uptime checks.", "architecture_value": "Improves diagnosis, SLO operation, capacity decisions, and incident containment.", "gdpr_value": "Supports accountability, Article 32 testing, breach detection, and Article 33 investigation/notification decisions.", "exit_gate": "Actor/tenant audit coverage, alert runbooks, trace redaction, uptime checks, and a completed incident exercise." },
+        { "order": 9, "priority": "P1", "action": "Use Secret Manager at runtime and test rotation.", "architecture_value": "Decouples deployment artifacts from environments and reduces secret exposure in build workspaces and Kubernetes etcd.", "gdpr_value": "Strengthens credential lifecycle, auditability, and confidentiality.", "exit_gate": "Rotation succeeds without image rebuild; build logs/artifacts contain no secrets; old versions are revoked on schedule." },
+        { "order": 10, "priority": "P1", "action": "Execute processor, subprocessor, transparency, and transfer governance.", "architecture_value": "Makes operational responsibilities and support boundaries explicit.", "gdpr_value": "Supports Articles 12-14, 28, 30, 44-49, and data-subject assistance.", "exit_gate": "Signed DPA/CDPA/SCC position, subprocessor register, change-notice process, privacy notice, and transfer/support-access controls." },
+        { "order": 11, "priority": "P2", "action": "Segment stable, data-processing, and streaming capacity; use Spot and accelerators selectively.", "architecture_value": "Improves cost, scheduling isolation, scaling, and predictable performance.", "gdpr_value": "Supports availability and resilience when tied to risk-based RTO/RPO; has no standalone compliance effect.", "exit_gate": "Load/failure tests, quotas, PDBs, topology spread, interruption tests, and cost model meet approved SLOs." },
+        { "order": 12, "priority": "P2", "action": "Run production evidence gates: restore, failover, erasure, isolation, security, and incident response.", "architecture_value": "Proves the system behaves correctly under the failures that configuration alone cannot cover.", "gdpr_value": "Provides Article 5 accountability and Article 32 regular-testing evidence.", "exit_gate": "Signed test reports with owners, defects resolved, residual risks accepted, and scheduled re-test dates." }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "assessment_notes",
+      "label": "Celesnity repository, live GCP checks, and primary-source assessment notes",
+      "path": "celesnity-infra/docs/gcp-gdpr-validation-report/source-notes.md"
+    },
+    {
+      "id": "roadmap_counts_sql",
+      "label": "Roadmap action count by delivery phase",
+      "path": "celesnity-infra/docs/gcp-gdpr-validation-report/evidence.sqlite",
+      "query": {
+        "engine": "sqlite",
+        "language": "sql",
+        "sql": "SELECT priority, COUNT(*) AS action_count, CASE priority WHEN 'P0' THEN 'Required before production personal data' WHEN 'P1' THEN 'Required before a customer pilot' ELSE 'Required before production scale' END AS description FROM combined_actions GROUP BY priority ORDER BY priority;",
+        "description": "Counts the twelve reviewed roadmap actions by their assigned delivery gate.",
+        "executed_at": "2026-08-16T20:49:00+07:00",
+        "tables_used": ["combined_actions"],
+        "filters": ["All twelve reviewed actions; no exclusions"]
+      }
+    },
+    {
+      "id": "feedback_sql",
+      "label": "Reviewed feedback validation evidence",
+      "path": "celesnity-infra/docs/gcp-gdpr-validation-report/evidence.sqlite",
+      "query": {
+        "engine": "sqlite",
+        "language": "sql",
+        "sql": "SELECT sequence AS \"order\", area, verdict, validated_finding, required_correction FROM feedback_validation ORDER BY sequence;",
+        "description": "Returns the twelve reviewed feedback claims in decision order.",
+        "executed_at": "2026-08-16T20:49:00+07:00",
+        "tables_used": ["feedback_validation"],
+        "filters": ["All reviewed claims; no exclusions"]
+      }
+    },
+    {
+      "id": "gdpr_sql",
+      "label": "Reviewed GDPR readiness evidence",
+      "path": "celesnity-infra/docs/gcp-gdpr-validation-report/evidence.sqlite",
+      "query": {
+        "engine": "sqlite",
+        "language": "sql",
+        "sql": "SELECT sequence AS \"order\", domain, current_evidence, gap, status FROM gdpr_readiness ORDER BY sequence;",
+        "description": "Returns the twelve GDPR readiness domains with current evidence and material gaps.",
+        "executed_at": "2026-08-16T20:49:00+07:00",
+        "tables_used": ["gdpr_readiness"],
+        "filters": ["All reviewed GDPR domains; no exclusions"]
+      }
+    },
+    {
+      "id": "actions_sql",
+      "label": "Reviewed combined action plan",
+      "path": "celesnity-infra/docs/gcp-gdpr-validation-report/evidence.sqlite",
+      "query": {
+        "engine": "sqlite",
+        "language": "sql",
+        "sql": "SELECT sequence AS \"order\", priority, action, architecture_value, gdpr_value, exit_gate FROM combined_actions ORDER BY sequence;",
+        "description": "Returns the combined architecture and GDPR actions in dependency order.",
+        "executed_at": "2026-08-16T20:49:00+07:00",
+        "tables_used": ["combined_actions"],
+        "filters": ["All twelve actions; no exclusions"]
+      }
+    },
+    {
+      "id": "gdpr_text",
+      "label": "Regulation (EU) 2016/679, consolidated text",
+      "path": "https://eur-lex.europa.eu/eli/reg/2016/679/ojv"
+    },
+    {
+      "id": "edpb_roles",
+      "label": "EDPB Guidelines 07/2020 on controller and processor concepts",
+      "path": "https://www.edpb.europa.eu/documents/guideline/guidelines-072020-on-the-concepts-of-controller-and-processor-in-the-gdpr_en"
+    },
+    {
+      "id": "edpb_transfers",
+      "label": "EDPB Guidelines 05/2021 on international transfers",
+      "path": "https://www.edpb.europa.eu/documents/guideline/guidelines-052021-on-the-interplay-between-the-application-of-article-3-and-the_ga"
+    },
+    {
+      "id": "google_cloud_gdpr",
+      "label": "Google Cloud GDPR resources and Cloud Data Processing Addendum",
+      "path": "https://cloud.google.com/privacy/gdpr"
+    }
+  ],
+  "package_info": {
+    "originUrl": "artifact://celesnity-gcp-gdpr-readiness",
+    "controls": { "edit": false, "refresh": false }
+  }
+}

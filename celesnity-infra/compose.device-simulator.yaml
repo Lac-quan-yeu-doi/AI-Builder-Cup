@@ -1,0 +1,33 @@
+name: celesnity-device-simulator
+
+services:
+  virtual-factory:
+    build:
+      context: ./device-simulator
+    image: celesnity/device-simulator:local
+    environment:
+      DEVICE_SIM_CORE_API_URL: http://device-api:3301/api/v1
+      DEVICE_SIM_MQTT_HOST: emqx
+      DEVICE_SIM_MQTT_PORT: "1883"
+      DEVICE_SIM_SENSOR_COUNT: "3"
+      DEVICE_SIM_SITE: Virtual Factory 1
+      DEVICE_SIM_ALLOW_HTTP_ARTIFACTS: "true"
+      # The continuous presence cycle validates contact loss without generating
+      # setup-time loss alerts for every sensor.
+      DEVICE_SIM_VALIDATE_LOSS_OF_CONTACT: "false"
+      DEVICE_SIM_CONTACT_ALERT_TIMEOUT_SECONDS: "30"
+      DEVICE_SIM_CONTINUOUS: "true"
+      DEVICE_SIM_HEARTBEAT_INTERVAL_SECONDS: "3"
+      DEVICE_SIM_HEALTHY_DURATION_SECONDS: "60"
+      DEVICE_SIM_OFFLINE_DURATION_SECONDS: "30"
+      DEVICE_SIM_OFFLINE_CYCLE_ENABLED: "true"
+      DEVICE_SIM_LOCAL_AUTH_SIGNING_KEY: ${DEVICE_LOCAL_DEV_AUTH_SIGNING_KEY:-device-simulator-local-signing-key-change-me}
+      # RFC 8032 test key pair. Never use this public development seed in production.
+      DEVICE_SIM_FIRMWARE_SIGNING_KEY_ID: local-dev
+      DEVICE_SIM_FIRMWARE_SIGNING_PUBLIC_KEYS: local-dev:11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
+    networks: [infra]
+
+networks:
+  infra:
+    external: true
+    name: celesnity-poc

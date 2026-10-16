@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "lib": ["ESNext"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+    "baseUrl": "src",
+    "paths": {
+      "@domain": ["domain/index.ts"],
+      "@domain/*": ["domain/*", "domain/*/index.ts"],
+      "@application/*": ["application/*", "application/*/index.ts"],
+      "@infrastructure/*": [
+        "infrastructure/*",
+        "infrastructure/*/index.ts"
+      ],
+      "@presentation/*": ["presentation/*"],
+      "@modules/*": ["modules/*"],
+      "@bootstrap/*": ["bootstrap/*"],
+      "@tests/*": ["tests/*"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

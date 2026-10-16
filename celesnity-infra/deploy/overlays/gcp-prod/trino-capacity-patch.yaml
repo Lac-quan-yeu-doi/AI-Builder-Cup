@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trino-coordinator
+spec:
+  template:
+    spec:
+      containers:
+        - name: trino
+          env:
+            - name: TRINO_QUERY_MAX_MEMORY
+              value: 1200MB
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trino-worker
+spec:
+  template:
+    spec:
+      containers:
+        - name: trino
+          env:
+            - name: TRINO_QUERY_MAX_MEMORY
+              value: 1200MB

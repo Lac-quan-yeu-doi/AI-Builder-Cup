@@ -1,0 +1,18 @@
+apiVersion: networking.gke.io/v1
+kind: GCPBackendPolicy
+metadata:
+  name: celesnity-web-message-block-stream
+spec:
+  default:
+    securityPolicy: celesnity-gcp-prod-web
+    timeoutSec: 300
+    logging:
+      enabled: true
+      sampleRate: 100000
+      optionalMode: EXCLUDE_ALL_OPTIONAL
+    connectionDraining:
+      drainingTimeoutSec: 60
+  targetRef:
+    group: ''
+    kind: Service
+    name: celesnity-web-message-block-stream

@@ -1,0 +1,49 @@
+# Copy this manifest into Administration -> Agents, then change `name` and
+# the matching Agent name field before validating and saving.
+name: new-agent
+description: Describe what this agent does.
+
+model: {}
+
+system_prompt: |
+  You are a helpful assistant. Describe the job, tone, safety rules, and
+  output format this agent must follow.
+
+tools:
+  mode: allowlist
+  names: []
+
+working_dir: .
+
+execution:
+  mode: interactive
+  max_iterations: 8
+
+handoff:
+  can_delegate_to: []
+  accepts_from: []
+
+tags: []
+mcp_servers: {}
+client_tools: []
+action_approvals: {}
+
+governance:
+  action_approvals: {}
+  # Exact runtime tool names that may skip the approval pause, for example:
+  # auto_approvals:
+  #   - mcp__warehouse__query
+  auto_approvals: []
+  autonomy: manual
+  sandbox:
+    enabled: false
+    allowed_commands: []
+    writable_paths: []
+  sensitive_files: deny
+  budget:
+    max_input_tokens: 128000
+    max_output_tokens: 16384
+    max_tool_calls: 50
+    max_cost_usd: null
+
+skills: []

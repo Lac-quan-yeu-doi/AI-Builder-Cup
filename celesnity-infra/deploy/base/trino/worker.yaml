@@ -1,0 +1,128 @@
+---
+# Workers execute all splits, since the coordinator sets
+# node-scheduler.include-coordinator=false. Scale with:
+#   kubectl -n celesnity scale deploy/trino-worker --replicas=3
+#
+# When changing replica count, raise query.max-memory in both Trino ConfigMaps
+# to match: it is the aggregate budget across workers.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trino-worker
+  labels:
+    app.kubernetes.io/name: trino
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: trino
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: trino
+        app.kubernetes.io/component: worker
+    spec:
+      serviceAccountName: celesnity-trino
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      # Prefer spreading workers over separate nodes so one node failure does
+      # not remove all query capacity. Preferred rather than required: on a
+      # four-node cluster a hard constraint would block scaling past four.
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: trino
+                    app.kubernetes.io/component: worker
+      # Workers drain in-flight splits; give them time before SIGKILL.
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: trino
+          image: trinodb/trino:483
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: celesnity-database
+            - configMapRef:
+                name: celesnity-storage
+          # Must match the coordinator. Raise TRINO_QUERY_MAX_MEMORY on both when
+          # scaling replicas: it is the aggregate budget across workers, currently
+          # 1 worker x 600MB.
+          env:
+            - name: TRINO_QUERY_MAX_MEMORY
+              value: 600MB
+            - name: TRINO_QUERY_MAX_MEMORY_PER_NODE
+              value: 600MB
+            # Must match the coordinator byte for byte. A mismatch presents as the
+            # worker silently never joining, not as an auth failure.
+            - name: TRINO_SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: trino-auth
+                  key: shared-secret
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              memory: 1536Mi
+          readinessProbe:
+            # Local health alone is insufficient: a worker can serve /v1/info
+            # while NetworkPolicy prevents it from announcing to discovery,
+            # leaving the coordinator with zero query capacity.
+            exec:
+              command:
+                - sh
+                - -ec
+                - >-
+                  curl --fail --silent --show-error --max-time 3
+                  http://localhost:8080/v1/info >/dev/null &&
+                  curl --fail --silent --show-error --max-time 3
+                  http://trino-coordinator:8080/v1/info >/dev/null
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /v1/info
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 6
+          volumeMounts:
+            - name: worker-config
+              mountPath: /etc/trino/config.properties
+              subPath: config.properties
+              readOnly: true
+            - name: node-config
+              mountPath: /etc/trino/node.properties
+              subPath: node.properties
+              readOnly: true
+            - name: catalog
+              mountPath: /etc/trino/catalog
+              readOnly: true
+            - name: data
+              mountPath: /data/trino
+      volumes:
+        - name: worker-config
+          configMap:
+            name: trino-worker-config
+        - name: node-config
+          configMap:
+            name: trino-node-config
+        - name: catalog
+          configMap:
+            name: trino-catalog
+        - name: data
+          emptyDir: {}

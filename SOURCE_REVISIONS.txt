@@ -1,0 +1,6 @@
+Snapshots copied from the locally available remote-tracking refs:
+
+celesnity-web  origin/release/0.5.0  18b1b5abfc084ce0c18e0c9225dcf7dfef375e5b
+celesnity-core origin/release/0.5.0  9e4d484af29e82360bc2bcb27fd5782cb07c1073
+minder-agent  origin/release/0.5.0  768bf573aba348eb1f25dd24a8477c943ea8a61a
+celesnity-infra origin/release/0.5.0 e3c8a5bd51a4a88c79e728c794015623baae2915

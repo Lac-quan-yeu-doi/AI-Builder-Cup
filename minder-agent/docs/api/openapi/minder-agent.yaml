@@ -1,0 +1,4982 @@
+openapi: 3.0.0
+paths:
+  /healthz:
+    get:
+      operationId: OperationsController_health_v1
+      parameters: []
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: &a1
+        - Operations
+  /api/v1/healthz:
+    get:
+      operationId: OperationsController_versionedHealth_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a1
+      deprecated: true
+  /api/v2/healthz:
+    get:
+      operationId: OperationsController_v2Health_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Healthz
+  /livez:
+    get:
+      operationId: OperationsController_live_v1
+      parameters: []
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a1
+  /api/v1/livez:
+    get:
+      operationId: OperationsController_versionedLive_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a1
+      deprecated: true
+  /readyz:
+    get:
+      operationId: OperationsController_ready_v1
+      parameters: []
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a1
+  /api/v1/readyz:
+    get:
+      operationId: OperationsController_versionedReady_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a1
+      deprecated: true
+  /metrics:
+    get:
+      operationId: OperationsController_metrics_v1
+      parameters: []
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a1
+  /api/v1/metrics:
+    get:
+      operationId: OperationsController_versionedMetrics_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a1
+      deprecated: true
+  /stats:
+    get:
+      operationId: OperationsController_stats_v1
+      parameters: []
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a1
+  /api/v1/stats:
+    get:
+      operationId: OperationsController_versionedStats_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a1
+      deprecated: true
+  /api/v1/catalog:
+    get:
+      operationId: CatalogController_list_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Catalog
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/catalog:
+    get:
+      operationId: CatalogController_list_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Catalog
+      security:
+        - owner: []
+  /api/v1/agents:
+    get:
+      operationId: AgentsController_list_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: &a2
+        - Agents
+      deprecated: true
+      security:
+        - owner: []
+    post:
+      operationId: AgentsController_create_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAgentDto"
+      responses:
+        "201":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a2
+      deprecated: true
+      security:
+        - owner: []
+  /api/v1/agents/{id}:
+    get:
+      operationId: AgentsController_get_v1
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a2
+      deprecated: true
+      security:
+        - owner: []
+    patch:
+      operationId: AgentsController_update_v1
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAgentDto"
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a2
+      deprecated: true
+      security:
+        - owner: []
+  /api/v1/agents/{id}/history:
+    get:
+      operationId: AgentsController_history_v1
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a2
+      deprecated: true
+      security:
+        - owner: []
+  /api/v1/agents/{id}/diff:
+    get:
+      operationId: AgentsController_diff_v1
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a2
+      deprecated: true
+      security:
+        - owner: []
+  /api/v1/agents/{id}/rollback:
+    post:
+      deprecated: true
+      operationId: AgentsController_rollback_v1
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RollbackAgentDto"
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      summary: ""
+      tags: *a2
+      security:
+        - owner: []
+  /api/v2/agents/{agentId}/rollback:
+    post:
+      operationId: AgentsController_rollbackV2_v2
+      parameters:
+        - name: agentId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RollbackAgentDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agents
+      security:
+        - owner: []
+  /api/v1/agents/{id}/archive:
+    post:
+      operationId: AgentsController_archive_v1
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a2
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/agents:
+    get:
+      operationId: AgentsController_listV2_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agents
+      security:
+        - owner: []
+    post:
+      operationId: AgentsController_createV2_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAgentV2Dto"
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agents
+      security:
+        - owner: []
+  /api/v2/agents/{agentId}:
+    get:
+      operationId: AgentsController_getV2_v2
+      parameters:
+        - name: agentId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "404":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agents
+      security:
+        - owner: []
+    patch:
+      operationId: AgentsController_updateV2_v2
+      parameters:
+        - name: agentId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAgentV2Dto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agents
+      security:
+        - owner: []
+  /api/v2/agents/{agentId}/history:
+    get:
+      operationId: AgentsController_historyV2_v2
+      parameters:
+        - name: agentId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agents
+      security:
+        - owner: []
+  /api/v2/agents/{agentId}/diff:
+    get:
+      operationId: AgentsController_diffV2_v2
+      parameters:
+        - name: agentId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: to
+          required: true
+          in: query
+          schema:
+            type: number
+        - name: from
+          required: true
+          in: query
+          schema:
+            type: number
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentV2DiffResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agents
+      security:
+        - owner: []
+  /api/v2/agents/{agentId}/archive:
+    post:
+      operationId: AgentsController_archiveV2_v2
+      parameters:
+        - name: agentId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agents
+      security:
+        - owner: []
+  /api/v1/agent-manifests:
+    get:
+      operationId: ManifestsController_list_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: &a3
+        - Manifests
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/agent-manifests:
+    get:
+      operationId: ManifestsController_list_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agent manifests
+      security:
+        - owner: []
+  /api/v1/agent-manifests/{name}:
+    get:
+      operationId: ManifestsController_get_v1
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a3
+      deprecated: true
+      security:
+        - owner: []
+    put:
+      operationId: ManifestsController_save_v1
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          required: false
+          in: header
+          schema:
+            type: string
+          description: Optional request correlation ID.
+      responses:
+        "201":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a3
+      deprecated: true
+      security:
+        - owner: []
+    delete:
+      operationId: ManifestsController_remove_v1
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          required: false
+          in: header
+          schema:
+            type: string
+          description: Optional request correlation ID.
+      responses:
+        "204":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a3
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/agent-manifests/{name}:
+    get:
+      operationId: ManifestsController_get_v2
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agent manifests
+      security:
+        - owner: []
+    put:
+      operationId: ManifestsController_save_v2
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          required: false
+          in: header
+          schema:
+            type: string
+          description: Optional request correlation ID.
+      responses:
+        "201":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agent manifests
+      security:
+        - owner: []
+    delete:
+      operationId: ManifestsController_remove_v2
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          required: false
+          in: header
+          schema:
+            type: string
+          description: Optional request correlation ID.
+      responses:
+        "204":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agent manifests
+      security:
+        - owner: []
+  /api/v1/agent-manifests/validate:
+    post:
+      operationId: ManifestsController_validate_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a3
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/agent-manifests/validate:
+    post:
+      operationId: ManifestsController_validate_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Agent manifests
+      security:
+        - owner: []
+  /api/v1/agent-manifests/{name}/governance:
+    get:
+      operationId: GovernanceController_manifest_v1
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: &a4
+        - Governance
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/agent-manifests/{name}/governance:
+    get:
+      operationId: GovernanceController_manifest_v2
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Governance
+      security:
+        - owner: []
+  /api/v1/agent-manifests/validate/governance:
+    post:
+      deprecated: true
+      operationId: GovernanceController_validateManifest_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GovernanceValidationDto"
+      responses:
+        "201":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      summary: ""
+      tags: *a4
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/governance:
+    get:
+      operationId: GovernanceController_run_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a4
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/governance:
+    get:
+      operationId: GovernanceController_run_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Governance
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/governance/evidence:
+    get:
+      operationId: GovernanceController_evidence_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: cursor
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: limit
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a4
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/governance/evidence:
+    get:
+      operationId: GovernanceController_evidence_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: cursor
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Governance
+      security:
+        - owner: []
+  /api/v1/skills:
+    get:
+      operationId: SkillsNestController_list_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SkillSummaryResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: &a5
+        - SkillsNest
+      deprecated: true
+      security:
+        - owner: []
+    post:
+      operationId: SkillsNestController_create_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkillDto"
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a5
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/skills:
+    get:
+      operationId: SkillsNestController_list_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SkillSummaryResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Skills
+      security:
+        - owner: []
+    post:
+      operationId: SkillsNestController_createV2_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkillDto"
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "409":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Skills
+      security:
+        - owner: []
+  /api/v1/skills/{name}:
+    get:
+      operationId: SkillsNestController_get_v1
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a5
+      deprecated: true
+      security:
+        - owner: []
+    put:
+      operationId: SkillsNestController_update_v1
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkillDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a5
+      deprecated: true
+      security:
+        - owner: []
+    delete:
+      operationId: SkillsNestController_remove_v1
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "204":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a5
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/skills/{name}:
+    get:
+      operationId: SkillsNestController_get_v2
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Skills
+      security:
+        - owner: []
+    put:
+      operationId: SkillsNestController_update_v2
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkillDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Skills
+      security:
+        - owner: []
+    delete:
+      operationId: SkillsNestController_remove_v2
+      parameters:
+        - name: name
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "204":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Skills
+      security:
+        - owner: []
+  /api/v1/mcp/servers:
+    get:
+      operationId: McpNestController_status_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: &a6
+        - McpNest
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/mcp/servers:
+    get:
+      operationId: McpNestController_status_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Mcp
+      security:
+        - owner: []
+  /api/v1/mcp/servers/{server}/tools:
+    get:
+      operationId: McpNestController_tools_v1
+      parameters:
+        - name: server
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: agent
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a6
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/mcp/servers/{server}/tools:
+    get:
+      operationId: McpNestController_tools_v2
+      parameters:
+        - name: server
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: agent
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Mcp
+      security:
+        - owner: []
+  /api/v1/mcp/servers/{server}/reconnect:
+    post:
+      operationId: McpNestController_reconnect_v1
+      parameters:
+        - name: server
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: agent
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a6
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/mcp/servers/{server}/reconnect:
+    post:
+      operationId: McpNestController_reconnect_v2
+      parameters:
+        - name: server
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: agent
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Mcp
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/workspace/tree:
+    get:
+      operationId: WorkspaceNestController_tree_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: &a7
+        - WorkspaceNest
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/workspace/tree:
+    get:
+      operationId: WorkspaceNestController_tree_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/workspace/content:
+    get:
+      operationId: WorkspaceNestController_content_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a7
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/workspace/content:
+    get:
+      operationId: WorkspaceNestController_content_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/approvals:
+    get:
+      operationId: ApprovalsNestController_list_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: &a8
+        - ApprovalsNest
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/approvals:
+    get:
+      operationId: ApprovalsNestController_list_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/approvals/{approvalId}/decision:
+    post:
+      operationId: ApprovalsNestController_decide_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: approvalId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecisionDto"
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a8
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/approvals/{approvalId}/decision:
+    post:
+      operationId: ApprovalsNestController_decide_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: approvalId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecisionDto"
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/plan/decision:
+    post:
+      operationId: ApprovalsNestController_decidePlan_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecisionDto"
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a8
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/plan/decision:
+    post:
+      operationId: ApprovalsNestController_decidePlan_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecisionDto"
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v1/sessions:
+    get:
+      deprecated: true
+      operationId: RunsNestController_session_v1
+      parameters:
+        - name: key
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      summary: ""
+      tags: &a9
+        - RunsNest
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/status:
+    get:
+      operationId: RunsNestController_status_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a9
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/status:
+    get:
+      operationId: RunsNestController_status_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunStatusV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/manifest:
+    get:
+      operationId: RunsNestController_manifest_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a9
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/manifest:
+    get:
+      operationId: RunsNestController_manifest_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/trace:
+    get:
+      operationId: RunsNestController_trace_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: cursor
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: after_seq
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: limit
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a9
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/trace:
+    get:
+      operationId: RunsNestController_trace_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: cursor
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/validation:
+    get:
+      operationId: RunsNestController_validation_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a9
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/validation:
+    get:
+      operationId: RunsNestController_validation_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/report:
+    get:
+      operationId: RunsNestController_report_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a9
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/report:
+    get:
+      operationId: RunsNestController_report_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/files:
+    get:
+      operationId: RunsNestController_files_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: cursor
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: after_seq
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: limit
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a9
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/files:
+    get:
+      operationId: RunsNestController_files_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: cursor
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/files/content:
+    get:
+      operationId: RunsNestController_fileContent_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a9
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/files/content:
+    get:
+      operationId: RunsNestController_fileContent_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v1/turns:
+    post:
+      operationId: TurnsNestController_turn_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TurnDto"
+      responses:
+        "202":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: &a10
+        - TurnsNest
+      deprecated: true
+      security:
+        - owner: []
+  /api/v1/turns/blocking:
+    post:
+      operationId: TurnsNestController_blocking_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TurnDto"
+      responses:
+        "202":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a10
+      deprecated: true
+      security:
+        - owner: []
+  /api/v1/client-tool-results:
+    post:
+      operationId: TurnsNestController_clientToolResult_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientToolResultDto"
+      responses:
+        "202":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a10
+      deprecated: true
+      security:
+        - owner: []
+  /api/v1/webhooks/{source}:
+    post:
+      operationId: TurnsNestController_webhook_v1
+      parameters:
+        - name: source
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TurnDto"
+      responses:
+        "202":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a10
+      deprecated: true
+      security:
+        - owner: []
+  /api/v1/runs/{runId}/events:
+    get:
+      deprecated: true
+      operationId: EventsNestController_events_v1
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      summary: ""
+      tags:
+        - EventsNest
+      security:
+        - owner: []
+  /api/v1/rooms:
+    get:
+      operationId: RoomsNestController_list_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: &a11
+        - RoomsNest
+      deprecated: true
+      security:
+        - owner: []
+    post:
+      operationId: RoomsNestController_create_v1
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomCreateDto"
+      responses:
+        "201":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms:
+    get:
+      operationId: RoomsNestController_list_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomListV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+    post:
+      operationId: RoomsNestController_create_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomCreateDto"
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}:
+    get:
+      operationId: RoomsNestController_get_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}:
+    get:
+      operationId: RoomsNestController_get_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/close:
+    post:
+      operationId: RoomsNestController_close_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/close:
+    post:
+      operationId: RoomsNestController_close_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/members:
+    post:
+      operationId: RoomsNestController_addMember_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomMemberDto"
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/members:
+    post:
+      operationId: RoomsNestController_addMember_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomMemberDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/members/{agent}:
+    delete:
+      operationId: RoomsNestController_removeMember_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: agent
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/members/{agent}:
+    delete:
+      operationId: RoomsNestController_removeMember_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: agent
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/webhooks:
+    get:
+      operationId: RoomsNestController_listWebhooks_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+    post:
+      operationId: RoomsNestController_createWebhook_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomWebhookDto"
+      responses:
+        "201":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/webhooks:
+    get:
+      operationId: RoomsNestController_listWebhooks_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomWebhookListV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+    post:
+      operationId: RoomsNestController_createWebhook_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomWebhookDto"
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomWebhookV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/webhooks/{webhookId}:
+    delete:
+      operationId: RoomsNestController_deleteWebhook_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: webhookId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "204":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/webhooks/{webhookId}:
+    delete:
+      operationId: RoomsNestController_deleteWebhook_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: webhookId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "204":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/history:
+    get:
+      operationId: RoomsNestController_history_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/history:
+    get:
+      operationId: RoomsNestController_history_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomHistoryV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/metrics:
+    get:
+      operationId: RoomsNestController_metrics_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/metrics:
+    get:
+      operationId: RoomsNestController_metrics_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomMetricsV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/runs:
+    post:
+      operationId: RoomsNestController_run_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomRunDto"
+      responses:
+        "202":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/runs:
+    post:
+      operationId: RoomsNestController_run_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomRunDto"
+      responses:
+        "202":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomRunV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/sessions/{sessionId}/transcript:
+    get:
+      operationId: RoomsNestController_transcript_v1
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/sessions/{sessionId}/transcript:
+    get:
+      operationId: RoomsNestController_transcript_v2
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomTranscriptV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Sessions
+      security:
+        - owner: []
+  /api/v1/rooms/{roomId}/events:
+    get:
+      operationId: RoomsNestController_events_v1
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags: *a11
+      deprecated: true
+      security:
+        - owner: []
+  /api/v2/rooms/{roomId}/events:
+    get:
+      operationId: RoomsNestController_events_v2
+      parameters:
+        - name: roomId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+        - name: cursor
+          in: query
+          required: false
+          description: Resume after this event ID.
+          schema:
+            type: string
+        - name: Last-Event-ID
+          in: header
+          required: false
+          description: Resume after this event ID when cursor is omitted.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            text/event-stream:
+              schema:
+                type: string
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Rooms
+      security:
+        - owner: []
+  /api/v1/room-webhooks/{webhookId}:
+    post:
+      operationId: RoomWebhooksNestController_receive_v1
+      parameters:
+        - name: webhookId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomWebhookEventDto"
+      responses:
+        "202":
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - RoomWebhooksNest
+      deprecated: true
+      security:
+        - webhookSignature: []
+  /api/v2/room-webhooks/{webhookId}:
+    post:
+      operationId: RoomWebhooksNestController_receive_v2
+      parameters:
+        - name: webhookId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomWebhookEventDto"
+      responses:
+        "202":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomWebhookAdmissionV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Room webhooks
+      security:
+        - webhookSignature: []
+  /api/v2/runs:
+    post:
+      operationId: RunsV2Controller_start_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRunRequest"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompletedRunResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "202":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StartedRunResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "401": &a12
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "403": &a13
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "409":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "503":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v2/sessions/{sessionKey}:
+    get:
+      operationId: RunsV2Controller_session_v2
+      parameters:
+        - name: sessionKey
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "401": *a12
+        "403": *a13
+        "404":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "503":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Sessions
+      security:
+        - owner: []
+  /api/v2/sessions/{sessionKey}/tool-results:
+    post:
+      operationId: RunsV2Controller_toolResult_v2
+      parameters:
+        - name: sessionKey
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitToolResultRequest"
+      responses:
+        "202":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StartedRunResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "401": *a12
+        "403": *a13
+        "404":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "409":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "503":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Sessions
+      security:
+        - owner: []
+  /api/v2/webhooks/{source}/runs:
+    post:
+      operationId: RunsV2Controller_webhook_v2
+      parameters:
+        - name: source
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRunRequest"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateDeliveryResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "202":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StartedRunResponse"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "401": *a12
+        "403":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "409":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "503":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Webhooks
+      security:
+        - owner: []
+  /api/v2/runs/{runId}/events:
+    get:
+      operationId: EventsV2Controller_events_v2
+      parameters:
+        - name: runId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+        - name: cursor
+          in: query
+          required: false
+          description: Resume after this event ID.
+          schema:
+            type: string
+        - name: Last-Event-ID
+          in: header
+          required: false
+          description: Resume after this event ID when cursor is omitted.
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: The first event is stream_opened; its ID matches the resume cursor and its data uses StreamOpenedEvent.
+          description: ""
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "401":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "403":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "404":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Runs
+      security:
+        - owner: []
+  /api/v2/agent-manifests/governance/validate:
+    post:
+      operationId: GovernanceV2Controller_validate_v2
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Optional request correlation ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GovernanceValidationDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GovernanceValidationV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "401":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        "403":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorV2Response"
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+      tags:
+        - Governance
+      security:
+        - owner: []
+info:
+  title: Minder Agent API
+  description: Versioned HTTP API for agent runs and workspace resources.
+  version: 2.0.0
+  contact: {}
+tags:
+  - name: Runs
+    description: Run admission, sessions, status, and events
+  - name: Governance
+    description: Manifest and run governance
+servers: []
+components:
+  securitySchemes:
+    owner:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      description: Verified Core owner assertion
+    webhookSignature:
+      type: apiKey
+      in: header
+      name: x-minder-signature
+      description: HMAC SHA-256 signature over the raw request body
+  schemas:
+    CreateAgentDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        displayName:
+          type: string
+        systemPrompt:
+          type: string
+        model:
+          type: string
+        toolAllowlist:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        maxSteps:
+          type: number
+          minimum: 1
+        executionStrategy:
+          type: string
+          enum:
+            - react
+      required:
+        - id
+        - name
+        - toolAllowlist
+        - skills
+        - executionStrategy
+    UpdateAgentDto:
+      type: object
+      properties:
+        name:
+          type: string
+        displayName:
+          type: string
+        systemPrompt:
+          type: string
+        model:
+          type: string
+        toolAllowlist:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        maxSteps:
+          type: number
+          minimum: 1
+        executionStrategy:
+          type: string
+          enum:
+            - react
+    RollbackAgentDto:
+      type: object
+      properties:
+        version:
+          type: number
+          minimum: 1
+      required:
+        - version
+    AgentV2Response:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        display_name:
+          type: string
+        system_prompt:
+          type: string
+        model:
+          type: string
+        tool_allowlist:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        max_steps:
+          type: number
+        execution_strategy:
+          type: string
+          enum:
+            - react
+        archived_at:
+          type: string
+          format: date-time
+        version:
+          type: number
+      required:
+        - id
+        - name
+        - tool_allowlist
+        - skills
+        - execution_strategy
+        - version
+    ApiErrorV2Response:
+      type: object
+      properties:
+        error:
+          type: string
+          example: invalid_turn
+        request_id:
+          type: string
+        active_run_id:
+          type: string
+          description: Active run ID for conflict responses.
+      required:
+        - error
+        - request_id
+    CreateAgentV2Dto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        display_name:
+          type: string
+        system_prompt:
+          type: string
+        model:
+          type: string
+        tool_allowlist:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        max_steps:
+          type: number
+          minimum: 1
+        execution_strategy:
+          type: string
+          enum:
+            - react
+      required:
+        - id
+        - name
+        - tool_allowlist
+        - skills
+        - execution_strategy
+    UpdateAgentV2Dto:
+      type: object
+      properties:
+        name:
+          type: string
+        display_name:
+          type: string
+        system_prompt:
+          type: string
+        model:
+          type: string
+        tool_allowlist:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        max_steps:
+          type: number
+          minimum: 1
+        execution_strategy:
+          type: string
+          enum:
+            - react
+    AgentV2DiffResponse:
+      type: object
+      properties:
+        path:
+          type: string
+        from:
+          oneOf:
+            - type: string
+            - type: number
+            - type: array
+              items:
+                type: string
+        to:
+          oneOf:
+            - type: string
+            - type: number
+            - type: array
+              items:
+                type: string
+      required:
+        - path
+    GovernanceValidationDto:
+      type: object
+      properties:
+        yaml:
+          type: string
+      required:
+        - yaml
+    SkillSummaryResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        description:
+          type: string
+        read_only:
+          type: boolean
+        source:
+          type: string
+          enum: &a14
+            - global
+            - project
+      required:
+        - name
+        - namespace
+        - read_only
+        - source
+    SkillDto:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        body:
+          type: string
+        description:
+          type: string
+    SkillResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        description:
+          type: string
+        read_only:
+          type: boolean
+        source:
+          type: string
+          enum: *a14
+        body:
+          type: string
+        hash:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - name
+        - namespace
+        - read_only
+        - source
+        - body
+        - hash
+        - created_at
+        - updated_at
+    ApprovalDecisionDto:
+      type: object
+      properties:
+        decision:
+          type: string
+          enum:
+            - approved
+            - denied
+      required:
+        - decision
+    TurnDto:
+      type: object
+      properties: {}
+    ClientToolResultDto:
+      type: object
+      properties: {}
+    RoomCreateDto:
+      type: object
+      properties:
+        name:
+          type: string
+        key:
+          type: string
+        max_concurrent_runs:
+          type: number
+          minimum: 1
+        max_queued:
+          type: number
+          minimum: 0
+        members:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - max_concurrent_runs
+        - members
+    RoomMemberDto:
+      type: object
+      properties:
+        agent:
+          type: string
+      required:
+        - agent
+    RoomWebhookDto:
+      type: object
+      properties:
+        agent:
+          type: string
+        source:
+          type: string
+        secret_ref:
+          type: string
+      required:
+        - agent
+        - source
+        - secret_ref
+    RoomRunDto:
+      type: object
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        agent:
+          type: string
+        input:
+          type: string
+        kind:
+          type: string
+        context:
+          type: object
+        data_scope:
+          type: object
+      required:
+        - agent
+        - input
+    RoomWebhookEventDto:
+      type: object
+      properties:
+        input:
+          type: string
+        data_scope:
+          type: object
+    CompletedRunResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+        error:
+          type: string
+          nullable: true
+        response_text:
+          type: string
+          nullable: true
+        data_scope:
+          type: object
+          nullable: true
+        run_id:
+          type: string
+        session_id:
+          type: string
+        status:
+          type: string
+      required:
+        - request_id
+        - error
+        - response_text
+        - data_scope
+        - run_id
+        - session_id
+        - status
+    DuplicateDeliveryResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+        status:
+          type: string
+          enum:
+            - duplicate_delivery
+      required:
+        - request_id
+        - status
+    CreateRunRequest:
+      type: object
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        session_key:
+          type: string
+        input:
+          type: string
+        agent:
+          type: string
+        data_scope:
+          type: object
+        automation_context:
+          type: object
+        system_prompt:
+          type: string
+        wait_ms:
+          type: number
+          minimum: 0
+      required:
+        - session_key
+        - input
+    StartedRunResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+        run_id:
+          type: string
+        session_id:
+          type: string
+        events_url:
+          type: string
+      required:
+        - request_id
+        - run_id
+        - session_id
+        - events_url
+    SessionV2Response:
+      type: object
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+        mode:
+          type: string
+        turns:
+          type: number
+          minimum: 0
+        pending_question:
+          type: object
+          nullable: true
+        pending_client_tool:
+          type: object
+          nullable: true
+        pending_plan:
+          type: object
+          nullable: true
+        pending_approval:
+          type: object
+          nullable: true
+      required:
+        - id
+        - mode
+        - turns
+        - pending_question
+        - pending_client_tool
+        - pending_plan
+        - pending_approval
+    SubmitToolResultRequest:
+      type: object
+      properties:
+        session_key:
+          type: string
+        tool_call_id:
+          type: string
+        content:
+          type: string
+        is_error:
+          type: boolean
+      required:
+        - tool_call_id
+        - content
+    StreamOpenedEvent:
+      type: object
+      properties:
+        request_id:
+          type: string
+        run_id:
+          type: string
+        cursor:
+          type: string
+      required:
+        - request_id
+        - run_id
+        - cursor
+    GovernanceValidationV2Response:
+      type: object
+      properties:
+        valid:
+          type: boolean
+          enum:
+            - true
+        policy_revision:
+          type: string
+        admitted_at:
+          type: string
+          format: date-time
+        policy:
+          type: object
+      required:
+        - valid
+        - policy_revision
+        - admitted_at
+        - policy
+    RunStatusV2Response:
+      type: object
+      required:
+        - run_id
+        - status
+        - session_id
+        - finished_at
+        - response_text
+        - data_scope
+        - error
+      properties:
+        run_id:
+          type: string
+        status:
+          type: string
+        session_id:
+          type: string
+        finished_at:
+          type: string
+          nullable: true
+        response_text:
+          type: string
+          nullable: true
+        data_scope:
+          type: object
+          nullable: true
+          additionalProperties: true
+        error:
+          type: string
+          nullable: true
+    RoomV2Response:
+      type: object
+      required:
+        - id
+        - name
+        - max_concurrent_runs
+        - max_queued
+        - status
+        - members
+        - created_at
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        key:
+          type: string
+        max_concurrent_runs:
+          type: integer
+        max_queued:
+          type: integer
+        status:
+          type: string
+        members:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+    RoomListV2Response:
+      type: array
+      items:
+        $ref: "#/components/schemas/RoomV2Response"
+    RoomWebhookV2Response:
+      type: object
+      required:
+        - id
+        - room_id
+        - agent
+        - source
+        - secret_ref
+        - created_at
+      properties:
+        id:
+          type: string
+        room_id:
+          type: string
+        agent:
+          type: string
+        source:
+          type: string
+        secret_ref:
+          type: string
+        created_at:
+          type: string
+    RoomWebhookListV2Response:
+      type: array
+      items:
+        $ref: "#/components/schemas/RoomWebhookV2Response"
+    RoomHistoryV2Response:
+      type: object
+      required:
+        - room_id
+        - runs
+        - truncated
+      properties:
+        room_id:
+          type: string
+        runs:
+          type: array
+          items:
+            type: object
+        truncated:
+          type: boolean
+    RoomMetricsV2Response:
+      type: object
+      required:
+        - total
+        - succeeded
+        - failed
+        - cancelled
+        - skipped
+        - running
+        - p50DurationMs
+        - p95DurationMs
+      properties:
+        total:
+          type: integer
+        succeeded:
+          type: integer
+        failed:
+          type: integer
+        cancelled:
+          type: integer
+        skipped:
+          type: integer
+        running:
+          type: integer
+        p50DurationMs:
+          type: number
+          nullable: true
+        p95DurationMs:
+          type: number
+          nullable: true
+    RoomRunV2Response:
+      oneOf:
+        - type: object
+          required:
+            - run_id
+            - session_id
+            - room_id
+            - events_url
+            - room_events_url
+            - queue_position
+            - request_id
+          properties:
+            run_id:
+              type: string
+            session_id:
+              type: string
+            room_id:
+              type: string
+            events_url:
+              type: string
+            room_events_url:
+              type: string
+            queue_position:
+              type: integer
+            request_id:
+              type: string
+        - $ref: "#/components/schemas/DuplicateDeliveryResponse"
+    RoomWebhookAdmissionV2Response:
+      oneOf:
+        - type: object
+          required:
+            - run_id
+            - room_id
+            - request_id
+          properties:
+            run_id:
+              type: string
+            room_id:
+              type: string
+            request_id:
+              type: string
+        - $ref: "#/components/schemas/DuplicateDeliveryResponse"
+    RoomTranscriptV2Response:
+      type: object
+      required:
+        - id
+        - history
+      properties:
+        id:
+          type: string
+        history:
+          type: array
+          items:
+            type: object
+  headers:
+    X-Request-Id:
+      description: Correlation ID returned with every HTTP response.
+      schema:
+        type: string

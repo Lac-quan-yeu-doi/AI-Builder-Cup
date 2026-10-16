@@ -1,0 +1,5 @@
+CELESNITY_SIMULATED_FIRMWARE
+deviceModel=CEL-GW-SIM
+hardwareRevision=sim-a
+version=2.0.0-manual
+payload=This is a safe development-only OTA artifact for the virtual gateway.

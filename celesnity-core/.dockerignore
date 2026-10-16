@@ -1,0 +1,19 @@
+node_modules
+dist
+.env
+.env.*
+!.env.example
+*.log
+coverage
+src/generated
+.DS_Store
+
+# Not copied into any layer — the Dockerfile names the paths it needs rather than
+# doing `COPY . .` — but still uploaded to the daemon as build context on every build.
+# .git alone is several megabytes, and there is no reason to send it or the deployment
+# manifests to a builder that will never read them.
+.git
+k8s
+cloudbuild.yaml
+compose.yaml
+README.md

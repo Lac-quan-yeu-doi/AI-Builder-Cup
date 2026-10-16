@@ -1,0 +1,4 @@
+.next/
+node_modules/
+next-env.d.ts
+src/infrastructure/api/generated/schema.d.ts

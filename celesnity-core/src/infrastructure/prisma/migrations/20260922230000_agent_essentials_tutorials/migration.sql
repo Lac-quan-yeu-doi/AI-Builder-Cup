@@ -1,0 +1,68 @@
+UPDATE "celesnity_app"."tutorial_definitions"
+SET "metadata" = jsonb_set("metadata", '{experience}', '{"mode":"WORKSPACE"}'::jsonb, true)
+WHERE NOT ("metadata" ? 'experience');
+
+INSERT INTO "celesnity_app"."tutorial_definitions" (
+  "id", "metadata", "steps", "required_features", "prerequisites",
+  "context_requirements", "updated_at"
+) VALUES
+(
+  'tutorial-agent-ask-data',
+  '{"title":"Ask your connected data","summary":"Attach a fictional PostgreSQL database, ask a question in everyday language, and inspect the SQL and activity summary.","category":"Agent essentials","learningOutcomes":["Scope a conversation to a connected database","Ask a data question in natural language","Inspect generated SQL and the agent activity summary"],"estimatedMinutes":5,"stepCount":5,"experience":{"mode":"SIMULATED_CHAT","scenarioId":"agent-ask-data","scenarioVersion":1,"resumePolicy":"RESTART"}}'::jsonb,
+  '[
+    {"id":"ask-data-select-database","order":1,"title":"Attach the tutorial database","instructionalContent":"This sandbox uses fictional retail data. Select Retail demo to scope the conversation to its PostgreSQL tables.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-select-database","accessibleName":"Retail demo database"},"targetControl":{"id":"chat-database-picker","accessibleName":"Database picker","selector":"[data-tutorial-target=\"chat-database-picker\"]"}},
+    {"id":"ask-data-send-question","order":2,"title":"Ask in everyday language","instructionalContent":"The question is pre-filled. Press Send to receive the same safe, read-only result every time.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-send-prompt","accessibleName":"Send question"},"targetControl":{"id":"chat-composer","accessibleName":"Chat composer","selector":"[data-tutorial-target=\"chat-composer\"]"}},
+    {"id":"ask-data-open-reasoning","order":3,"title":"Review the activity summary","instructionalContent":"Open View reasoning to see schema inspection, SQL generation, execution, and summarization. This is an activity summary, not private chain-of-thought.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-open-reasoning","accessibleName":"View reasoning"},"targetControl":{"id":"chat-reasoning-toggle","accessibleName":"View reasoning","selector":"[data-tutorial-target=\"chat-reasoning-toggle\"]"}},
+    {"id":"ask-data-open-result","order":4,"title":"Inspect the query result","instructionalContent":"Open the result table and compare the returned rows with the generated SQL.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-open-table-artifact","accessibleName":"Monthly revenue table"},"targetControl":{"id":"chat-table-artifact","accessibleName":"Monthly revenue table","selector":"[data-tutorial-target=\"chat-artifact-table\"]"}},
+    {"id":"ask-data-review","order":5,"title":"Review the answer","instructionalContent":"The response, SQL, and rows are deterministic tutorial data. Finish when you are comfortable with the flow.","destinationFeature":"HOME","destinationHref":"/chat"}
+  ]'::jsonb,
+  ARRAY['HOME'], '[]'::jsonb, '[]'::jsonb, CURRENT_TIMESTAMP
+),
+(
+  'tutorial-agent-create-artifacts',
+  '{"title":"Create artifacts from data","summary":"Turn deterministic query results into a table, chart, and Markdown report.","category":"Agent essentials","learningOutcomes":["Create a table artifact from SQL results","Create a chart artifact from SQL results","Create and preview a report file"],"estimatedMinutes":7,"stepCount":7,"experience":{"mode":"SIMULATED_CHAT","scenarioId":"agent-create-artifacts","scenarioVersion":1,"resumePolicy":"RESTART"}}'::jsonb,
+  '[
+    {"id":"artifacts-send-table","order":1,"title":"Request a table","instructionalContent":"The regional-sales request is pre-filled. Retail demo is already attached, so press Send.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-send-table-prompt","accessibleName":"Send table request"},"targetControl":{"id":"chat-composer","accessibleName":"Chat composer","selector":"[data-tutorial-target=\"chat-composer\"]"}},
+    {"id":"artifacts-open-table","order":2,"title":"Open the table artifact","instructionalContent":"Open the table card to inspect its rows and source details.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-open-table-artifact","accessibleName":"Regional sales table"},"targetControl":{"id":"chat-table-artifact","accessibleName":"Regional sales table","selector":"[data-tutorial-target=\"chat-artifact-table\"]"}},
+    {"id":"artifacts-send-chart","order":3,"title":"Request a chart","instructionalContent":"The monthly-revenue chart request is pre-filled. Press Send.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-send-chart-prompt","accessibleName":"Send chart request"},"targetControl":{"id":"chat-composer","accessibleName":"Chat composer","selector":"[data-tutorial-target=\"chat-composer\"]"}},
+    {"id":"artifacts-open-chart","order":4,"title":"Open the chart artifact","instructionalContent":"Open the chart card. Saving it to the live analytics library is disabled in the tutorial sandbox.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-open-chart-artifact","accessibleName":"Monthly revenue chart"},"targetControl":{"id":"chat-chart-artifact","accessibleName":"Monthly revenue chart","selector":"[data-tutorial-target=\"chat-artifact-chart\"]"}},
+    {"id":"artifacts-send-report","order":5,"title":"Request a report","instructionalContent":"The quarterly-report request is pre-filled. Press Send; the simulator creates a Markdown file without writing to the real workspace.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-send-report-prompt","accessibleName":"Send report request"},"targetControl":{"id":"chat-composer","accessibleName":"Chat composer","selector":"[data-tutorial-target=\"chat-composer\"]"}},
+    {"id":"artifacts-open-report","order":6,"title":"Preview the report file","instructionalContent":"Open reports/q3-sales.md in the tutorial preview.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-open-report","accessibleName":"Quarterly sales report"},"targetControl":{"id":"chat-report-file","accessibleName":"Quarterly sales report","selector":"[data-tutorial-target=\"chat-report-file\"]"}},
+    {"id":"artifacts-review","order":7,"title":"Review the artifacts","instructionalContent":"You created a table, a chart, and a report from one fictional database. Finish to clear the sandbox.","destinationFeature":"HOME","destinationHref":"/chat"}
+  ]'::jsonb,
+  ARRAY['HOME'], '[]'::jsonb, '[]'::jsonb, CURRENT_TIMESTAMP
+),
+(
+  'tutorial-agent-clarify-approve',
+  '{"title":"Clarify and approve an action","summary":"Answer a clarification and approve a deterministic report write before it executes.","category":"Agent essentials","learningOutcomes":["Recognize when the agent needs clarification","Review an action preview","Approve or deny execution"],"estimatedMinutes":5,"stepCount":5,"experience":{"mode":"SIMULATED_CHAT","scenarioId":"agent-clarify-approve","scenarioVersion":1,"resumePolicy":"RESTART"}}'::jsonb,
+  '[
+    {"id":"control-send-request","order":1,"title":"Make an ambiguous request","instructionalContent":"Save the sales report is pre-filled. Press Send; the destination is intentionally missing.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-send-approval-prompt","accessibleName":"Send save request"},"targetControl":{"id":"chat-composer","accessibleName":"Chat composer","selector":"[data-tutorial-target=\"chat-composer\"]"}},
+    {"id":"control-answer-question","order":2,"title":"Clarify the destination","instructionalContent":"Choose Workspace / reports so the agent knows where the file should go.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-answer-clarification","accessibleName":"Workspace / reports"},"targetControl":{"id":"chat-clarification-option","accessibleName":"Workspace / reports","selector":"[data-tutorial-target=\"chat-clarification-option\"]"}},
+    {"id":"control-approve","order":3,"title":"Approve the write","instructionalContent":"Review the safe preview, then approve. Deny is also safe and leaves the sandbox unchanged; retry after denying to continue.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-approve-action","accessibleName":"Approve report write"},"targetControl":{"id":"chat-approval-approve","accessibleName":"Approve","selector":"[data-tutorial-target=\"chat-approval-approve\"]"}},
+    {"id":"control-open-report","order":4,"title":"Verify the result","instructionalContent":"Open the generated report to confirm that the approved action completed.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-open-report","accessibleName":"Approved sales report"},"targetControl":{"id":"chat-report-file","accessibleName":"Approved sales report","selector":"[data-tutorial-target=\"chat-report-file\"]"}},
+    {"id":"control-review","order":5,"title":"Stay in control","instructionalContent":"Clarification resolved ambiguity, and approval prevented execution until you consented. Finish to clear the mock file.","destinationFeature":"HOME","destinationHref":"/chat"}
+  ]'::jsonb,
+  ARRAY['HOME'], '[]'::jsonb, '[]'::jsonb, CURRENT_TIMESTAMP
+),
+(
+  'tutorial-agent-files-conversations',
+  '{"title":"Work with files and conversations","summary":"Analyze a local CSV or Excel sample and navigate between isolated conversation threads.","category":"Agent essentials","learningOutcomes":["Attach and preview a local CSV or Excel file","Ask a question about the attached data","Create and revisit separate conversation threads"],"estimatedMinutes":7,"stepCount":7,"experience":{"mode":"SIMULATED_CHAT","scenarioId":"agent-files-conversations","scenarioVersion":1,"resumePolicy":"RESTART"}}'::jsonb,
+  '[
+    {"id":"files-attach","order":1,"title":"Attach a sample file","instructionalContent":"Download either bundled sample, then attach it. Parsing happens only in your browser and the file is never uploaded.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-attach-file","accessibleName":"Attach retail orders sample"},"targetControl":{"id":"chat-file-attach","accessibleName":"Attach file","selector":"[data-tutorial-target=\"chat-file-attach\"]"}},
+    {"id":"files-ask","order":2,"title":"Ask about the file","instructionalContent":"The product-revenue question is pre-filled. Press Send; the CSV and Excel samples produce the same answer.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-send-file-prompt","accessibleName":"Send file question"},"targetControl":{"id":"chat-composer","accessibleName":"Chat composer","selector":"[data-tutorial-target=\"chat-composer\"]"}},
+    {"id":"files-new-thread","order":3,"title":"Start another conversation","instructionalContent":"Create a new tutorial conversation. The first thread remains available only while this walkthrough is open.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-create-thread","accessibleName":"New conversation"},"targetControl":{"id":"chat-new-conversation","accessibleName":"New conversation","selector":"[data-tutorial-target=\"chat-new-conversation\"]"}},
+    {"id":"files-second-question","order":4,"title":"Ask a different question","instructionalContent":"The second question is pre-filled in the new thread. Press Send.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-send-second-thread-prompt","accessibleName":"Send second question"},"targetControl":{"id":"chat-composer","accessibleName":"Chat composer","selector":"[data-tutorial-target=\"chat-composer\"]"}},
+    {"id":"files-open-history","order":5,"title":"Open conversation history","instructionalContent":"Open the conversation menu to see both tutorial threads.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-open-history","accessibleName":"Conversation history"},"targetControl":{"id":"chat-conversation-history","accessibleName":"Conversation history","selector":"[data-tutorial-target=\"chat-conversation-history\"]"}},
+    {"id":"files-switch-thread","order":6,"title":"Return to the first thread","instructionalContent":"Select File analysis and confirm its transcript is still available.","destinationFeature":"HOME","destinationHref":"/chat","requiredAction":{"id":"tutorial-switch-thread","accessibleName":"File analysis conversation"},"targetControl":{"id":"chat-conversation-first","accessibleName":"File analysis conversation","selector":"[data-tutorial-target=\"chat-conversation-first\"]"}},
+    {"id":"files-review","order":7,"title":"Review the workflow","instructionalContent":"You analyzed a local file and navigated between two isolated threads. Finish to erase both conversations.","destinationFeature":"HOME","destinationHref":"/chat"}
+  ]'::jsonb,
+  ARRAY['HOME'], '[]'::jsonb, '[]'::jsonb, CURRENT_TIMESTAMP
+)
+ON CONFLICT ("id") DO UPDATE SET
+  "metadata" = EXCLUDED."metadata",
+  "steps" = EXCLUDED."steps",
+  "required_features" = EXCLUDED."required_features",
+  "prerequisites" = EXCLUDED."prerequisites",
+  "context_requirements" = EXCLUDED."context_requirements",
+  "revision" = "celesnity_app"."tutorial_definitions"."revision" + 1,
+  "updated_at" = CURRENT_TIMESTAMP;

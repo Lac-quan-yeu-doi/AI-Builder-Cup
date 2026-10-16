@@ -1,0 +1,65 @@
+services:
+  mysql-plain:
+    # MySQL 8.0 retains the TLS-disabled fixture option; MySQL 8.4 removed it.
+    image: mysql:8.0
+    command: ['--skip-ssl']
+    environment:
+      MYSQL_ROOT_PASSWORD: root-test-only
+      MYSQL_DATABASE: analytics
+      MYSQL_USER: celesnity_reader
+      MYSQL_PASSWORD: mysql-test-only
+    ports:
+      - '127.0.0.1:13306:3306'
+    volumes:
+      - ./init/01-plain-reader.sql:/docker-entrypoint-initdb.d/01-plain-reader.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -uroot -p$$MYSQL_ROOT_PASSWORD --silent']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  mysql-tls:
+    image: mysql:8.4
+    command:
+      - --ssl-ca=/certs/ca.pem
+      - --ssl-cert=/certs/server-cert.pem
+      - --ssl-key=/certs/server-key.pem
+      - --require-secure-transport=ON
+    environment:
+      MYSQL_ROOT_PASSWORD: root-test-only
+      MYSQL_DATABASE: analytics
+      MYSQL_USER: celesnity_reader
+      MYSQL_PASSWORD: mysql-test-only
+    ports:
+      - '127.0.0.1:13307:3306'
+    volumes:
+      - '${MYSQL_TEST_CERT_DIR}:/certs:ro'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --ssl-mode=REQUIRED --silent',
+        ]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  mysql-untrusted:
+    image: mysql:8.4
+    command: ['--require-secure-transport=ON']
+    environment:
+      MYSQL_ROOT_PASSWORD: root-test-only
+      MYSQL_DATABASE: analytics
+      MYSQL_USER: celesnity_reader
+      MYSQL_PASSWORD: mysql-test-only
+    ports:
+      - '127.0.0.1:13308:3306'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --ssl-mode=REQUIRED --silent',
+        ]
+      interval: 2s
+      timeout: 2s
+      retries: 30

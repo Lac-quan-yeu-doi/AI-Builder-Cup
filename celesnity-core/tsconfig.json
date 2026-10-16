@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    // `paths` are relative to this file and there is no `baseUrl`. TypeScript has
+    // resolved `paths` without a `baseUrl` since 4.1, and TypeScript 7 removes
+    // `baseUrl` outright, so writing them relative works on both. Keep the
+    // leading `./` — TypeScript 7 rejects a non-relative mapping target.
+    "paths": {
+      "@domain/*": ["./src/domain/*"],
+      "@application/*": ["./src/application/*"],
+      "@infrastructure/*": ["./src/infrastructure/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@presentation/*": ["./src/presentation/*"],
+      "@bootstrap/*": ["./src/bootstrap/*"],
+      "@generated/*": ["./src/generated/*"],
+      "@tests/*": ["./src/tests/*"]
+    },
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "outDir": "./dist",
+    "removeComments": true,
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "ES2023",
+    // Only the packages that contribute globals. Everything else (@types/express,
+    // @types/pg, @types/supertest) is reached through an import and needs no entry
+    // here. Listed explicitly because TypeScript 7 stops auto-discovering
+    // node_modules/@types, so an implicit list becomes an empty one.
+    "types": ["node", "jest"],
+    "useDefineForClassFields": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,2540 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Celesnity Data Workflows — E2E prototype</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --background: #ffffff;
+        --foreground: #0d0d0d;
+        --card: #ffffff;
+        --surface: #f9f9f9;
+        --muted: #f3f3f3;
+        --muted-foreground: #5d5d5d;
+        --border: rgb(13 13 13 / 10%);
+        --border-strong: rgb(13 13 13 / 18%);
+        --primary: #181818;
+        --primary-foreground: #ffffff;
+        --accent: #e8f3fc;
+        --accent-strong: #0075de;
+        --success: #127a45;
+        --success-bg: #eaf8f0;
+        --warning: #8a5200;
+        --warning-bg: #fff5de;
+        --danger: #c63834;
+        --danger-bg: #fff0ef;
+        --purple: #7450b8;
+        --purple-bg: #f3effb;
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --shadow-sm: 0 1px 2px rgb(0 0 0 / 5%);
+        --shadow-md: 0 12px 36px rgb(0 0 0 / 10%);
+        --sidebar-width: 224px;
+        font-family:
+          ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        background: var(--background);
+        color: var(--foreground);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button,
+      select,
+      input[type="checkbox"] {
+        cursor: pointer;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      [tabindex]:focus-visible {
+        outline: 3px solid rgb(0 117 222 / 28%);
+        outline-offset: 2px;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .icon-sm {
+        width: 15px;
+        height: 15px;
+      }
+
+      .app-shell {
+        min-height: 100dvh;
+        display: grid;
+        grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100dvh;
+        padding: 14px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+      }
+
+      .brand {
+        min-height: 44px;
+        padding: 4px 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 650;
+        letter-spacing: -0.015em;
+      }
+
+      .brand-mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        overflow: hidden;
+        flex: 0 0 auto;
+      }
+
+      .nav-group {
+        display: grid;
+        gap: 3px;
+      }
+
+      .nav-label {
+        padding: 6px 10px;
+        color: var(--muted-foreground);
+        font-size: 11px;
+        font-weight: 650;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .nav-item {
+        min-height: 42px;
+        width: 100%;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        color: #3d3d3d;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-align: left;
+        transition: background 150ms ease, color 150ms ease;
+      }
+
+      .nav-item:hover {
+        background: #ededed;
+        color: var(--foreground);
+      }
+
+      .nav-item.active {
+        background: #dceefd;
+        color: #004f96;
+        font-weight: 600;
+      }
+
+      .sidebar-footer {
+        margin-top: auto;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+      }
+
+      .profile {
+        min-height: 48px;
+        padding: 6px 8px;
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr);
+        gap: 9px;
+        align-items: center;
+      }
+
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: #e6e1f8;
+        color: #51398d;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .profile strong,
+      .profile span {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .profile span {
+        color: var(--muted-foreground);
+        font-size: 12px;
+      }
+
+      .main {
+        min-width: 0;
+        min-height: 100dvh;
+        background: var(--background);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        min-height: 64px;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-bottom: 1px solid var(--border);
+        background: rgb(255 255 255 / 92%);
+        backdrop-filter: blur(12px);
+      }
+
+      .breadcrumbs {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted-foreground);
+      }
+
+      .breadcrumbs strong {
+        max-width: 360px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--foreground);
+        font-weight: 600;
+      }
+
+      .topbar-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+      }
+
+      .page {
+        display: none;
+      }
+
+      .page.active {
+        display: block;
+        animation: page-in 180ms ease-out;
+      }
+
+      @keyframes page-in {
+        from {
+          opacity: 0;
+          transform: translateY(3px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .page-inner {
+        width: min(100%, 1440px);
+        margin: 0 auto;
+        padding: 28px;
+      }
+
+      .page-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 24px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 6px;
+        font-size: 30px;
+        line-height: 1.2;
+        letter-spacing: -0.035em;
+        font-weight: 650;
+      }
+
+      h2 {
+        margin-bottom: 6px;
+        font-size: 18px;
+        line-height: 1.35;
+        letter-spacing: -0.015em;
+      }
+
+      h3 {
+        margin-bottom: 4px;
+        font-size: 14px;
+      }
+
+      .muted {
+        color: var(--muted-foreground);
+      }
+
+      .caption {
+        color: var(--muted-foreground);
+        font-size: 12px;
+      }
+
+      .button {
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+      }
+
+      .button-primary {
+        background: var(--primary);
+        color: var(--primary-foreground);
+      }
+
+      .button-primary:hover {
+        background: #343434;
+      }
+
+      .button-secondary {
+        background: var(--card);
+        color: var(--foreground);
+        border-color: var(--border-strong);
+      }
+
+      .button-secondary:hover {
+        background: var(--muted);
+      }
+
+      .button-ghost {
+        background: transparent;
+        color: var(--muted-foreground);
+      }
+
+      .button-ghost:hover {
+        background: var(--muted);
+        color: var(--foreground);
+      }
+
+      .button-sm {
+        min-height: 34px;
+        padding-inline: 10px;
+        font-size: 12px;
+      }
+
+      .icon-button {
+        width: 40px;
+        padding: 0;
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: var(--card);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .summary-card {
+        padding: 16px;
+      }
+
+      .summary-card .value {
+        margin-top: 10px;
+        font-size: 24px;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        font-weight: 650;
+      }
+
+      .summary-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--muted-foreground);
+        font-size: 12px;
+        font-weight: 550;
+      }
+
+      .toolbar {
+        min-height: 58px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .search-wrap {
+        position: relative;
+        min-width: 240px;
+        flex: 1;
+      }
+
+      .search-wrap .icon {
+        position: absolute;
+        left: 11px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted-foreground);
+      }
+
+      .input,
+      .select {
+        min-height: 40px;
+        width: 100%;
+        padding: 0 11px;
+        border: 1px solid var(--border-strong);
+        border-radius: 9px;
+        background: var(--card);
+        color: var(--foreground);
+      }
+
+      .search-wrap .input {
+        padding-left: 36px;
+      }
+
+      .input:hover,
+      .select:hover {
+        border-color: rgb(13 13 13 / 28%);
+      }
+
+      .workflow-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .workflow-table th,
+      .workflow-table td {
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      .workflow-table th {
+        color: var(--muted-foreground);
+        background: #fcfcfc;
+        font-size: 11px;
+        font-weight: 650;
+        letter-spacing: 0.045em;
+        text-transform: uppercase;
+      }
+
+      .workflow-table tbody tr {
+        transition: background 150ms ease;
+      }
+
+      .workflow-table tbody tr:hover {
+        background: #fafafa;
+      }
+
+      .workflow-table tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .workflow-name {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+
+      .workflow-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        background: var(--accent);
+        color: #0069c6;
+      }
+
+      .workflow-name strong,
+      .workflow-name span {
+        display: block;
+      }
+
+      .workflow-name span {
+        color: var(--muted-foreground);
+        font-size: 12px;
+      }
+
+      .badge {
+        min-height: 24px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+        font-size: 11px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .badge-success {
+        background: var(--success-bg);
+        color: var(--success);
+        border-color: rgb(18 122 69 / 14%);
+      }
+
+      .badge-info {
+        background: var(--accent);
+        color: #005eaf;
+        border-color: rgb(0 117 222 / 14%);
+      }
+
+      .badge-warning {
+        background: var(--warning-bg);
+        color: var(--warning);
+        border-color: rgb(138 82 0 / 14%);
+      }
+
+      .badge-neutral {
+        background: var(--muted);
+        color: #4b4b4b;
+        border-color: var(--border);
+      }
+
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .journey {
+        margin-bottom: 20px;
+        padding: 12px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .journey-step {
+        min-height: 50px;
+        padding: 8px 10px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--muted-foreground);
+        background: var(--muted);
+      }
+
+      .journey-step.active {
+        color: #005eaf;
+        background: var(--accent);
+      }
+
+      .journey-step.done {
+        color: var(--success);
+        background: var(--success-bg);
+      }
+
+      .step-number {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--card);
+        border: 1px solid currentColor;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .editor-shell {
+        height: calc(100dvh - 64px);
+        display: grid;
+        grid-template-rows: 56px minmax(0, 1fr);
+      }
+
+      .editor-toolbar {
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .editor-title {
+        min-width: 0;
+        margin-right: 10px;
+      }
+
+      .editor-title strong,
+      .editor-title span {
+        display: block;
+      }
+
+      .editor-title strong {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .editor-title span {
+        color: var(--muted-foreground);
+        font-size: 11px;
+      }
+
+      .editor-state {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 8px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--muted-foreground);
+        background: var(--surface);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .tabs {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        padding: 3px;
+        border-radius: 10px;
+        background: var(--muted);
+      }
+
+      .tab {
+        min-height: 34px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: var(--muted-foreground);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .tab:hover {
+        color: var(--foreground);
+      }
+
+      .tab.active {
+        background: var(--card);
+        color: var(--foreground);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .editor-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+      }
+
+      .editor-panel {
+        display: none;
+        min-height: 0;
+      }
+
+      .editor-panel.active {
+        display: block;
+        height: 100%;
+      }
+
+      .builder-grid {
+        height: 100%;
+        display: grid;
+        grid-template-columns: 224px minmax(520px, 1fr) 300px;
+      }
+
+      .node-library,
+      .inspector {
+        min-height: 0;
+        overflow: auto;
+        background: var(--card);
+      }
+
+      .node-library {
+        padding: 16px 12px;
+        border-right: 1px solid var(--border);
+      }
+
+      .inspector {
+        padding: 18px 16px;
+        border-left: 1px solid var(--border);
+      }
+
+      .panel-eyebrow {
+        margin-bottom: 10px;
+        color: var(--muted-foreground);
+        font-size: 11px;
+        font-weight: 650;
+        letter-spacing: 0.055em;
+        text-transform: uppercase;
+      }
+
+      .library-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .library-item {
+        min-height: 58px;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr);
+        gap: 9px;
+        align-items: center;
+        background: var(--card);
+        text-align: left;
+        transition: border-color 150ms ease, background 150ms ease;
+      }
+
+      .library-item:hover {
+        border-color: rgb(0 117 222 / 35%);
+        background: #fbfdff;
+      }
+
+      .library-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        color: #0069c6;
+        background: var(--accent);
+      }
+
+      .library-item > span:last-child,
+      .library-item > span:last-child > span {
+        display: block;
+      }
+
+      .library-item > span:last-child > strong {
+        font-size: 12px;
+      }
+
+      .library-item > span:last-child > span {
+        color: var(--muted-foreground);
+        font-size: 11px;
+      }
+
+      .canvas {
+        position: relative;
+        min-height: 0;
+        overflow: auto;
+        background-color: #fafafa;
+        background-image: radial-gradient(rgb(13 13 13 / 14%) 0.7px, transparent 0.7px);
+        background-size: 18px 18px;
+      }
+
+      .canvas-header {
+        position: sticky;
+        top: 12px;
+        left: 50%;
+        z-index: 5;
+        width: max-content;
+        margin: 12px auto 0;
+        padding: 7px 10px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgb(255 255 255 / 92%);
+        box-shadow: var(--shadow-sm);
+        color: var(--muted-foreground);
+        font-size: 11px;
+        backdrop-filter: blur(10px);
+      }
+
+      .canvas-header strong {
+        color: var(--foreground);
+      }
+
+      .canvas-stage {
+        position: relative;
+        width: 940px;
+        height: 650px;
+        margin: 0 auto;
+      }
+
+      .connector-layer {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .connector-layer path {
+        fill: none;
+        stroke: #9da3aa;
+        stroke-width: 2;
+      }
+
+      .workflow-node {
+        position: absolute;
+        width: 172px;
+        min-height: 78px;
+        padding: 12px;
+        border: 1px solid var(--border-strong);
+        border-radius: 11px;
+        background: var(--card);
+        box-shadow: 0 3px 10px rgb(0 0 0 / 6%);
+        text-align: left;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+      }
+
+      .workflow-node:hover,
+      .workflow-node.selected {
+        border-color: var(--accent-strong);
+        box-shadow: 0 0 0 3px rgb(0 117 222 / 12%), 0 8px 20px rgb(0 0 0 / 8%);
+      }
+
+      .node-header {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: #3c3c3c;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.055em;
+        text-transform: uppercase;
+      }
+
+      .node-header .icon {
+        color: var(--accent-strong);
+      }
+
+      .workflow-node strong {
+        display: block;
+        margin-top: 7px;
+        font-size: 12px;
+      }
+
+      .workflow-node p {
+        margin: 2px 0 0;
+        color: var(--muted-foreground);
+        font-size: 11px;
+      }
+
+      .pipeline-meta {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap;
+      }
+
+      .target-chip,
+      .mode-chip {
+        min-height: 22px;
+        padding: 2px 6px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 9px;
+        line-height: 1.2;
+      }
+
+      .target-chip {
+        max-width: 128px;
+        overflow: hidden;
+        color: #005eaf;
+        background: var(--accent);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mode-chip {
+        color: #4f4f4f;
+        background: var(--muted);
+        font-family: inherit;
+        text-transform: capitalize;
+      }
+
+      .node-trigger { left: 36px; top: 274px; }
+      .node-orders { left: 250px; top: 274px; }
+      .node-split { left: 464px; top: 274px; }
+      .node-risk { left: 674px; top: 148px; }
+      .node-standard { left: 674px; top: 398px; }
+      .node-join { left: 674px; top: 274px; }
+
+      .canvas-controls {
+        position: sticky;
+        left: 14px;
+        bottom: 14px;
+        width: max-content;
+        display: flex;
+        gap: 4px;
+        padding: 4px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: rgb(255 255 255 / 92%);
+        box-shadow: var(--shadow-md);
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+
+      .field label,
+      fieldset legend {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .field-help {
+        color: var(--muted-foreground);
+        font-size: 11px;
+      }
+
+      .inspector-section {
+        padding: 16px 0;
+        border-top: 1px solid var(--border);
+      }
+
+      .inspector-section:first-of-type {
+        border-top: 0;
+      }
+
+      .branch-row {
+        padding: 10px;
+        margin-top: 8px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: var(--surface);
+      }
+
+      .branch-row strong,
+      .branch-row span {
+        display: block;
+      }
+
+      .branch-row strong {
+        font-size: 12px;
+      }
+
+      .branch-row span {
+        color: var(--muted-foreground);
+        font-family: var(--font-mono, monospace);
+        font-size: 11px;
+      }
+
+      .config-wrap {
+        height: 100%;
+        overflow: auto;
+        background: var(--surface);
+      }
+
+      .config-content {
+        width: min(100%, 1120px);
+        margin: 0 auto;
+        padding: 24px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 18px;
+      }
+
+      .config-main,
+      .config-aside {
+        display: grid;
+        align-content: start;
+        gap: 14px;
+      }
+
+      .section-card {
+        padding: 18px;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 5px;
+        padding: 5px;
+        border-radius: 11px;
+        background: var(--muted);
+      }
+
+      .segment {
+        min-height: 42px;
+        padding: 7px 10px;
+        border: 0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        background: transparent;
+        color: var(--muted-foreground);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .segment.active {
+        background: var(--card);
+        color: var(--foreground);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .trigger-config {
+        display: none;
+      }
+
+      .trigger-config.active {
+        display: block;
+      }
+
+      .config-aside.trigger-config.active {
+        display: grid;
+      }
+
+      .info-callout {
+        padding: 12px;
+        border: 1px solid rgb(0 117 222 / 15%);
+        border-radius: 10px;
+        display: grid;
+        grid-template-columns: 20px minmax(0, 1fr);
+        gap: 9px;
+        background: var(--accent);
+        color: #174765;
+        font-size: 12px;
+      }
+
+      .mode-cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .mode-card {
+        min-height: 112px;
+        padding: 13px;
+        border: 1px solid var(--border-strong);
+        border-radius: 10px;
+        background: var(--card);
+        text-align: left;
+      }
+
+      .mode-card:hover {
+        border-color: rgb(0 117 222 / 42%);
+      }
+
+      .mode-card.active {
+        border-color: var(--accent-strong);
+        box-shadow: 0 0 0 3px rgb(0 117 222 / 10%);
+      }
+
+      .mode-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .mode-card strong,
+      .mode-card span {
+        display: block;
+      }
+
+      .mode-card span {
+        margin-top: 6px;
+        color: var(--muted-foreground);
+        font-size: 11px;
+      }
+
+      .radio-dot {
+        width: 16px;
+        height: 16px;
+        border: 1px solid var(--border-strong);
+        border-radius: 50%;
+      }
+
+      .mode-card.active .radio-dot {
+        border: 5px solid var(--accent-strong);
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      fieldset {
+        padding: 0;
+        margin: 0;
+        border: 0;
+      }
+
+      .checks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .check-pill {
+        min-height: 38px;
+        padding: 0 11px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: var(--card);
+        font-size: 12px;
+      }
+
+      .calendar-fields {
+        display: grid;
+        gap: 18px;
+      }
+
+      .calendar-days-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .calendar-days-actions {
+        display: flex;
+        gap: 4px;
+      }
+
+      .calendar-day-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .calendar-day-option {
+        min-height: 44px;
+        padding: 0 9px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        background: var(--card);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .calendar-day-option:hover {
+        border-color: var(--border-strong);
+        background: var(--surface);
+      }
+
+      .calendar-day-option:has(input:checked) {
+        border-color: rgb(0 117 222 / 42%);
+        background: var(--accent);
+        color: #055b9f;
+      }
+
+      .calendar-day-option:focus-within {
+        outline: 2px solid rgb(0 117 222 / 22%);
+        outline-offset: 2px;
+      }
+
+      .calendar-summary {
+        padding: 11px 12px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: var(--surface);
+        color: var(--muted-foreground);
+        font-size: 12px;
+      }
+
+      .calendar-summary strong {
+        color: var(--foreground);
+      }
+
+      .calendar-summary.invalid {
+        border-color: rgb(198 56 52 / 28%);
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
+
+      .routing-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      .routing-table th,
+      .routing-table td {
+        padding: 11px 10px;
+        border-top: 1px solid var(--border);
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      .routing-table th {
+        color: var(--muted-foreground);
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      .routing-table th:nth-child(1) { width: 34%; }
+      .routing-table th:nth-child(2) { width: 33%; }
+      .routing-table th:nth-child(3) { width: 15%; }
+      .routing-table th:nth-child(4) { width: 18%; }
+
+      .table-token {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 12px;
+      }
+
+      .table-token .icon {
+        color: var(--purple);
+      }
+
+      .routing-action {
+        min-height: 36px;
+        font-size: 12px;
+      }
+
+      .subscription-toolbar {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .subscription-toolbar .search-wrap {
+        min-width: 0;
+      }
+
+      .subscription-summary {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: var(--surface);
+        font-size: 12px;
+      }
+
+      .subscription-summary strong {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .routing-table tbody tr[data-selected-table] {
+        background: rgb(0 117 222 / 3%);
+      }
+
+      .routing-table .empty-row {
+        padding: 24px 12px;
+        color: var(--muted-foreground);
+        text-align: center;
+      }
+
+      .remove-table-button {
+        color: var(--danger);
+      }
+
+      .routing-table tbody tr[hidden] {
+        display: none;
+      }
+
+      .runtime-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .cdc-illustration {
+        position: relative;
+        height: 180px;
+        margin: -4px -4px 16px;
+        overflow: hidden;
+        border-radius: 11px;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 74% 32%, rgb(0 117 222 / 26%), transparent 34%),
+          linear-gradient(145deg, #120b3d, #071527 62%, #0b3156);
+      }
+
+      .cdc-illustration img {
+        width: 100%;
+        height: 100%;
+        padding: 8px;
+        object-fit: contain;
+        object-position: center;
+      }
+
+      .cdc-illustration-badge {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        min-height: 24px;
+        padding: 3px 8px;
+        border: 1px solid rgb(255 255 255 / 22%);
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #ffffff;
+        background: rgb(7 0 46 / 70%);
+        font-size: 10px;
+        font-weight: 650;
+        backdrop-filter: blur(8px);
+      }
+
+      .runtime-item {
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr) auto;
+        gap: 9px;
+        align-items: center;
+      }
+
+      .runtime-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: var(--muted);
+        color: #3f3f3f;
+      }
+
+      .runtime-item > div > strong,
+      .runtime-item > div > span {
+        display: block;
+      }
+
+      .runtime-item > div > strong {
+        font-size: 12px;
+      }
+
+      .runtime-item > div > span {
+        color: var(--muted-foreground);
+        font-size: 11px;
+      }
+
+      .health-line {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--success);
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      .validation-result {
+        display: none;
+        padding: 12px;
+        border: 1px solid rgb(18 122 69 / 18%);
+        border-radius: 10px;
+        background: var(--success-bg);
+        color: #155b38;
+        font-size: 12px;
+      }
+
+      .validation-result.visible {
+        display: grid;
+        grid-template-columns: 18px minmax(0, 1fr);
+        gap: 8px;
+        animation: page-in 180ms ease-out;
+      }
+
+      .mini-flow {
+        display: grid;
+        gap: 8px;
+      }
+
+      .mini-flow-step {
+        position: relative;
+        min-height: 48px;
+        padding: 9px 10px 9px 38px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: var(--card);
+      }
+
+      .mini-flow-step::before {
+        content: "";
+        position: absolute;
+        left: 17px;
+        top: 0;
+        bottom: -9px;
+        width: 1px;
+        background: var(--border-strong);
+      }
+
+      .mini-flow-step:last-child::before {
+        bottom: 50%;
+      }
+
+      .mini-flow-dot {
+        position: absolute;
+        left: 12px;
+        top: 16px;
+        width: 11px;
+        height: 11px;
+        border: 3px solid var(--accent-strong);
+        border-radius: 50%;
+        background: var(--card);
+        z-index: 1;
+      }
+
+      .mini-flow-step strong,
+      .mini-flow-step span {
+        display: block;
+      }
+
+      .mini-flow-step strong {
+        font-size: 11px;
+      }
+
+      .mini-flow-step span {
+        color: var(--muted-foreground);
+        font-size: 10px;
+      }
+
+      .history-wrap {
+        height: 100%;
+        overflow: auto;
+        background: var(--surface);
+      }
+
+      .history-content {
+        width: min(100%, 1120px);
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      .run-trigger {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+
+      .run-id {
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 12px;
+      }
+
+      .drawer-backdrop,
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        display: none;
+        background: rgb(0 0 0 / 34%);
+      }
+
+      .drawer-backdrop.open,
+      .modal-backdrop.open {
+        display: block;
+      }
+
+      .drawer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: min(480px, 100%);
+        height: 100%;
+        padding: 20px;
+        overflow: auto;
+        background: var(--card);
+        box-shadow: -20px 0 50px rgb(0 0 0 / 14%);
+        animation: drawer-in 220ms ease-out;
+      }
+
+      @keyframes drawer-in {
+        from { transform: translateX(24px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+
+      .drawer-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .event-preview {
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #181818;
+        color: #f3f3f3;
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 12px;
+        line-height: 1.65;
+        overflow-wrap: anywhere;
+      }
+
+      .route-result {
+        margin-top: 14px;
+        padding: 14px;
+        border: 1px solid rgb(18 122 69 / 18%);
+        border-radius: 10px;
+        background: var(--success-bg);
+      }
+
+      .modal {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: min(520px, calc(100% - 32px));
+        padding: 20px;
+        border-radius: 16px;
+        background: var(--card);
+        box-shadow: var(--shadow-md);
+        transform: translate(-50%, -50%);
+        animation: modal-in 180ms ease-out;
+      }
+
+      @keyframes modal-in {
+        from { transform: translate(-50%, -48%) scale(0.98); opacity: 0; }
+        to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      }
+
+      .check-list {
+        display: grid;
+        gap: 10px;
+        margin: 16px 0 20px;
+      }
+
+      .check-row {
+        min-height: 44px;
+        padding: 9px 10px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .check-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--success-bg);
+        color: var(--success);
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .picker-list {
+        max-height: 330px;
+        margin: 12px 0 18px;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+      }
+
+      .picker-row {
+        min-height: 58px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .picker-row:last-child {
+        border-bottom: 0;
+      }
+
+      .picker-row:hover {
+        background: var(--surface);
+      }
+
+      .picker-row.is-added {
+        background: rgb(0 117 222 / 3%);
+      }
+
+      .picker-row[hidden] {
+        display: none;
+      }
+
+      .picker-row strong,
+      .picker-row span {
+        display: block;
+      }
+
+      .picker-row strong {
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 12px;
+      }
+
+      .picker-row span {
+        color: var(--muted-foreground);
+        font-size: 11px;
+      }
+
+      .toast {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 120;
+        min-width: 300px;
+        max-width: calc(100% - 40px);
+        padding: 12px 14px;
+        border: 1px solid rgb(18 122 69 / 18%);
+        border-radius: 11px;
+        display: none;
+        grid-template-columns: 22px minmax(0, 1fr);
+        gap: 9px;
+        background: var(--card);
+        box-shadow: var(--shadow-md);
+      }
+
+      .toast.visible {
+        display: grid;
+        animation: toast-in 200ms ease-out;
+      }
+
+      @keyframes toast-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .mobile-menu {
+        display: none;
+      }
+
+      @media (max-width: 1100px) {
+        .summary-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .builder-grid {
+          grid-template-columns: 188px minmax(520px, 1fr);
+        }
+        .inspector {
+          display: none;
+        }
+        .config-content {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .config-aside {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 900px) {
+        :root { --sidebar-width: 0px; }
+        .app-shell { display: block; }
+        .sidebar { display: none; }
+        .topbar { padding-inline: 14px; }
+        .mobile-menu { display: inline-flex; }
+        .page-inner { padding: 18px 14px; }
+        .page-heading { align-items: stretch; flex-direction: column; }
+        .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .journey { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .workflow-table th:nth-child(3),
+        .workflow-table td:nth-child(3),
+        .workflow-table th:nth-child(4),
+        .workflow-table td:nth-child(4) { display: none; }
+        .editor-toolbar { overflow-x: auto; }
+        .builder-grid { grid-template-columns: minmax(640px, 1fr); }
+        .node-library { display: none; }
+        .segmented { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .mode-cards, .two-col, .config-aside { grid-template-columns: minmax(0, 1fr); }
+        .calendar-day-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .routing-table th:nth-child(3),
+        .routing-table td:nth-child(3) { display: none; }
+        .topbar-actions .button-secondary { display: none; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg class="sr-only" aria-hidden="true">
+      <defs>
+        <symbol id="i-workflow" viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="6" rx="2"/><rect x="15" y="14" width="6" height="6" rx="2"/><path d="M9 7h3a4 4 0 0 1 4 4v3"/></symbol>
+        <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+        <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></symbol>
+        <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l2-7 4 14 2-7h6"/></symbol>
+        <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
+        <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></symbol>
+        <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+        <symbol id="i-fork" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="18" cy="5" r="2"/><circle cx="12" cy="19" r="2"/><path d="M6 7v2a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7M12 12v5"/></symbol>
+        <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="18" cy="7" r="2"/><circle cx="6" cy="19" r="2"/><path d="M6 7v10M8 10c5 0 4-3 8-3"/></symbol>
+        <symbol id="i-merge" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="18" cy="5" r="2"/><circle cx="12" cy="19" r="2"/><path d="M6 7v2a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7M12 12v5"/></symbol>
+        <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></symbol>
+        <symbol id="i-bolt" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 9-12h-7Z"/></symbol>
+        <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 9A7 7 0 0 1 18 6l2 3M18 15a7 7 0 0 1-12 3l-2-3"/></symbol>
+        <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01"/></symbol>
+        <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="18" cy="19" r="2"/><path d="M6 7v2c0 2 2 3 4 3h4c2 0 4 1 4 3v2"/></symbol>
+        <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+        <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></symbol>
+      </defs>
+    </svg>
+
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <div class="brand">
+          <svg class="brand-mark" aria-hidden="true" viewBox="0 0 256 256">
+            <rect fill="#07002e" width="256" height="256" />
+            <g fill="none" stroke="#fff" stroke-width="3.8"><ellipse cx="128" cy="127" rx="31" ry="85" transform="rotate(42 128 127)"/><ellipse cx="131" cy="129" rx="40" ry="78" transform="rotate(58 131 129)"/></g>
+            <path d="M145 122Q148 155 181 158Q148 161 145 194Q142 161 109 158Q142 155 145 122Z" fill="#fff"/>
+          </svg>
+          <span>Celesnity</span>
+        </div>
+
+        <nav class="nav-group">
+          <span class="nav-label">Workspace</span>
+          <button class="nav-item" type="button"><svg class="icon"><use href="#i-chart"/></svg>Overview</button>
+          <button class="nav-item" type="button"><svg class="icon"><use href="#i-database"/></svg>Data catalog</button>
+          <button class="nav-item" type="button"><svg class="icon"><use href="#i-workflow"/></svg>Data pipelines</button>
+          <button class="nav-item active" type="button" data-go="workflows"><svg class="icon"><use href="#i-route"/></svg>Data workflows</button>
+        </nav>
+        <nav class="nav-group">
+          <span class="nav-label">Operate</span>
+          <button class="nav-item" type="button"><svg class="icon"><use href="#i-activity"/></svg>Executions</button>
+          <button class="nav-item" type="button"><svg class="icon"><use href="#i-settings"/></svg>Settings</button>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="profile">
+            <span class="avatar">VN</span>
+            <div><strong>Vinh Nguyen</strong><span>Product workspace</span></div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main" id="main-content">
+        <header class="topbar">
+          <button class="button button-ghost icon-button mobile-menu" type="button" aria-label="Open navigation"><svg class="icon"><use href="#i-menu"/></svg></button>
+          <div class="breadcrumbs" aria-label="Breadcrumb">
+            <span>Data workflows</span>
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron"/></svg>
+            <strong id="breadcrumb-current">All workflows</strong>
+          </div>
+        </header>
+
+        <section class="page active" id="page-workflows" aria-labelledby="workflows-heading">
+          <div class="page-inner">
+            <div class="page-heading">
+              <div>
+                <h1 id="workflows-heading">Data workflows</h1>
+                <p class="muted">Orchestrate pipelines and start them manually, on a schedule, or when source data changes.</p>
+              </div>
+              <button class="button button-primary" type="button" data-open-editor><svg class="icon"><use href="#i-plus"/></svg>New workflow</button>
+            </div>
+
+            <div class="summary-grid" aria-label="Workflow summary">
+              <article class="card summary-card"><div class="summary-label"><span>Published workflows</span><svg class="icon"><use href="#i-workflow"/></svg></div><div class="value">8</div></article>
+              <article class="card summary-card"><div class="summary-label"><span>Runs today</span><svg class="icon"><use href="#i-play"/></svg></div><div class="value">126</div></article>
+              <article class="card summary-card"><div class="summary-label"><span>Watch sources</span><svg class="icon"><use href="#i-activity"/></svg></div><div class="value">3</div></article>
+              <article class="card summary-card"><div class="summary-label"><span>Success rate</span><svg class="icon"><use href="#i-chart"/></svg></div><div class="value">99.2%</div></article>
+            </div>
+
+            <div class="card">
+              <div class="toolbar">
+                <div class="search-wrap"><svg class="icon"><use href="#i-search"/></svg><label class="sr-only" for="workflow-search">Search workflows</label><input class="input" id="workflow-search" placeholder="Search workflows" /></div>
+                <select class="select" aria-label="Filter by status" style="width: 150px"><option>All statuses</option><option>Published</option><option>Draft</option><option>Paused</option></select>
+                <select class="select" aria-label="Filter by trigger" style="width: 160px"><option>All triggers</option><option>Watch source</option><option>Calendar</option><option>Interval</option><option>Manual</option></select>
+              </div>
+              <div style="overflow-x:auto">
+                <table class="workflow-table">
+                  <thead><tr><th>Workflow</th><th>Trigger</th><th>Last run</th><th>Success</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
+                  <tbody>
+                    <tr data-open-editor tabindex="0">
+                      <td><div class="workflow-name"><span class="workflow-icon"><svg class="icon"><use href="#i-route"/></svg></span><div><strong>Order catalog sync</strong><span>3 pipelines · split and merge</span></div></div></td>
+                      <td><span class="badge badge-info"><svg class="icon icon-sm"><use href="#i-activity"/></svg>Watch source · CDC</span></td>
+                      <td>2 minutes ago</td><td>99.7%</td><td><span class="badge badge-success"><span class="status-dot"></span>Published</span></td>
+                      <td><button class="button button-ghost icon-button" type="button" aria-label="More actions"><svg class="icon"><use href="#i-more"/></svg></button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="workflow-name"><span class="workflow-icon"><svg class="icon"><use href="#i-route"/></svg></span><div><strong>Customer 360 refresh</strong><span>2 pipelines · sequential</span></div></div></td>
+                      <td><span class="badge badge-info"><svg class="icon icon-sm"><use href="#i-activity"/></svg>Watch source · CDC</span></td>
+                      <td>8 minutes ago</td><td>98.8%</td><td><span class="badge badge-success"><span class="status-dot"></span>Published</span></td>
+                      <td><button class="button button-ghost icon-button" type="button" aria-label="More actions"><svg class="icon"><use href="#i-more"/></svg></button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="workflow-name"><span class="workflow-icon"><svg class="icon"><use href="#i-route"/></svg></span><div><strong>Daily finance snapshot</strong><span>4 pipelines · parallel</span></div></div></td>
+                      <td><span class="badge badge-neutral"><svg class="icon icon-sm"><use href="#i-calendar"/></svg>Daily · 07:00</span></td>
+                      <td>Today, 07:04</td><td>100%</td><td><span class="badge badge-success"><span class="status-dot"></span>Published</span></td>
+                      <td><button class="button button-ghost icon-button" type="button" aria-label="More actions"><svg class="icon"><use href="#i-more"/></svg></button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="workflow-name"><span class="workflow-icon"><svg class="icon"><use href="#i-route"/></svg></span><div><strong>Machine telemetry rollup</strong><span>2 pipelines · sequential</span></div></div></td>
+                      <td><span class="badge badge-neutral"><svg class="icon icon-sm"><use href="#i-clock"/></svg>Every 10 minutes</span></td>
+                      <td>12 minutes ago</td><td>96.1%</td><td><span class="badge badge-warning"><span class="status-dot"></span>Paused</span></td>
+                      <td><button class="button button-ghost icon-button" type="button" aria-label="More actions"><svg class="icon"><use href="#i-more"/></svg></button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-editor" aria-label="Order catalog sync editor">
+          <div class="editor-shell">
+            <div class="editor-toolbar">
+              <button class="button button-ghost icon-button" type="button" data-go="workflows" aria-label="Back to workflows"><svg class="icon" style="transform:rotate(180deg)"><use href="#i-arrow"/></svg></button>
+              <div class="editor-title"><strong>Order catalog sync</strong><span id="editor-save-state">Draft changes saved</span></div>
+              <span class="editor-state"><span class="status-dot" style="color:var(--success)"></span>Graph valid</span>
+              <div class="tabs" role="tablist" aria-label="Workflow editor sections">
+                <button class="tab active" id="tab-builder" role="tab" aria-selected="true" aria-controls="panel-builder" data-editor-tab="builder">Builder</button>
+                <button class="tab" id="tab-trigger" role="tab" aria-selected="false" aria-controls="panel-trigger" data-editor-tab="trigger">Trigger</button>
+                <button class="tab" id="tab-history" role="tab" aria-selected="false" aria-controls="panel-history" data-editor-tab="history">Run history</button>
+              </div>
+              <div class="editor-actions">
+                <button class="button button-secondary button-sm" type="button" data-open-test><svg class="icon icon-sm"><use href="#i-bolt"/></svg><span id="test-action-label">Test event</span></button>
+                <button class="button button-primary button-sm" type="button" data-open-publish>Publish</button>
+              </div>
+            </div>
+
+            <div class="editor-panel active" id="panel-builder" role="tabpanel" aria-labelledby="tab-builder">
+              <div class="builder-grid">
+                <aside class="node-library" aria-label="Node library">
+                  <div class="panel-eyebrow">Add a step</div>
+                  <div class="library-list">
+                    <button class="library-item" type="button"><span class="library-icon"><svg class="icon"><use href="#i-workflow"/></svg></span><span><strong>Data pipeline</strong><span>Run a published pipeline</span></span></button>
+                    <button class="library-item" type="button"><span class="library-icon"><svg class="icon"><use href="#i-fork"/></svg></span><span><strong>Parallel split</strong><span>Run every branch</span></span></button>
+                    <button class="library-item" type="button"><span class="library-icon"><svg class="icon"><use href="#i-branch"/></svg></span><span><strong>Conditional split</strong><span>Choose matching branches</span></span></button>
+                    <button class="library-item" type="button"><span class="library-icon"><svg class="icon"><use href="#i-merge"/></svg></span><span><strong>Join</strong><span>Wait for selected branches</span></span></button>
+                  </div>
+                  <div class="info-callout" style="margin-top:16px"><svg class="icon"><use href="#i-info"/></svg><div><strong>Keyboard alternative</strong><br />Select a node, then use the inspector to add or reorder steps without dragging.</div></div>
+                </aside>
+
+                <div class="canvas" role="application" aria-label="Data workflow canvas">
+                  <div class="canvas-header"><strong>Workflow map</strong><span>6 nodes</span><span>·</span><span>2 branches</span><span class="badge badge-success">No issues</span></div>
+                  <div class="canvas-stage">
+                    <svg class="connector-layer" viewBox="0 0 940 650" aria-hidden="true">
+                      <defs><marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#9da3aa"/></marker></defs>
+                      <path d="M208 313H250" marker-end="url(#arrowhead)"/>
+                      <path d="M422 313H464" marker-end="url(#arrowhead)"/>
+                      <path d="M636 300C654 300 654 187 674 187" marker-end="url(#arrowhead)"/>
+                      <path d="M636 326C654 326 654 437 674 437" marker-end="url(#arrowhead)"/>
+                      <path d="M760 226V274" marker-end="url(#arrowhead)"/>
+                      <path d="M760 398V352" marker-end="url(#arrowhead)"/>
+                    </svg>
+                    <button class="workflow-node node-trigger" type="button" data-node="trigger"><span class="node-header"><svg class="icon icon-sm"><use id="trigger-node-icon" href="#i-activity"/></svg>Trigger</span><strong id="trigger-node-title">Source data changed</strong><p id="node-capture-summary">PostgreSQL CDC · 10s fixed window</p></button>
+                    <button class="workflow-node node-orders" type="button" data-node="pipeline"><span class="node-header"><svg class="icon icon-sm"><use href="#i-workflow"/></svg>Pipeline job</span><strong>Normalize orders</strong><span class="pipeline-meta"><span class="target-chip">catalog.orders</span><span class="mode-chip">overwrite</span></span></button>
+                    <button class="workflow-node node-split selected" type="button" data-node="split"><span class="node-header"><svg class="icon icon-sm"><use href="#i-branch"/></svg>Conditional split</span><strong>Route by order risk</strong><p>Run all matching branches</p></button>
+                    <button class="workflow-node node-risk" type="button" data-node="risk"><span class="node-header"><svg class="icon icon-sm"><use href="#i-workflow"/></svg>Pipeline job</span><strong>Risk enrichment</strong><span class="pipeline-meta"><span class="target-chip">catalog.order_risk</span><span class="mode-chip">overwrite</span></span></button>
+                    <button class="workflow-node node-standard" type="button" data-node="standard"><span class="node-header"><svg class="icon icon-sm"><use href="#i-workflow"/></svg>Pipeline job</span><strong>Standard enrichment</strong><span class="pipeline-meta"><span class="target-chip">catalog.order_standard</span><span class="mode-chip">overwrite</span></span></button>
+                    <button class="workflow-node node-join" type="button" data-node="join"><span class="node-header"><svg class="icon icon-sm"><use href="#i-merge"/></svg>Join</span><strong>Wait for branches</strong><p>Continue after all selected</p></button>
+                  </div>
+                  <div class="canvas-controls" aria-label="Canvas controls">
+                    <button class="button button-secondary icon-button button-sm" type="button" aria-label="Zoom out">−</button>
+                    <button class="button button-secondary icon-button button-sm" type="button" aria-label="Fit workflow"><svg class="icon icon-sm"><use href="#i-refresh"/></svg></button>
+                    <button class="button button-secondary icon-button button-sm" type="button" aria-label="Zoom in">+</button>
+                  </div>
+                </div>
+
+                <aside class="inspector" aria-label="Selected node settings">
+                  <div class="panel-eyebrow">Selected node</div>
+                  <h2>Route by order risk</h2>
+                  <p class="caption">Conditional split · node-03</p>
+                  <div class="inspector-section">
+                    <div class="field"><label for="split-name">Display name</label><input class="input" id="split-name" value="Route by order risk" /></div>
+                    <div class="field"><label for="branch-mode">Branch behavior</label><select class="select" id="branch-mode"><option>Run all matching branches</option><option>Run first matching branch</option></select><span class="field-help">A fallback branch runs when no condition matches.</span></div>
+                  </div>
+                  <div class="inspector-section">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><h3 style="margin:0">Branches</h3><button class="button button-secondary button-sm" type="button"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Add</button></div>
+                    <div class="branch-row"><strong>High value</strong><span>order_total ≥ 10000</span></div>
+                    <div class="branch-row"><strong>Priority region</strong><span>region IN (APAC, EU)</span></div>
+                    <div class="branch-row"><strong>Fallback</strong><span>Otherwise</span></div>
+                  </div>
+                  <div class="inspector-section"><button class="button button-secondary" type="button" style="width:100%">Move after “Normalize orders”</button></div>
+                </aside>
+              </div>
+            </div>
+
+            <div class="editor-panel" id="panel-trigger" role="tabpanel" aria-labelledby="tab-trigger">
+              <div class="config-wrap">
+                <div class="config-content">
+                  <div class="config-main">
+                    <section class="card section-card">
+                      <div class="section-header"><div><h2>Choose a trigger</h2><p class="caption">A workflow has one trigger. You can still run it manually for testing.</p></div><span class="badge badge-success"><span class="status-dot"></span>Enabled</span></div>
+                      <div class="segmented" role="tablist" aria-label="Trigger type">
+                        <button class="segment" type="button" data-trigger="manual"><svg class="icon icon-sm"><use href="#i-play"/></svg>Manual</button>
+                        <button class="segment" type="button" data-trigger="calendar"><svg class="icon icon-sm"><use href="#i-calendar"/></svg>Calendar</button>
+                        <button class="segment" type="button" data-trigger="interval"><svg class="icon icon-sm"><use href="#i-clock"/></svg>Interval</button>
+                        <button class="segment active" type="button" data-trigger="watch"><svg class="icon icon-sm"><use href="#i-activity"/></svg>Watch source</button>
+                      </div>
+                    </section>
+
+                    <section class="card section-card trigger-config" data-trigger-panel="manual"><h2>Manual trigger</h2><p class="muted">This workflow runs only when a user or API explicitly starts it.</p></section>
+                    <section class="card section-card trigger-config" data-trigger-panel="calendar">
+                      <div class="section-header"><div><h2>Calendar schedule</h2><p class="caption">Run this workflow at a specific local time on selected days.</p></div><span class="badge badge-neutral">Weekly</span></div>
+                      <div class="calendar-fields">
+                        <div class="two-col">
+                          <div class="field"><label for="calendar-time">Time</label><input class="input" id="calendar-time" type="time" value="07:00" /></div>
+                          <div class="field"><label for="calendar-timezone">Timezone</label><select class="select" id="calendar-timezone"><option>Asia/Ho_Chi_Minh</option><option>UTC</option><option>America/New_York</option><option>Europe/London</option></select></div>
+                        </div>
+                        <fieldset>
+                          <div class="calendar-days-header"><legend>Days</legend><div class="calendar-days-actions"><button class="button button-ghost button-sm" type="button" data-calendar-days="all">Select all</button><button class="button button-ghost button-sm" type="button" data-calendar-days="clear">Clear</button></div></div>
+                          <div class="calendar-day-grid">
+                            <label class="calendar-day-option"><input type="checkbox" checked data-calendar-day="Mon" />Mon</label>
+                            <label class="calendar-day-option"><input type="checkbox" checked data-calendar-day="Tue" />Tue</label>
+                            <label class="calendar-day-option"><input type="checkbox" checked data-calendar-day="Wed" />Wed</label>
+                            <label class="calendar-day-option"><input type="checkbox" checked data-calendar-day="Thu" />Thu</label>
+                            <label class="calendar-day-option"><input type="checkbox" checked data-calendar-day="Fri" />Fri</label>
+                            <label class="calendar-day-option"><input type="checkbox" checked data-calendar-day="Sat" />Sat</label>
+                            <label class="calendar-day-option"><input type="checkbox" checked data-calendar-day="Sun" />Sun</label>
+                          </div>
+                        </fieldset>
+                        <div class="calendar-summary" id="calendar-summary" role="status" aria-live="polite"><strong>Every day</strong> at 07:00 · Asia/Ho_Chi_Minh</div>
+                      </div>
+                    </section>
+                    <section class="card section-card trigger-config" data-trigger-panel="interval"><h2>Interval schedule</h2><div class="two-col"><div class="field"><label for="interval-value">Run every</label><input class="input" id="interval-value" type="number" value="10" min="10" /></div><div class="field"><label for="interval-unit">Unit</label><select class="select" id="interval-unit"><option>Minutes</option><option>Seconds</option><option>Hours</option></select></div></div><div class="info-callout"><svg class="icon"><use href="#i-info"/></svg><div>The minimum interval is 10 seconds. New runs are skipped while the previous run is still active.</div></div></section>
+
+                    <section class="card section-card trigger-config active" data-trigger-panel="watch">
+                      <div class="section-header"><div><h2>Watch source</h2><p class="caption">Start workflows from customer database changes without storing source rows.</p></div><span class="badge badge-info">PostgreSQL</span></div>
+                      <div class="field"><label for="source-service">Data source</label><select class="select" id="source-service"><option>Acme production PostgreSQL</option><option>Acme reporting MySQL</option></select><span class="field-help">Verified connection · last checked 3 minutes ago</span></div>
+
+                      <div class="field"><label>Capture mode</label><div class="mode-cards">
+                        <button class="mode-card" type="button" data-mode="polling"><div class="mode-card-top"><strong>Polling</strong><span class="radio-dot"></span></div><span>Uses SELECT access and cursor columns. Detects inserts and updates.</span></button>
+                        <button class="mode-card active" type="button" data-mode="cdc"><div class="mode-card-top"><strong>CDC</strong><span class="radio-dot"></span></div><span>Uses WAL or binlog. Detects inserts, updates, and deletes near realtime.</span></button>
+                      </div></div>
+
+                      <div class="two-col">
+                        <div class="field"><label for="capture-window" id="capture-window-label">Trigger at most once every</label><select class="select" id="capture-window"><option>10 seconds</option><option>30 seconds</option><option>1 minute</option><option>5 minutes</option></select><span class="field-help" id="capture-window-help">CDC row events are grouped into one workflow trigger per fixed window, so continuous changes cannot block a run.</span></div>
+                        <div class="field"><label for="concurrency">When already running</label><select class="select" id="concurrency"><option>Merge into next run</option><option>Queue another run</option><option>Ignore new changes</option></select></div>
+                      </div>
+
+                      <fieldset><legend>Change types</legend><div class="checks"><label class="check-pill"><input type="checkbox" checked data-change-type="insert" /> Insert</label><label class="check-pill"><input type="checkbox" checked data-change-type="update" /> Update</label><label class="check-pill"><input type="checkbox" checked data-change-type="delete" /> Delete</label></div><p class="field-help">Delete only triggers the workflow. The pipeline overwrite refreshes the Parquet target.</p></fieldset>
+                    </section>
+
+                    <section class="card section-card trigger-config active" data-trigger-panel="watch">
+                      <div class="section-header"><div><h2>Tables that trigger this workflow</h2><p class="caption">Add source tables from the datasource metadata.</p></div><button class="button button-secondary button-sm" id="open-table-picker" type="button"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Add tables</button></div>
+                      <div class="info-callout" style="margin-bottom:12px"><svg class="icon"><use href="#i-route"/></svg><div>Each table listed below triggers this workflow. The same table can also belong to other workflows; row values are not stored or evaluated.</div></div>
+                      <div class="subscription-toolbar">
+                        <div class="search-wrap"><svg class="icon"><use href="#i-search"/></svg><label class="sr-only" for="subscription-search">Filter added tables</label><input class="input" id="subscription-search" placeholder="Filter added tables" /></div>
+                        <span class="badge badge-info" id="subscription-count">2 tables</span>
+                      </div>
+                      <div style="overflow-x:auto">
+                        <table class="routing-table">
+                          <thead><tr><th>Source table</th><th>Used by</th><th>Events</th><th><span class="sr-only">Actions</span></th></tr></thead>
+                          <tbody id="selected-table-body">
+                            <tr data-selected-table="orders"><td><span class="table-token"><svg class="icon icon-sm"><use href="#i-database"/></svg>public.orders</span></td><td><span class="caption">Also used by Customer 360 refresh</span></td><td><span class="badge badge-info">I · U · D</span></td><td><button class="button button-ghost button-sm remove-table-button" type="button" data-remove-table="orders">Remove</button></td></tr>
+                            <tr data-selected-table="order_items"><td><span class="table-token"><svg class="icon icon-sm"><use href="#i-database"/></svg>public.order_items</span></td><td><span class="caption">Only this workflow</span></td><td><span class="badge badge-info">I · U · D</span></td><td><button class="button button-ghost button-sm remove-table-button" type="button" data-remove-table="order_items">Remove</button></td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="subscription-summary"><span id="subscription-summary-text">Events from added tables are grouped into at most one trigger every 10 seconds.</span><strong id="subscription-summary-count">2 tables</strong></div>
+                    </section>
+                  </div>
+
+                  <aside class="config-aside trigger-config active" data-trigger-panel="watch">
+                    <section class="card section-card">
+                      <div class="cdc-illustration">
+                        <img src="assets/data-workflow-local-cdc.png" alt="Abstract local CDC flow from a database through split and merge workflow nodes" width="1536" height="1024" />
+                        <span class="cdc-illustration-badge"><span class="status-dot"></span>Local data plane</span>
+                      </div>
+                      <div class="section-header"><div><h2>Local CDC runtime</h2><p class="caption">Docker Compose · no GCP services</p></div><span class="badge badge-success"><span class="status-dot"></span>Healthy</span></div>
+                      <div class="runtime-list">
+                        <div class="runtime-item"><span class="runtime-icon"><svg class="icon"><use href="#i-server"/></svg></span><div><strong>Kafka</strong><span>localhost:9092</span></div><span class="health-line"><span class="status-dot"></span>Up</span></div>
+                        <div class="runtime-item"><span class="runtime-icon"><svg class="icon"><use href="#i-activity"/></svg></span><div><strong>Kafka Connect + Debezium</strong><span>localhost:8083</span></div><span class="health-line"><span class="status-dot"></span>Up</span></div>
+                        <div class="runtime-item"><span class="runtime-icon"><svg class="icon"><use href="#i-route"/></svg></span><div><strong>CDC consumer</strong><span>Metadata events only</span></div><span class="health-line"><span class="status-dot"></span>Up</span></div>
+                      </div>
+                    </section>
+
+                    <section class="card section-card">
+                      <h2>Event flow</h2><p class="caption">One source change fans out to every workflow subscribed to that table.</p>
+                      <div class="mini-flow">
+                        <div class="mini-flow-step"><span class="mini-flow-dot"></span><strong>Database WAL</strong><span>Insert, update, or delete</span></div>
+                        <div class="mini-flow-step"><span class="mini-flow-dot"></span><strong>Debezium</strong><span>Convert to metadata event</span></div>
+                        <div class="mini-flow-step"><span class="mini-flow-dot"></span><strong>Route + group</strong><span id="capture-window-flow">Table match · fixed 10-second window</span></div>
+                        <div class="mini-flow-step"><span class="mini-flow-dot"></span><strong>Workflow run</strong><span>Use published graph version</span></div>
+                      </div>
+                    </section>
+
+                    <section class="card section-card">
+                      <h2>Ready to publish?</h2><p class="caption">Validate permissions and routing against the selected source.</p>
+                      <button class="button button-secondary" id="validate-source" type="button" style="width:100%"><svg class="icon"><use href="#i-check"/></svg>Validate source</button>
+                      <div class="validation-result" id="validation-result" role="status" aria-live="polite"><svg class="icon"><use href="#i-check"/></svg><div><strong>Source is ready</strong><br />Logical replication, publication, primary keys, and connector access are valid.</div></div>
+                    </section>
+                  </aside>
+                </div>
+              </div>
+            </div>
+
+            <div class="editor-panel" id="panel-history" role="tabpanel" aria-labelledby="tab-history">
+              <div class="history-wrap"><div class="history-content">
+                <div class="page-heading"><div><h1>Run history</h1><p class="muted">Workflow runs created by routed source events and manual tests.</p></div><button class="button button-secondary" type="button"><svg class="icon"><use href="#i-refresh"/></svg>Refresh</button></div>
+                <div class="card" style="overflow-x:auto"><table class="workflow-table"><thead><tr><th>Run</th><th>Triggered by</th><th>Started</th><th>Duration</th><th>Status</th></tr></thead><tbody>
+                  <tr><td><span class="run-id">run_01K5W8N4</span></td><td><span class="run-trigger"><svg class="icon icon-sm"><use href="#i-activity"/></svg>public.orders · UPDATE</span></td><td>2 minutes ago</td><td>34s</td><td><span class="badge badge-success"><span class="status-dot"></span>Succeeded</span></td></tr>
+                  <tr><td><span class="run-id">run_01K5W7JQ</span></td><td><span class="run-trigger"><svg class="icon icon-sm"><use href="#i-activity"/></svg>public.orders · DELETE</span></td><td>18 minutes ago</td><td>38s</td><td><span class="badge badge-success"><span class="status-dot"></span>Succeeded</span></td></tr>
+                  <tr><td><span class="run-id">run_01K5W62A</span></td><td><span class="run-trigger"><svg class="icon icon-sm"><use href="#i-play"/></svg>Manual test</span></td><td>42 minutes ago</td><td>31s</td><td><span class="badge badge-success"><span class="status-dot"></span>Succeeded</span></td></tr>
+                  <tr><td><span class="run-id">run_01K5W4TT</span></td><td><span class="run-trigger"><svg class="icon icon-sm"><use href="#i-activity"/></svg>public.orders · INSERT</span></td><td>1 hour ago</td><td>7s</td><td><span class="badge badge-warning"><span class="status-dot"></span>Retrying pipeline</span></td></tr>
+                </tbody></table></div>
+              </div></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="drawer-backdrop" id="test-drawer" role="presentation">
+      <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="test-title">
+        <div class="drawer-header"><div><h2 id="test-title">Test source event</h2><p class="caption" id="test-caption">Preview routing without reading or storing row values.</p></div><button class="button button-ghost icon-button" type="button" data-close-test aria-label="Close test run"><svg class="icon"><use href="#i-x"/></svg></button></div>
+        <div id="test-source-controls">
+          <div class="field"><label for="test-table">Changed table</label><select class="select" id="test-table"><option value="orders">public.orders</option><option value="order_items">public.order_items</option><option value="customers">public.customers</option><option value="audit">public.audit_log</option></select></div>
+          <div class="field"><label for="test-operation">Operation</label><select class="select" id="test-operation"><option>UPDATE</option><option>INSERT</option><option>DELETE</option></select></div>
+          <div class="event-preview" id="event-preview">{
+  "source": "acme-production-postgres",
+  "table": "public.orders",
+  "operation": "UPDATE",
+  "position": "lsn:0/16B6C50",
+  "capturedAt": "2026-09-18T10:24:12Z"
+}</div>
+        </div>
+        <div class="info-callout" id="test-trigger-summary" hidden><svg class="icon"><use href="#i-info"/></svg><div></div></div>
+        <button class="button button-primary" id="simulate-event" type="button" style="width:100%;margin-top:14px"><svg class="icon"><use href="#i-bolt"/></svg><span id="simulate-action-label">Simulate routing</span></button>
+        <div class="route-result" id="route-result" role="status" aria-live="polite"><strong>Matched workflow: Order catalog sync</strong><p class="caption" style="margin:4px 0 0">Events are grouped so this workflow starts at most once every 10 seconds.</p></div>
+      </aside>
+    </div>
+
+    <div class="modal-backdrop" id="table-picker-modal" role="presentation">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="table-picker-title">
+        <div class="drawer-header"><div><h2 id="table-picker-title">Add tables from datasource</h2><p class="caption">Available tables come from the verified metadata of Acme production PostgreSQL.</p></div><button class="button button-ghost icon-button" type="button" data-close-table-picker aria-label="Close table browser"><svg class="icon"><use href="#i-x"/></svg></button></div>
+        <div class="search-wrap"><svg class="icon"><use href="#i-search"/></svg><label class="sr-only" for="table-picker-search">Search available tables</label><input class="input" id="table-picker-search" placeholder="Search schema or table" /></div>
+        <div class="picker-list" id="picker-list">
+          <div class="picker-row is-added" data-picker-row="orders"><span><strong>public.orders</strong><span>Also used by Customer 360 refresh</span></span><button class="button button-secondary button-sm" type="button" data-add-table="orders" disabled>Added</button></div>
+          <div class="picker-row is-added" data-picker-row="order_items"><span><strong>public.order_items</strong><span>Only used by this workflow</span></span><button class="button button-secondary button-sm" type="button" data-add-table="order_items" disabled>Added</button></div>
+          <div class="picker-row" data-picker-row="customers"><span><strong>public.customers</strong><span>Used by Customer 360 refresh</span></span><button class="button button-secondary button-sm" type="button" data-add-table="customers">Add</button></div>
+          <div class="picker-row" data-picker-row="audit"><span><strong>public.audit_log</strong><span>Not used by any workflow</span></span><button class="button button-secondary button-sm" type="button" data-add-table="audit">Add</button></div>
+        </div>
+        <div class="modal-actions"><button class="button button-primary" type="button" data-close-table-picker>Done</button></div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="publish-modal" role="presentation">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="publish-title">
+        <div class="drawer-header"><div><h2 id="publish-title">Publish workflow version 4?</h2><p class="caption" id="publish-description">New source events will use this version after publication.</p></div><button class="button button-ghost icon-button" type="button" data-close-publish aria-label="Close publish dialog"><svg class="icon"><use href="#i-x"/></svg></button></div>
+        <div class="check-list">
+          <div class="check-row"><span class="check-icon"><svg class="icon icon-sm"><use href="#i-check"/></svg></span><div><strong>Workflow graph</strong><div class="caption">6 nodes · split and merge paths valid</div></div><span class="badge badge-success">Ready</span></div>
+          <div class="check-row"><span class="check-icon"><svg class="icon icon-sm"><use href="#i-check"/></svg></span><div><strong id="publish-trigger-name">Watch source</strong><div class="caption" id="publish-trigger-summary">2 source tables · CDC enabled</div></div><span class="badge badge-success" id="publish-trigger-status">Ready</span></div>
+          <div class="check-row"><span class="check-icon"><svg class="icon icon-sm"><use href="#i-check"/></svg></span><div><strong id="publish-dependency-name">Local runtime</strong><div class="caption" id="publish-dependency-summary">Kafka and Debezium healthy</div></div><span class="badge badge-success" id="publish-dependency-status">Ready</span></div>
+        </div>
+        <div class="modal-actions"><button class="button button-secondary" type="button" data-close-publish>Cancel</button><button class="button button-primary" id="confirm-publish" type="button">Publish version 4</button></div>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"><span class="check-icon"><svg class="icon icon-sm"><use href="#i-check"/></svg></span><div><strong>Workflow published</strong><div class="caption" id="toast-description">Version 4 is now watching routed source events.</div></div></div>
+
+    <script>
+      const pages = {
+        workflows: document.getElementById('page-workflows'),
+        editor: document.getElementById('page-editor'),
+      };
+      const breadcrumb = document.getElementById('breadcrumb-current');
+
+      function showPage(name) {
+        Object.entries(pages).forEach(([key, page]) => page.classList.toggle('active', key === name));
+        breadcrumb.textContent = name === 'editor' ? 'Order catalog sync' : 'All workflows';
+        if (name === 'editor') showEditorTab('builder');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      document.querySelectorAll('[data-open-editor]').forEach((el) => {
+        el.addEventListener('click', () => showPage('editor'));
+        el.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showPage('editor'); }
+        });
+      });
+      document.querySelectorAll('[data-go="workflows"]').forEach((el) => el.addEventListener('click', () => showPage('workflows')));
+
+      function showEditorTab(name) {
+        document.querySelectorAll('[data-editor-tab]').forEach((tab) => {
+          const active = tab.dataset.editorTab === name;
+          tab.classList.toggle('active', active);
+          tab.setAttribute('aria-selected', String(active));
+        });
+        document.querySelectorAll('.editor-panel').forEach((panel) => panel.classList.remove('active'));
+        document.getElementById(`panel-${name}`).classList.add('active');
+      }
+      document.querySelectorAll('[data-editor-tab]').forEach((tab) => tab.addEventListener('click', () => showEditorTab(tab.dataset.editorTab)));
+
+      document.querySelectorAll('[data-node]').forEach((node) => node.addEventListener('click', () => {
+        document.querySelectorAll('[data-node]').forEach((candidate) => candidate.classList.remove('selected'));
+        node.classList.add('selected');
+      }));
+
+      document.querySelectorAll('[data-trigger]').forEach((button) => button.addEventListener('click', () => {
+        const value = button.dataset.trigger;
+        document.querySelectorAll('[data-trigger]').forEach((candidate) => candidate.classList.toggle('active', candidate === button));
+        document.querySelectorAll('[data-trigger-panel]').forEach((panel) => panel.classList.toggle('active', panel.dataset.triggerPanel === value));
+        renderTriggerState();
+      }));
+
+      const calendarDayInputs = Array.from(document.querySelectorAll('[data-calendar-day]'));
+      const calendarTime = document.getElementById('calendar-time');
+      const calendarTimezone = document.getElementById('calendar-timezone');
+      const calendarSummary = document.getElementById('calendar-summary');
+      const intervalValue = document.getElementById('interval-value');
+      const intervalUnit = document.getElementById('interval-unit');
+      function updateCalendarSummary() {
+        const selectedDays = calendarDayInputs.filter((input) => input.checked).map((input) => input.dataset.calendarDay);
+        if (selectedDays.length === 0) {
+          calendarSummary.classList.add('invalid');
+          calendarSummary.innerHTML = '<strong>Select at least one day</strong> before publishing this workflow.';
+          renderTriggerState();
+          return;
+        }
+        calendarSummary.classList.remove('invalid');
+        const days = selectedDays.length === 7 ? 'Every day' : selectedDays.join(', ');
+        calendarSummary.innerHTML = `<strong>${days}</strong> at ${calendarTime.value || '—'} · ${calendarTimezone.value}`;
+        renderTriggerState();
+      }
+      calendarDayInputs.forEach((input) => input.addEventListener('change', updateCalendarSummary));
+      calendarTime.addEventListener('input', updateCalendarSummary);
+      calendarTimezone.addEventListener('change', updateCalendarSummary);
+      document.querySelectorAll('[data-calendar-days]').forEach((button) => button.addEventListener('click', () => {
+        const checked = button.dataset.calendarDays === 'all';
+        calendarDayInputs.forEach((input) => { input.checked = checked; });
+        updateCalendarSummary();
+      }));
+      intervalValue.addEventListener('input', renderTriggerState);
+      intervalUnit.addEventListener('change', renderTriggerState);
+
+      const captureWindow = document.getElementById('capture-window');
+      function updateCaptureWindowCopy() {
+        const interval = captureWindow.value.toLowerCase();
+        const cdc = document.querySelector('[data-mode].active').dataset.mode === 'cdc';
+        document.getElementById('subscription-summary-text').textContent = cdc
+          ? `Events from added tables are grouped into at most one trigger every ${interval}.`
+          : `Added tables are checked every ${interval}; the workflow runs only when a change is found.`;
+        document.getElementById('capture-window-flow').textContent = cdc
+          ? `Table match · fixed ${interval} window`
+          : `Metadata check · every ${interval}`;
+        renderTriggerState();
+      }
+
+      document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => {
+        document.querySelectorAll('[data-mode]').forEach((candidate) => candidate.classList.toggle('active', candidate === button));
+        const cdc = button.dataset.mode === 'cdc';
+        const deleteInput = document.querySelector('[data-change-type="delete"]');
+        deleteInput.disabled = !cdc;
+        deleteInput.checked = cdc;
+        document.getElementById('capture-window-label').textContent = cdc ? 'Trigger at most once every' : 'Check source every';
+        document.getElementById('capture-window-help').textContent = cdc
+          ? 'CDC row events are grouped into one workflow trigger per fixed window, so continuous changes cannot block a run.'
+          : 'Run one metadata check at this interval and trigger only when a change is found.';
+        updateCaptureWindowCopy();
+        renderSelectedTables();
+        updateSubscriptionSummary();
+      }));
+      captureWindow.addEventListener('change', updateCaptureWindowCopy);
+
+      const validation = document.getElementById('validation-result');
+      document.getElementById('validate-source').addEventListener('click', (event) => {
+        const button = event.currentTarget;
+        button.disabled = true;
+        button.textContent = 'Validating local CDC runtime…';
+        setTimeout(() => {
+          button.disabled = false;
+          button.innerHTML = '<svg class="icon"><use href="#i-check"/></svg>Validate again';
+          validation.classList.add('visible');
+        }, 700);
+      });
+
+      const testDrawer = document.getElementById('test-drawer');
+      const testTable = document.getElementById('test-table');
+      const testOperation = document.getElementById('test-operation');
+      const preview = document.getElementById('event-preview');
+      const routeResult = document.getElementById('route-result');
+      const testSourceControls = document.getElementById('test-source-controls');
+      const testTriggerSummary = document.getElementById('test-trigger-summary');
+      function updateEventPreview() {
+        const names = { orders: 'public.orders', order_items: 'public.order_items', customers: 'public.customers', audit: 'public.audit_log' };
+        preview.textContent = JSON.stringify({ source: 'acme-production-postgres', table: names[testTable.value], operation: testOperation.value, position: 'lsn:0/16B6C50', capturedAt: '2026-09-18T10:24:12Z' }, null, 2);
+        routeResult.style.display = 'none';
+      }
+      function openTest() {
+        const trigger = getTriggerPresentation();
+        const watchesSource = trigger.type === 'watch';
+        document.getElementById('test-title').textContent = trigger.testTitle;
+        document.getElementById('test-caption').textContent = trigger.testCaption;
+        document.getElementById('simulate-action-label').textContent = watchesSource ? 'Simulate routing' : 'Start test run';
+        testSourceControls.hidden = !watchesSource;
+        testTriggerSummary.hidden = watchesSource;
+        testTriggerSummary.querySelector('div').innerHTML = `<strong>${trigger.triggerName}</strong><br />${trigger.triggerSummary}`;
+        routeResult.style.display = 'none';
+        testDrawer.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => (watchesSource ? testTable : document.getElementById('simulate-event')).focus(), 20);
+      }
+      function closeTest() { testDrawer.classList.remove('open'); document.body.style.overflow = ''; }
+      document.querySelectorAll('[data-open-test]').forEach((button) => button.addEventListener('click', openTest));
+      document.querySelectorAll('[data-close-test]').forEach((button) => button.addEventListener('click', closeTest));
+      testTable.addEventListener('change', updateEventPreview);
+      testOperation.addEventListener('change', updateEventPreview);
+      document.getElementById('simulate-event').addEventListener('click', () => {
+        const trigger = getTriggerPresentation();
+        if (trigger.type !== 'watch') {
+          routeResult.innerHTML = `<strong>Test run ready</strong><p class="caption" style="margin:4px 0 0">This test uses ${trigger.triggerSummary} without changing the published workflow.</p>`;
+          routeResult.style.display = 'block';
+          return;
+        }
+        const tableName = tableCatalog[testTable.value].name;
+        const matched = selectedTables.has(testTable.value);
+        const mode = document.querySelector('[data-mode].active').dataset.mode;
+        const detail = matched
+          ? mode === 'cdc'
+            ? `${tableName} is added to this workflow. Row events are grouped so the workflow starts at most once every ${captureWindow.value.toLowerCase()}.`
+            : `${tableName} is added to this workflow and is checked every ${captureWindow.value.toLowerCase()}.`
+          : `${tableName} is not added to Order catalog sync. It may still trigger another workflow.`;
+        routeResult.innerHTML = `<strong>${matched ? 'Matched this workflow: Order catalog sync' : 'This workflow will not run'}</strong><p class="caption" style="margin:4px 0 0">${detail}</p>`;
+        routeResult.style.display = 'block';
+      });
+
+      const publishModal = document.getElementById('publish-modal');
+      function openPublish() {
+        renderTriggerState();
+        publishModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        const confirmButton = document.getElementById('confirm-publish');
+        setTimeout(() => (confirmButton.disabled ? publishModal.querySelector('[data-close-publish]') : confirmButton).focus(), 20);
+      }
+      function closePublish() { publishModal.classList.remove('open'); document.body.style.overflow = ''; }
+      document.querySelectorAll('[data-open-publish]').forEach((button) => button.addEventListener('click', openPublish));
+      document.querySelectorAll('[data-close-publish]').forEach((button) => button.addEventListener('click', closePublish));
+      document.getElementById('confirm-publish').addEventListener('click', () => {
+        closePublish();
+        document.getElementById('editor-save-state').textContent = 'Published · version 4';
+        const toast = document.getElementById('toast');
+        toast.classList.add('visible');
+        setTimeout(() => toast.classList.remove('visible'), 4000);
+      });
+
+      const tablePickerModal = document.getElementById('table-picker-modal');
+      const tablePickerSearch = document.getElementById('table-picker-search');
+      const subscriptionSearch = document.getElementById('subscription-search');
+      const selectedTableBody = document.getElementById('selected-table-body');
+      const pickerList = document.getElementById('picker-list');
+      const tableCatalog = {
+        orders: { name: 'public.orders', usage: 'Also used by Customer 360 refresh' },
+        order_items: { name: 'public.order_items', usage: 'Only this workflow' },
+        customers: { name: 'public.customers', usage: 'Used by Customer 360 refresh' },
+        audit: { name: 'public.audit_log', usage: 'Not used by any other workflow' },
+      };
+      const selectedTables = new Set(['orders', 'order_items']);
+
+      function getActiveTriggerType() {
+        return document.querySelector('[data-trigger].active')?.dataset.trigger || 'watch';
+      }
+
+      function getCalendarSchedule() {
+        const selectedDays = calendarDayInputs.filter((input) => input.checked).map((input) => input.dataset.calendarDay);
+        const days = selectedDays.length === 7 ? 'Every day' : selectedDays.join(', ');
+        return {
+          valid: selectedDays.length > 0 && Boolean(calendarTime.value),
+          summary: `${days || 'No days selected'} · ${calendarTime.value || 'No time'} · ${calendarTimezone.value}`,
+        };
+      }
+
+      function getTriggerPresentation() {
+        const type = getActiveTriggerType();
+        if (type === 'manual') {
+          return {
+            type,
+            icon: '#i-play',
+            nodeTitle: 'Manual start',
+            nodeSummary: 'Run from the UI or API',
+            publishDescription: 'Manual runs will use this workflow version after publication.',
+            triggerName: 'Manual trigger',
+            triggerSummary: 'No automatic runs',
+            triggerReady: true,
+            dependencyName: 'Run access',
+            dependencySummary: 'UI and API execution enabled',
+            testAction: 'Test run',
+            testTitle: 'Test manual run',
+            testCaption: 'Start a draft test without publishing this workflow.',
+            toastDescription: 'Version 4 is ready for manual runs.',
+          };
+        }
+        if (type === 'calendar') {
+          const schedule = getCalendarSchedule();
+          return {
+            type,
+            icon: '#i-calendar',
+            nodeTitle: 'Calendar schedule',
+            nodeSummary: schedule.summary,
+            publishDescription: 'The new calendar schedule will use this workflow version after publication.',
+            triggerName: 'Calendar schedule',
+            triggerSummary: schedule.summary,
+            triggerReady: schedule.valid,
+            dependencyName: 'Schedule configuration',
+            dependencySummary: schedule.valid ? 'Days, time, and timezone are valid' : 'Select at least one day and a time',
+            testAction: 'Test schedule',
+            testTitle: 'Test calendar trigger',
+            testCaption: 'Preview one scheduled run without waiting for its calendar time.',
+            toastDescription: `Version 4 is scheduled for ${schedule.summary}.`,
+          };
+        }
+        if (type === 'interval') {
+          const value = intervalValue.value || '—';
+          const unit = intervalUnit.value.toLowerCase();
+          const summary = `Every ${value} ${unit}`;
+          return {
+            type,
+            icon: '#i-clock',
+            nodeTitle: 'Interval schedule',
+            nodeSummary: summary,
+            publishDescription: 'The new interval schedule will use this workflow version after publication.',
+            triggerName: 'Interval schedule',
+            triggerSummary: summary,
+            triggerReady: Number(intervalValue.value) > 0,
+            dependencyName: 'Run policy',
+            dependencySummary: 'Skip while the previous run is active',
+            testAction: 'Test interval',
+            testTitle: 'Test interval trigger',
+            testCaption: 'Preview one interval run without waiting for the next interval.',
+            toastDescription: `Version 4 will run ${summary.toLowerCase()}.`,
+          };
+        }
+
+        const cdc = document.querySelector('[data-mode].active').dataset.mode === 'cdc';
+        const windowValue = captureWindow.value.toLowerCase();
+        const sourceSummary = cdc
+          ? `PostgreSQL CDC · ${windowValue} fixed window`
+          : `PostgreSQL polling · every ${windowValue}`;
+        const count = selectedTables.size;
+        return {
+          type: 'watch',
+          icon: '#i-activity',
+          nodeTitle: 'Source data changed',
+          nodeSummary: sourceSummary,
+          publishDescription: 'New source changes will use this workflow version after publication.',
+          triggerName: 'Watch source',
+          triggerSummary: `${count} source ${count === 1 ? 'table' : 'tables'} · ${cdc ? 'CDC' : 'Polling'} enabled`,
+          triggerReady: count > 0,
+          dependencyName: cdc ? 'Local CDC runtime' : 'Source connection',
+          dependencySummary: cdc ? 'Kafka and Debezium healthy' : 'SELECT access and cursor columns valid',
+          testAction: 'Test event',
+          testTitle: 'Test source event',
+          testCaption: 'Preview routing without reading or storing row values.',
+          toastDescription: 'Version 4 is now watching routed source changes.',
+        };
+      }
+
+      function renderTriggerState() {
+        const trigger = getTriggerPresentation();
+        document.getElementById('trigger-node-icon').setAttribute('href', trigger.icon);
+        document.getElementById('trigger-node-title').textContent = trigger.nodeTitle;
+        document.getElementById('node-capture-summary').textContent = trigger.nodeSummary;
+        document.getElementById('test-action-label').textContent = trigger.testAction;
+        document.getElementById('publish-description').textContent = trigger.publishDescription;
+        document.getElementById('publish-trigger-name').textContent = trigger.triggerName;
+        document.getElementById('publish-trigger-summary').textContent = trigger.triggerSummary;
+        document.getElementById('publish-dependency-name').textContent = trigger.dependencyName;
+        document.getElementById('publish-dependency-summary').textContent = trigger.dependencySummary;
+        document.getElementById('toast-description').textContent = trigger.toastDescription;
+        const triggerStatus = document.getElementById('publish-trigger-status');
+        triggerStatus.textContent = trigger.triggerReady ? 'Ready' : 'Needs input';
+        triggerStatus.className = trigger.triggerReady ? 'badge badge-success' : 'badge badge-warning';
+        const dependencyStatus = document.getElementById('publish-dependency-status');
+        dependencyStatus.textContent = trigger.triggerReady ? 'Ready' : 'Needs input';
+        dependencyStatus.className = trigger.triggerReady ? 'badge badge-success' : 'badge badge-warning';
+        document.getElementById('confirm-publish').disabled = !trigger.triggerReady;
+      }
+
+      function renderSelectedTables() {
+        const cdc = document.querySelector('[data-mode].active').dataset.mode === 'cdc';
+        if (selectedTables.size === 0) {
+          selectedTableBody.innerHTML = '<tr><td class="empty-row" colspan="4">No source tables added. Add a table from datasource metadata to enable this trigger.</td></tr>';
+          return;
+        }
+        selectedTableBody.innerHTML = Array.from(selectedTables).map((id) => {
+          const table = tableCatalog[id];
+          return `<tr data-selected-table="${id}"><td><span class="table-token"><svg class="icon icon-sm"><use href="#i-database"/></svg>${table.name}</span></td><td><span class="caption">${table.usage}</span></td><td><span class="badge badge-info">${cdc ? 'I · U · D' : 'I · U'}</span></td><td><button class="button button-ghost button-sm remove-table-button" type="button" data-remove-table="${id}" aria-label="Remove ${table.name}">Remove</button></td></tr>`;
+        }).join('');
+      }
+
+      function renderPickerTables() {
+        const query = tablePickerSearch.value.trim().toLowerCase();
+        pickerList.innerHTML = Object.entries(tableCatalog).map(([id, table]) => {
+          const added = selectedTables.has(id);
+          const hidden = !`${table.name} ${table.usage}`.toLowerCase().includes(query);
+          return `<div class="picker-row${added ? ' is-added' : ''}" data-picker-row="${id}"${hidden ? ' hidden' : ''}><span><strong>${table.name}</strong><span>${table.usage}</span></span><button class="button button-secondary button-sm" type="button" data-add-table="${id}"${added ? ' disabled' : ''}>${added ? 'Added' : 'Add'}</button></div>`;
+        }).join('');
+      }
+
+      function updateSubscriptionSummary() {
+        const count = selectedTables.size;
+        document.getElementById('subscription-count').textContent = `${count} ${count === 1 ? 'table' : 'tables'}`;
+        document.getElementById('subscription-summary-count').textContent = `${count} ${count === 1 ? 'table' : 'tables'}`;
+        renderTriggerState();
+      }
+
+      function markRoutingSaved() {
+        document.getElementById('editor-save-state').textContent = 'Saving trigger changes…';
+        setTimeout(() => { document.getElementById('editor-save-state').textContent = 'Draft changes saved'; }, 500);
+      }
+
+      function openTablePicker() {
+        tablePickerSearch.value = '';
+        renderPickerTables();
+        tablePickerModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => tablePickerSearch.focus(), 20);
+      }
+
+      function closeTablePicker() {
+        tablePickerModal.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      document.getElementById('open-table-picker').addEventListener('click', openTablePicker);
+      document.querySelectorAll('[data-close-table-picker]').forEach((button) => button.addEventListener('click', closeTablePicker));
+
+      pickerList.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-add-table]');
+        if (!button || button.disabled) return;
+        selectedTables.add(button.dataset.addTable);
+        renderSelectedTables();
+        renderPickerTables();
+        updateSubscriptionSummary();
+        markRoutingSaved();
+      });
+
+      selectedTableBody.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-remove-table]');
+        if (!button) return;
+        selectedTables.delete(button.dataset.removeTable);
+        renderSelectedTables();
+        renderPickerTables();
+        updateSubscriptionSummary();
+        markRoutingSaved();
+      });
+
+      subscriptionSearch.addEventListener('input', () => {
+        const query = subscriptionSearch.value.trim().toLowerCase();
+        selectedTableBody.querySelectorAll('[data-selected-table]').forEach((row) => {
+          row.hidden = !row.querySelector('.table-token').textContent.toLowerCase().includes(query);
+        });
+      });
+
+      tablePickerSearch.addEventListener('input', renderPickerTables);
+
+      [testDrawer, publishModal, tablePickerModal].forEach((backdrop) => backdrop.addEventListener('click', (event) => {
+        if (event.target !== backdrop) return;
+        if (backdrop === testDrawer) closeTest();
+        if (backdrop === publishModal) closePublish();
+        if (backdrop === tablePickerModal) closeTablePicker();
+      }));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') { closeTest(); closePublish(); closeTablePicker(); }
+      });
+
+      renderSelectedTables();
+      renderPickerTables();
+      updateSubscriptionSummary();
+    </script>
+  </body>
+</html>
