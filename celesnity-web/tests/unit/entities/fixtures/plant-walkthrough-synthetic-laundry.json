@@ -1,0 +1,286 @@
+{
+  "siteName": "Commercial Laundry Facility",
+  "summary": "The facility launders, dries, irons, and folds commercial linens. Work flows from sorting, washing, and tumble drying in the Wet Area through to feeding, ironing, folding, and quality inspection in the Finishing Room.",
+  "areas": [
+    {
+      "id": "wet-area",
+      "name": "Wet Area",
+      "evidence": [
+        {
+          "tSec": 0.5,
+          "note": "Sign on wall reads 'WET AREA'.",
+          "confidence": 0.99
+        }
+      ]
+    },
+    {
+      "id": "finishing-room",
+      "name": "Finishing Room",
+      "evidence": [
+        {
+          "tSec": 10,
+          "note": "Sign on wall reads 'FINISHING ROOM'.",
+          "confidence": 0.99
+        }
+      ]
+    }
+  ],
+  "lines": [
+    {
+      "id": "flatwork-finishing-line",
+      "name": "Flatwork Finishing Line",
+      "areaId": "finishing-room",
+      "evidence": [
+        {
+          "tSec": 22,
+          "note": "Continuous conveyor line linking Feeder, Flatwork Ironer, and Folder.",
+          "confidence": 0.95
+        }
+      ]
+    }
+  ],
+  "equipment": [
+    {
+      "id": "sorting-table",
+      "name": "SORTING",
+      "kind": "station",
+      "equipmentType": "sorting table",
+      "lineId": "",
+      "areaId": "wet-area",
+      "visibleState": "running",
+      "evidence": [
+        {
+          "tSec": 1,
+          "note": "Table labeled 'SORTING' with two workers sorting colored items.",
+          "confidence": 0.98
+        }
+      ]
+    },
+    {
+      "id": "washer-w1",
+      "name": "WASHER-EXTRACTOR W1",
+      "kind": "machine",
+      "equipmentType": "washer-extractor",
+      "lineId": "",
+      "areaId": "wet-area",
+      "visibleState": "running",
+      "evidence": [
+        {
+          "tSec": 2,
+          "note": "Washer unit marked 'WASHER-EXTRACTOR' and 'W1' with green active light.",
+          "confidence": 0.98
+        }
+      ]
+    },
+    {
+      "id": "washer-w2",
+      "name": "WASHER-EXTRACTOR W2",
+      "kind": "machine",
+      "equipmentType": "washer-extractor",
+      "lineId": "",
+      "areaId": "wet-area",
+      "visibleState": "idle",
+      "evidence": [
+        {
+          "tSec": 4,
+          "note": "Second washer unit labeled 'W2' next to W1.",
+          "confidence": 0.98
+        }
+      ]
+    },
+    {
+      "id": "dryer-d1",
+      "name": "TUMBLE DRYER D1",
+      "kind": "machine",
+      "equipmentType": "tumble dryer",
+      "lineId": "",
+      "areaId": "wet-area",
+      "visibleState": "running",
+      "evidence": [
+        {
+          "tSec": 7,
+          "note": "Dryer labeled 'TUMBLE DRYER' and 'D1' showing temperature display '68°C'.",
+          "confidence": 0.98
+        }
+      ]
+    },
+    {
+      "id": "carts-dry-linen",
+      "name": "CARTS - DRY LINEN",
+      "kind": "storage",
+      "equipmentType": "laundry carts",
+      "lineId": "",
+      "areaId": "finishing-room",
+      "visibleState": "idle",
+      "evidence": [
+        {
+          "tSec": 12,
+          "note": "Three rolling storage bins labeled 'CARTS - DRY LINEN' holding stacked dry linen.",
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "id": "feeder-fd",
+      "name": "FEEDER FD",
+      "kind": "machine",
+      "equipmentType": "linen feeder",
+      "lineId": "flatwork-finishing-line",
+      "areaId": "finishing-room",
+      "visibleState": "running",
+      "evidence": [
+        {
+          "tSec": 15,
+          "note": "Blue feeder machine labeled 'FEEDER' and 'FD' with two operators feeding linen.",
+          "confidence": 0.98
+        }
+      ]
+    },
+    {
+      "id": "ironer-ir",
+      "name": "FLATWORK IRONER IR",
+      "kind": "machine",
+      "equipmentType": "flatwork ironer",
+      "lineId": "flatwork-finishing-line",
+      "areaId": "finishing-room",
+      "visibleState": "running",
+      "evidence": [
+        {
+          "tSec": 20,
+          "note": "Ironer labeled 'FLATWORK IRONER' and 'IR' emitting steam.",
+          "confidence": 0.98
+        }
+      ]
+    },
+    {
+      "id": "folder-fo",
+      "name": "FOLDER FO",
+      "kind": "machine",
+      "equipmentType": "automatic folder",
+      "lineId": "flatwork-finishing-line",
+      "areaId": "finishing-room",
+      "visibleState": "running",
+      "evidence": [
+        {
+          "tSec": 24,
+          "note": "Green folder unit labeled 'FOLDER' and 'FO' outputting folded linen piles.",
+          "confidence": 0.98
+        }
+      ]
+    },
+    {
+      "id": "qc-station",
+      "name": "QC",
+      "kind": "inspection",
+      "equipmentType": "quality inspection station",
+      "lineId": "",
+      "areaId": "finishing-room",
+      "visibleState": "running",
+      "evidence": [
+        {
+          "tSec": 30,
+          "note": "Inspection table labeled 'QC' staffed by an operator.",
+          "confidence": 0.95
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "fromId": "sorting-table",
+      "toId": "washer-w1",
+      "material": "sorted linen",
+      "inferred": true,
+      "evidence": [
+        {
+          "tSec": 1,
+          "note": "Sorted linen sits adjacent to the washer-extractor line.",
+          "confidence": 0.75
+        }
+      ]
+    },
+    {
+      "fromId": "washer-w1",
+      "toId": "dryer-d1",
+      "material": "wet linen",
+      "inferred": false,
+      "evidence": [
+        {
+          "tSec": 5,
+          "note": "Cart labeled 'wet linen' moves from the washer past W2 into Tumble Dryer D1.",
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "fromId": "dryer-d1",
+      "toId": "carts-dry-linen",
+      "material": "dry linen",
+      "inferred": true,
+      "evidence": [
+        {
+          "tSec": 11,
+          "note": "Dry linen carts are stationed immediately past the dryer partition.",
+          "confidence": 0.8
+        }
+      ]
+    },
+    {
+      "fromId": "carts-dry-linen",
+      "toId": "feeder-fd",
+      "material": "dry linen",
+      "inferred": true,
+      "evidence": [
+        {
+          "tSec": 14,
+          "note": "Workers at Feeder FD are positioned next to the dry linen carts.",
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "fromId": "feeder-fd",
+      "toId": "ironer-ir",
+      "material": "flat linen sheet",
+      "inferred": false,
+      "evidence": [
+        {
+          "tSec": 18,
+          "note": "Linen sheets travel directly along the conveyor bed into Flatwork Ironer IR.",
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "fromId": "ironer-ir",
+      "toId": "folder-fo",
+      "material": "ironed flat linen",
+      "inferred": false,
+      "evidence": [
+        {
+          "tSec": 23,
+          "note": "Ironed linen exits IR directly into the Folder FO inlet.",
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "fromId": "folder-fo",
+      "toId": "qc-station",
+      "material": "folded linen stacks",
+      "inferred": true,
+      "evidence": [
+        {
+          "tSec": 28,
+          "note": "Folded linen stack emerges below the folder heading toward the QC table.",
+          "confidence": 0.85
+        }
+      ]
+    }
+  ],
+  "openQuestions": [
+    "At 00:08, is the 'wet linen' basket moved manually or by an automated floor track into Dryer D1?",
+    "At 00:11, how are dry goods transferred from Dryer D1 into the dry linen carts across the partition wall?",
+    "At 00:36, what is the blue panel on the wall behind the QC station (an inspection display, monitoring board, or dispatch board)?"
+  ]
+}

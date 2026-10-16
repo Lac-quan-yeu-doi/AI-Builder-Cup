@@ -68,6 +68,9 @@ vi.mock('@/app/_components/device/device-management-screen', () => ({
 vi.mock('@/app/(workspace)/plant-model/[siteId]/_components/plant-model-screen', () => ({
   PlantModelScreen: () => null,
 }));
+vi.mock('@/app/(workspace)/plant-model/walkthrough/_components/plant-walkthrough-screen', () => ({
+  PlantWalkthroughScreen: () => null,
+}));
 
 import { CatalogExplorerFeature } from '@/app/(workspace)/catalog/_components/catalog-explorer-feature';
 import { DatabaseServiceFeature } from '@/app/_components/database-service/database-service-feature';
@@ -80,6 +83,7 @@ import { AutomationWorkflowFeature } from '@/app/(workspace)/automations/_compon
 import { AutomationWorkflowDetailFeature } from '@/app/(workspace)/automations/[workflowId]/_components/automation-workflow-detail-feature';
 import { DeviceManagementFeature } from '@/app/_components/device/device-management-feature';
 import { PlantModelFeature } from '@/app/(workspace)/plant-model/[siteId]/_components/plant-model-feature';
+import { PlantWalkthroughFeature } from '@/app/(workspace)/plant-model/walkthrough/_components/plant-walkthrough-feature';
 
 interface InjectedController {
   readonly key: string;
@@ -245,6 +249,13 @@ describe('injected client feature roots', () => {
       readonly props: { readonly controller: InjectedController };
     };
     expect(element.props.controller.key).toBe('MetadataCrawlerController');
+  });
+
+  it('wires the plant walkthrough to its own controller', () => {
+    const element = PlantWalkthroughFeature() as unknown as {
+      readonly props: { readonly controller: InjectedController };
+    };
+    expect(element.props.controller.key).toBe('PlantWalkthroughController');
   });
 
   it('wires Plant Model with its editor and readable catalog metadata controllers', () => {

@@ -7,6 +7,9 @@ import type { DashboardRepository } from '@/src/application/repositories/dashboa
 import type { PlantModelRepository } from '@/src/application/repositories/plant-model.repository.interface';
 import type { PlantModelUseCases } from '@/src/application/use-cases/plant-model/manage-plant-model.use-cases';
 import type { PlantModelController } from '@/src/interface-adapters/controllers/plant-model/plant-model.controller';
+import type { PlantWalkthroughService } from '@/src/application/services/plant-walkthrough.service.interface';
+import type { PlantWalkthroughUseCases } from '@/src/application/use-cases/plant-model/plant-walkthrough.use-cases';
+import type { PlantWalkthroughController } from '@/src/interface-adapters/controllers/plant-model/plant-walkthrough.controller';
 import type { ChartEncodingSuggestionRepository } from '@/src/application/repositories/chart-encoding-suggestion.repository.interface';
 import type { PendingActionRepository } from '@/src/application/repositories/pending-action.repository.interface';
 import type { ActionCatalogRepository } from '@/src/application/repositories/action-catalog.repository.interface';
@@ -690,6 +693,9 @@ export interface DI_RETURN_TYPES {
   PlantModelRepository: PlantModelRepository;
   PlantModelUseCases: PlantModelUseCases;
   PlantModelController: PlantModelController;
+  PlantWalkthroughService: PlantWalkthroughService;
+  PlantWalkthroughUseCases: PlantWalkthroughUseCases;
+  PlantWalkthroughController: PlantWalkthroughController;
   ListChartsController: ListChartsController;
   SubscribeChartsController: SubscribeChartsController;
   CreateChartController: CreateChartController;
@@ -1095,6 +1101,9 @@ export const DI_SYMBOLS = {
   PlantModelRepository: createSymbol('PlantModelRepository'),
   PlantModelUseCases: createSymbol('PlantModelUseCases'),
   PlantModelController: createSymbol('PlantModelController'),
+  PlantWalkthroughService: createSymbol('PlantWalkthroughService'),
+  PlantWalkthroughUseCases: createSymbol('PlantWalkthroughUseCases'),
+  PlantWalkthroughController: createSymbol('PlantWalkthroughController'),
   DashboardRuntimeService: createSymbol('DashboardRuntimeService'),
   CreateDashboardUseCase: createSymbol('CreateDashboardUseCase'),
   GetDashboardUseCase: createSymbol('GetDashboardUseCase'),

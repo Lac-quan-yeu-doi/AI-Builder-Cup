@@ -10,6 +10,16 @@ Module **Plant model** (nhóm *Data*) mô tả nhà máy của bạn dưới d�
 
 Mỗi nhà máy có bốn tab: **Overview**, **Model**, **Dashboards**, **Configure**. Nút **Ask Minder** mở trợ lý chuyên về mô hình nhà máy, biết cấu trúc của chính nhà máy này.
 
+### Tạo nhà máy từ video đi xưởng
+
+1. Ở **Mô hình nhà máy**, bấm **Tạo từ video đi xưởng**.
+2. Thả vào một video quay xưởng bằng điện thoại, dài một đến ba phút. Đi sát từng máy và nhãn của máy.
+3. Bấm **Dựng mô hình xưởng**. Gemini mất khoảng nửa phút để trả về khu vực, line và máy nhìn thấy được, kèm luồng vật liệu giữa chúng.
+4. Kiểm tra kết quả ở tab **Bản sao số**. Bấm vào một máy để xem khung hình trong video nơi máy xuất hiện và phát video từ thời điểm đó. Luồng nét đứt là luồng Gemini giả định chứ không nhìn thấy. **Kỹ sư cần xác nhận** liệt kê những gì camera bỏ sót.
+5. Sửa **Tên** và **Mã** nếu cần, rồi bấm **Tạo nhà máy**. Mô hình được lưu thành bản nháp, chỉnh sửa và xuất bản như mọi nhà máy khác.
+
+**Xem mẫu** hiện câu trả lời đã ghi sẵn cho một video công khai về line ép viên thức ăn, không cần tải gì lên.
+
 ## 2. Định nghĩa loại đối tượng (Node types)
 
 Trước khi thêm máy móc, hãy định nghĩa **loại đối tượng** dùng chung:

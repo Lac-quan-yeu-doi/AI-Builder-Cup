@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { FactoryIcon, PlusIcon } from 'lucide-react';
+import { FactoryIcon, PlusIcon, VideoIcon } from 'lucide-react';
 
 import { useTranslation } from '@/app/_i18n/use-translation';
 import { Button } from '@/app/_components/ui/button';
@@ -61,9 +61,17 @@ export function PlantSitesScreen({ controller }: { readonly controller: PlantMod
 
   return (
     <main className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('plantModel.title')}</h1>
-        <p className="mt-2 text-muted-foreground">{t('plantModel.subtitle')}</p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">{t('plantModel.title')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('plantModel.subtitle')}</p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/plant-model/walkthrough">
+            <VideoIcon />
+            {t('plantWalkthrough.entry')}
+          </Link>
+        </Button>
       </header>
       <section className="grid gap-3 rounded-xl border bg-card p-5 md:grid-cols-[1fr_1fr_auto] md:items-end">
         <div className="space-y-2">

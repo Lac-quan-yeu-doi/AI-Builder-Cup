@@ -2,6 +2,22 @@
   "month": "2026-10",
   "entries": [
     {
+      "id": "2026-10-16-plant-from-walkthrough",
+      "date": "2026-10-16",
+      "areas": ["web"],
+      "kind": "feature",
+      "version": "0.5.0",
+      "authors": ["Hung"],
+      "title": {
+        "en": "Create a plant from a walkthrough video",
+        "vi": "Tạo nhà máy từ video đi xưởng"
+      },
+      "summary": {
+        "en": "Upload a phone video of the floor and Gemini maps its areas, lines, machines and material flow into a 3D twin. Each machine shows the video frame it was seen in, flows Gemini had to assume are dashed, and open questions list what the camera missed. Check the result, then create the plant from it.",
+        "vi": "Tải lên video quay xưởng bằng điện thoại, Gemini dựng khu vực, line, máy và luồng vật liệu thành bản sao số 3D. Mỗi máy kèm khung hình trong video nơi nó xuất hiện, luồng phải giả định được vẽ nét đứt, và phần câu hỏi liệt kê những gì camera bỏ sót. Kiểm tra kết quả rồi tạo nhà máy từ đó."
+      }
+    },
+    {
       "id": "2026-10-01-service-identity-catalog-access",
       "date": "2026-10-01",
       "areas": ["web", "core"],

@@ -1,0 +1,6 @@
+# Real values live here; never commit them.
+.env
+# A separate repo, built for the AI Builder Cup.
+walk-in-twin/
+# Downloaded sample footage, not ours to commit.
+input-videos/

@@ -104,3 +104,11 @@ export class PasswordChangeError extends Error {
     this.name = 'PasswordChangeError';
   }
 }
+
+/** A plant draft that breaks the rules Core enforces, caught before it is sent. */
+export class PlantDraftValidationError extends Error {
+  public constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'PlantDraftValidationError';
+  }
+}

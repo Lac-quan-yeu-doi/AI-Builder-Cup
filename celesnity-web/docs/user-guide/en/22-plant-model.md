@@ -10,6 +10,16 @@ The **Plant model** module (under *Data*) describes your plant as a tree of obje
 
 Each plant has four tabs: **Overview**, **Model**, **Dashboards**, **Configure**. **Ask Minder** opens an assistant specialised in plant models that knows this plant's structure.
 
+### Creating a plant from a walkthrough video
+
+1. On **Plant model**, click **Create from walkthrough**.
+2. Drop a phone video of the floor, one to three minutes long. Walk close to each machine and its label.
+3. Click **Map this floor**. Gemini takes about half a minute and returns the areas, lines and machines it saw, with the material flow between them.
+4. Check the result on the **Twin** tab. Click a machine to see the video frame it was seen in and play the video from that moment. A dashed flow is one Gemini assumed rather than saw. **For an engineer to confirm** lists what the camera missed.
+5. Adjust the **Name** and **Code**, then click **Create plant**. The model is saved as a draft that you can edit and publish like any other.
+
+**Try a sample** shows a recorded answer for a public video of a feed pellet line, without uploading anything.
+
 ## 2. Defining object types (Node types)
 
 Before adding equipment, define the shared **object types**:

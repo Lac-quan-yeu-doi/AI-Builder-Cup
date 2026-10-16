@@ -371,6 +371,9 @@ const PLANT_MODEL_KEYS = [
   'PlantModelRepository',
   'PlantModelUseCases',
   'PlantModelController',
+  'PlantWalkthroughService',
+  'PlantWalkthroughUseCases',
+  'PlantWalkthroughController',
 ] as const;
 
 const MERGED_FEATURE_KEYS = [
@@ -847,6 +850,12 @@ const PLANT_MODEL_BINDINGS = [
   [DI_SYMBOLS.PlantModelRepository, [DI_SYMBOLS.CoreApiClient]],
   [DI_SYMBOLS.PlantModelUseCases, [DI_SYMBOLS.PlantModelRepository]],
   [DI_SYMBOLS.PlantModelController, [DI_SYMBOLS.PlantModelUseCases]],
+  [DI_SYMBOLS.PlantWalkthroughService, []],
+  [
+    DI_SYMBOLS.PlantWalkthroughUseCases,
+    [DI_SYMBOLS.PlantWalkthroughService, DI_SYMBOLS.PlantModelRepository],
+  ],
+  [DI_SYMBOLS.PlantWalkthroughController, [DI_SYMBOLS.PlantWalkthroughUseCases]],
 ] as const satisfies readonly BindingExpectation[];
 
 const STREAMING_BINDINGS = [

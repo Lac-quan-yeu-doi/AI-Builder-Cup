@@ -448,6 +448,9 @@ services:
       CORE_API_URL: http://celesnity-api:3001/api/v1
       AGENT_API_URL: http://minder-runtime:8080/api/v2
       AGENT_AUTH_MODE: core-assertion
+      # Plant walkthroughs: Gemini maps a floor video to a plant model.
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_WALKTHROUGH_MODEL: ${GEMINI_WALKTHROUGH_MODEL:-gemini-flash-latest}
     volumes:
       - ${HOME}/.config/gcloud:/gcloud:ro
     tmpfs:
