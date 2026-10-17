@@ -13,6 +13,7 @@ Map the floor from what the video shows:
 Rules:
 - Report only what is visible or audible. Do not invent equipment that a
   typical plant of this kind would have.
+- Times are a plain count of seconds from the start: 1:15 into the video is 75, never 115.
 - Every item needs evidence: the second where it is most centred and easiest to
   recognise, not the second it first enters the frame, and what in that frame
   shows it. The first evidence entry is used as the item's thumbnail. Add more

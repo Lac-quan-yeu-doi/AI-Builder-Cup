@@ -39,6 +39,19 @@ You can also start from **Templates** if your organization has prepared any.
 
 Tip: name objects the way people name them on the shop floor; the assistant and dashboards will use those exact names.
 
+### Capturing repair know-how
+
+The **Repairs** tab turns an expert's repair into a guide the next technician can follow.
+
+1. Click **Capture a repair**. Choose the machine, name the fault and the technician, and drop a video of the repair with sound. The technician should talk while they work, say every value out loud, and say why when they do something their own way.
+2. Gemini writes the procedure: steps with the seconds where each happens, tools, parts, values and safety steps. Where the technician did something without explaining, it writes the question to ask them.
+3. On the **Procedure** tab, confirm every value Gemini heard and every safety step, and type or dictate the expert's answers to the why questions. **Approve and publish** is available once everything is confirmed; it also publishes the guide as an assistant skill.
+4. **Guide a repair** walks a technician through the steps. Turn on **Hands-free** to hear each step and answer by voice: "next", "back", "show me", or any question about the step. Safety steps need a photo check or a confirmation before going on.
+5. **Know-how transfer** compares guided repairs with the expert's time and shows steps technicians did differently and still fixed the machine; **Update this step** turns one into a new draft revision.
+6. **Compare experts** takes a second technician's video of the same repair and shows where they differ and why it matters.
+
+Guides and their videos are kept in the browser that captured them while the Core endpoint is being built.
+
 ## 4. Saving and publishing versions
 
 - **Save** stores a draft you can keep editing.

@@ -20,7 +20,11 @@ import { Input } from '@/app/_components/ui/input';
 import { Label } from '@/app/_components/ui/label';
 import { ShimmerText } from '@/app/_components/ui/shimmer-text';
 import { Spinner } from '@/app/_components/ui/spinner';
-import { walkthroughToTwin, type ExtractedTwin } from '@/src/entities/models/plant-walkthrough';
+import {
+  normalizeTwinTimes,
+  walkthroughToTwin,
+  type ExtractedTwin,
+} from '@/src/entities/models/plant-walkthrough';
 import type { PlantWalkthroughController } from '@/src/interface-adapters/controllers/plant-model/plant-walkthrough.controller';
 
 import { WalkthroughResults } from './walkthrough-results';
@@ -76,9 +80,13 @@ export function PlantWalkthroughScreen({
     setPhase({ kind: 'working', startedAt: Date.now() });
     try {
       const result = await controller.extract(file, abort.signal);
+      const videoSeconds = player.current?.duration;
       setPhase({
         kind: 'done',
-        twin: result.twin,
+        twin:
+          videoSeconds === undefined || Number.isNaN(videoSeconds)
+            ? result.twin
+            : normalizeTwinTimes(result.twin, videoSeconds),
         meta: t('plantWalkthrough.meta', {
           model: result.model,
           seconds: Math.round(result.elapsedMs / 1000),

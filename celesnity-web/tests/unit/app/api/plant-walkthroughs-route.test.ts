@@ -16,7 +16,7 @@ vi.mock('@/di/server-auth', () => ({ verifyServerSessionSubject, loadWorkspaceAc
 vi.mock('@/di/server-plant-walkthrough', () => ({
   extractPlantWalkthrough,
   isGeminiConfigured,
-  WalkthroughExtractionError: class WalkthroughExtractionError extends Error {},
+  GeminiAnswerError: class GeminiAnswerError extends Error {},
 }));
 
 import { POST } from '@/app/api/plant-walkthroughs/route';

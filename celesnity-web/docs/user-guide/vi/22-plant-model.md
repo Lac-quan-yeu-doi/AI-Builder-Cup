@@ -39,6 +39,19 @@ Bạn cũng có thể bắt đầu từ **Templates** (mẫu dựng sẵn) nếu
 
 Mẹo: đặt tên đúng như cách mọi người gọi ngoài xưởng; trợ lý và dashboard sẽ dùng đúng tên đó.
 
+### Ghi lại kinh nghiệm sửa máy
+
+Tab **Sửa máy** biến một lần sửa của thợ giỏi thành hướng dẫn cho thợ tiếp theo.
+
+1. Bấm **Ghi lại một lần sửa**. Chọn máy, đặt tên lỗi và tên thợ, rồi thả video sửa máy có âm thanh vào. Thợ nên vừa làm vừa nói, đọc to mọi thông số, và nói lý do khi làm theo cách riêng.
+2. Gemini viết quy trình: các bước kèm giây diễn ra, dụng cụ, vật tư, thông số và bước an toàn. Chỗ nào thợ làm mà không giải thích, Gemini viết sẵn câu hỏi để hỏi lại.
+3. Ở tab **Quy trình**, xác nhận từng thông số Gemini nghe được và từng bước an toàn, rồi gõ hoặc đọc câu trả lời của thợ giỏi cho các câu hỏi vì sao. Nút **Duyệt và xuất bản** dùng được khi đã xác nhận đủ; duyệt cũng xuất bản hướng dẫn thành skill cho trợ lý.
+4. **Sửa theo hướng dẫn** dẫn thợ đi từng bước. Bật **Rảnh tay** để nghe đọc từng bước và trả lời bằng giọng nói: "tiếp", "quay lại", "cho xem", hoặc bất kỳ câu hỏi nào về bước đó. Bước an toàn cần kiểm tra bằng ảnh hoặc xác nhận trước khi làm tiếp.
+5. **Truyền kinh nghiệm** so các lần sửa có hướng dẫn với thời gian của thợ giỏi, và liệt kê những bước thợ làm khác mà vẫn sửa được máy; **Cập nhật bước này** tạo bản nháp sửa đổi mới.
+6. **So sánh thợ giỏi** nhận video của thợ thứ hai sửa cùng lỗi và chỉ ra hai người khác nhau ở đâu, vì sao điều đó quan trọng.
+
+Trong lúc Core chưa có endpoint, hướng dẫn và video được lưu trong trình duyệt đã ghi lại chúng.
+
 ## 4. Lưu và phát hành phiên bản
 
 - **Save** lưu bản nháp; bạn có thể quay lại sửa tiếp.

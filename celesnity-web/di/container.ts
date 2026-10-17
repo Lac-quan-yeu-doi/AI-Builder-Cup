@@ -10,6 +10,7 @@ import { createPendingActionsModule } from '@/di/modules/pending-actions.module'
 import { createActionCatalogModule } from '@/di/modules/action-catalog.module';
 import { createAgentManifestsModule } from '@/di/modules/agent-manifests.module';
 import { createSkillsModule } from '@/di/modules/skills.module';
+import { createRepairGuidesModule } from '@/di/modules/repair-guides.module';
 import { createCitationsModule } from '@/di/modules/citations.module';
 import { createDocumentsModule } from '@/di/modules/documents.module';
 import { createWorkspaceTreeModule } from '@/di/modules/workspace-tree.module';
@@ -73,6 +74,7 @@ applicationContainer.load(
   createAgentManifestsModule(),
 );
 applicationContainer.load(Symbol.for('celesnity.SkillsModule'), createSkillsModule());
+applicationContainer.load(Symbol.for('celesnity.RepairGuidesModule'), createRepairGuidesModule());
 applicationContainer.load(Symbol.for('celesnity.CitationsModule'), createCitationsModule());
 applicationContainer.load(Symbol.for('celesnity.DocumentsModule'), createDocumentsModule());
 applicationContainer.load(Symbol.for('celesnity.TutorialsModule'), createTutorialsModule());

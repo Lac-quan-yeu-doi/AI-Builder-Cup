@@ -7,6 +7,7 @@ const repositoryRoot = process.cwd();
 const appRoot = join(repositoryRoot, 'app');
 
 const featureRoots = [
+  '(workspace)/plant-model/[siteId]/repairs/_components/repair-guides-feature.tsx',
   '(workspace)/plant-model/walkthrough/_components/plant-walkthrough-feature.tsx',
   '(workspace)/catalog/_components/catalog-explorer-feature.tsx',
   '(workspace)/metadata-crawler/_components/metadata-crawler-feature.tsx',
@@ -38,6 +39,7 @@ const appWideComponentRoots = [
 ] as const;
 
 const routeSegmentsWithLocalComponents = [
+  '(workspace)/plant-model/[siteId]/repairs',
   '(workspace)/plant-model/walkthrough',
   '(workspace)/catalog',
   '(workspace)/metadata-crawler',

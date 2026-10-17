@@ -112,3 +112,11 @@ export class PlantDraftValidationError extends Error {
     this.name = 'PlantDraftValidationError';
   }
 }
+
+/** A repair guide with values or safety steps no person has confirmed yet. */
+export class RepairGuideNotReadyError extends Error {
+  public constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'RepairGuideNotReadyError';
+  }
+}

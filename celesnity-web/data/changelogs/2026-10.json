@@ -2,12 +2,36 @@
   "month": "2026-10",
   "entries": [
     {
-      "id": "2026-10-16-plant-from-walkthrough",
-      "date": "2026-10-16",
-      "areas": ["web"],
+      "id": "2026-10-17-repair-know-how",
+      "date": "2026-10-17",
+      "areas": [
+        "web"
+      ],
       "kind": "feature",
       "version": "0.5.0",
-      "authors": ["Hung"],
+      "authors": [
+        "Hung"
+      ],
+      "title": {
+        "en": "Repair know-how: from an expert's video to a guided repair",
+        "vi": "Kinh nghiệm sửa máy: từ video của thợ giỏi đến sửa theo hướng dẫn"
+      },
+      "summary": {
+        "en": "A new Repairs tab in each plant. Film an expert fixing a machine while they talk, and Gemini writes the procedure, a checklist and an assistant skill, asking about anything done without a reason. After every value and safety step is confirmed, the next technician repairs step by step, hands-free by voice, replaying the expert's clips, checking safety steps with a photo and asking questions on the way. Times, first-time fixes and better ways technicians find show how well the know-how transferred, and a second expert's video shows where two experts differ.",
+        "vi": "Tab Sửa máy mới trong mỗi nhà máy. Quay thợ giỏi vừa sửa máy vừa nói, Gemini viết quy trình, checklist và skill cho trợ lý, đồng thời hỏi lại những chỗ làm mà chưa nói lý do. Sau khi mọi thông số và bước an toàn được xác nhận, thợ tiếp theo sửa từng bước, rảnh tay bằng giọng nói, xem lại clip của thợ giỏi, kiểm tra bước an toàn bằng ảnh và hỏi ngay trong lúc sửa. Thời gian, tỷ lệ sửa đúng lần đầu và cách làm tốt hơn mà thợ tìm ra cho thấy kinh nghiệm đã truyền lại được bao nhiêu; video của thợ giỏi thứ hai cho thấy hai người làm khác nhau ở đâu."
+      }
+    },
+    {
+      "id": "2026-10-16-plant-from-walkthrough",
+      "date": "2026-10-16",
+      "areas": [
+        "web"
+      ],
+      "kind": "feature",
+      "version": "0.5.0",
+      "authors": [
+        "Hung"
+      ],
       "title": {
         "en": "Create a plant from a walkthrough video",
         "vi": "Tạo nhà máy từ video đi xưởng"
@@ -20,10 +44,15 @@
     {
       "id": "2026-10-01-service-identity-catalog-access",
       "date": "2026-10-01",
-      "areas": ["web", "core"],
+      "areas": [
+        "web",
+        "core"
+      ],
       "kind": "feature",
       "version": "0.5.0",
-      "authors": ["Dat Pham"],
+      "authors": [
+        "Dat Pham"
+      ],
       "title": {
         "en": "Manage catalog access for service identities",
         "vi": "Quản lý quyền dữ liệu cho danh tính dịch vụ"
@@ -36,10 +65,14 @@
     {
       "id": "2026-10-01-chat-event-stream-routing",
       "date": "2026-10-01",
-      "areas": ["web"],
+      "areas": [
+        "web"
+      ],
       "kind": "fix",
       "version": "0.5.0",
-      "authors": ["Dat Pham"],
+      "authors": [
+        "Dat Pham"
+      ],
       "title": {
         "vi": "Giảm gián đoạn cập nhật khi trợ lý đang trả lời",
         "en": "Reduce interruptions while the assistant is responding"
@@ -52,10 +85,15 @@
     {
       "id": "2026-10-01-chat-update-recovery",
       "date": "2026-10-01",
-      "areas": ["web", "core"],
+      "areas": [
+        "web",
+        "core"
+      ],
       "kind": "fix",
       "version": "0.5.0",
-      "authors": ["Dat Pham"],
+      "authors": [
+        "Dat Pham"
+      ],
       "title": {
         "vi": "Khôi phục cập nhật trong cùng cuộc trò chuyện",
         "en": "Restore updates in the same conversation"

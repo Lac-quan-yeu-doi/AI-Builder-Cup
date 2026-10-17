@@ -9,6 +9,7 @@ import { createDevicesModule } from '@/di/modules/devices.module';
 import { createPipelinesModule } from '@/di/modules/pipelines.module';
 import { createPlatformModule } from '@/di/modules/platform.module';
 import { createPlantModelModule } from '@/di/modules/plant-model.module';
+import { createRepairGuidesModule } from '@/di/modules/repair-guides.module';
 import { createQueriesModule } from '@/di/modules/queries.module';
 import { createScriptsModule } from '@/di/modules/scripts.module';
 import { createSkillsModule } from '@/di/modules/skills.module';
@@ -374,6 +375,10 @@ const PLANT_MODEL_KEYS = [
   'PlantWalkthroughService',
   'PlantWalkthroughUseCases',
   'PlantWalkthroughController',
+  'RepairGuideRepository',
+  'RepairCaptureService',
+  'RepairGuideUseCases',
+  'RepairGuideController',
 ] as const;
 
 const MERGED_FEATURE_KEYS = [
@@ -654,6 +659,7 @@ describe('application dependency injection container', () => {
     ['queries', createQueriesModule, QUERY_BINDINGS],
     ['pipelines', createPipelinesModule, PIPELINE_BINDINGS],
     ['plant-model', createPlantModelModule, PLANT_MODEL_BINDINGS],
+    ['repair-guides', createRepairGuidesModule, REPAIR_GUIDE_BINDINGS],
     ['streaming', createStreamingModule, STREAMING_BINDINGS],
     ['devices', createDevicesModule, DEVICE_BINDINGS],
     ['skills', createSkillsModule, SKILL_BINDINGS],
@@ -856,6 +862,16 @@ const PLANT_MODEL_BINDINGS = [
     [DI_SYMBOLS.PlantWalkthroughService, DI_SYMBOLS.PlantModelRepository],
   ],
   [DI_SYMBOLS.PlantWalkthroughController, [DI_SYMBOLS.PlantWalkthroughUseCases]],
+] as const satisfies readonly BindingExpectation[];
+
+const REPAIR_GUIDE_BINDINGS = [
+  [DI_SYMBOLS.RepairGuideRepository, []],
+  [DI_SYMBOLS.RepairCaptureService, []],
+  [
+    DI_SYMBOLS.RepairGuideUseCases,
+    [DI_SYMBOLS.RepairGuideRepository, DI_SYMBOLS.RepairCaptureService, DI_SYMBOLS.SkillRepository],
+  ],
+  [DI_SYMBOLS.RepairGuideController, [DI_SYMBOLS.RepairGuideUseCases]],
 ] as const satisfies readonly BindingExpectation[];
 
 const STREAMING_BINDINGS = [

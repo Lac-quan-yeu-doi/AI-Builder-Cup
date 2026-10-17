@@ -9,6 +9,7 @@ import type {
   PlantRoutingRole,
 } from '@/src/entities/models/plant-model';
 import { validatePlantDraft } from '@/src/entities/models/plant-draft-validator';
+import { clockDigitsFix } from '@/src/entities/models/video-timestamp';
 
 /*
  * What Gemini is asked to return after watching a walkthrough. It is an
@@ -514,4 +515,42 @@ export interface PlantWalkthroughResult {
   readonly model: string;
   readonly elapsedMs: number;
   readonly inputTokens?: number;
+}
+
+/** Puts evidence times back in seconds when Gemini wrote them as clock digits (see clockDigitsFix). */
+export function normalizeTwinTimes(twin: ExtractedTwin, videoSeconds: number): ExtractedTwin {
+  const times = [
+    ...Object.values(twin.evidence).flatMap((items) => items.map((item) => item.tSec)),
+    ...Object.values(twin.flows).flatMap((flow) => flow.evidence.map((item) => item.tSec)),
+  ];
+  const fix = clockDigitsFix(times, videoSeconds);
+  if (fix === undefined) return twin;
+  const evidence = Object.fromEntries(
+    Object.entries(twin.evidence).map(([id, items]) => [
+      id,
+      items.map((item) => ({ ...item, tSec: fix(item.tSec) })),
+    ]),
+  );
+  return {
+    ...twin,
+    evidence,
+    flows: Object.fromEntries(
+      Object.entries(twin.flows).map(([id, flow]) => [
+        id,
+        { ...flow, evidence: flow.evidence.map((item) => ({ ...item, tSec: fix(item.tSec) })) },
+      ]),
+    ),
+    draft: {
+      ...twin.draft,
+      nodes: twin.draft.nodes.map((node) => {
+        const first = evidence[node.id]?.[0]?.tSec;
+        return first === undefined || node.values[PROPERTY.firstSeenSec] === undefined
+          ? node
+          : {
+              ...node,
+              values: { ...node.values, [PROPERTY.firstSeenSec]: Math.round(first * 10) / 10 },
+            };
+      }),
+    },
+  };
 }

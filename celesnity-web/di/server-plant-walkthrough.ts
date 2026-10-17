@@ -1,7 +1,10 @@
-// Server-only plant walkthrough extraction, for route handlers (which may not
-// import infrastructure directly).
+// Server-only Gemini work, for route handlers (which may not import
+// infrastructure directly).
+export { GeminiAnswerError, isGeminiConfigured } from '@/src/infrastructure/services/gemini-client';
+export { extractPlantWalkthrough } from '@/src/infrastructure/services/gemini-plant-walkthrough.extractor';
 export {
-  extractPlantWalkthrough,
-  isGeminiConfigured,
-  WalkthroughExtractionError,
-} from '@/src/infrastructure/services/gemini-plant-walkthrough.extractor';
+  answerRepairQuestion,
+  captureRepair,
+  compareRepairs,
+  verifyRepairStep,
+} from '@/src/infrastructure/services/gemini-repair-capture';

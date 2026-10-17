@@ -10,6 +10,10 @@ import type { PlantModelController } from '@/src/interface-adapters/controllers/
 import type { PlantWalkthroughService } from '@/src/application/services/plant-walkthrough.service.interface';
 import type { PlantWalkthroughUseCases } from '@/src/application/use-cases/plant-model/plant-walkthrough.use-cases';
 import type { PlantWalkthroughController } from '@/src/interface-adapters/controllers/plant-model/plant-walkthrough.controller';
+import type { RepairGuideRepository } from '@/src/application/repositories/repair-guide.repository.interface';
+import type { RepairCaptureService } from '@/src/application/services/repair-capture.service.interface';
+import type { RepairGuideUseCases } from '@/src/application/use-cases/plant-model/repair-guide.use-cases';
+import type { RepairGuideController } from '@/src/interface-adapters/controllers/plant-model/repair-guide.controller';
 import type { ChartEncodingSuggestionRepository } from '@/src/application/repositories/chart-encoding-suggestion.repository.interface';
 import type { PendingActionRepository } from '@/src/application/repositories/pending-action.repository.interface';
 import type { ActionCatalogRepository } from '@/src/application/repositories/action-catalog.repository.interface';
@@ -696,6 +700,10 @@ export interface DI_RETURN_TYPES {
   PlantWalkthroughService: PlantWalkthroughService;
   PlantWalkthroughUseCases: PlantWalkthroughUseCases;
   PlantWalkthroughController: PlantWalkthroughController;
+  RepairGuideRepository: RepairGuideRepository;
+  RepairCaptureService: RepairCaptureService;
+  RepairGuideUseCases: RepairGuideUseCases;
+  RepairGuideController: RepairGuideController;
   ListChartsController: ListChartsController;
   SubscribeChartsController: SubscribeChartsController;
   CreateChartController: CreateChartController;
@@ -1104,6 +1112,10 @@ export const DI_SYMBOLS = {
   PlantWalkthroughService: createSymbol('PlantWalkthroughService'),
   PlantWalkthroughUseCases: createSymbol('PlantWalkthroughUseCases'),
   PlantWalkthroughController: createSymbol('PlantWalkthroughController'),
+  RepairGuideRepository: createSymbol('RepairGuideRepository'),
+  RepairCaptureService: createSymbol('RepairCaptureService'),
+  RepairGuideUseCases: createSymbol('RepairGuideUseCases'),
+  RepairGuideController: createSymbol('RepairGuideController'),
   DashboardRuntimeService: createSymbol('DashboardRuntimeService'),
   CreateDashboardUseCase: createSymbol('CreateDashboardUseCase'),
   GetDashboardUseCase: createSymbol('GetDashboardUseCase'),

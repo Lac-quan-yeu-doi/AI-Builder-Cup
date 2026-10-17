@@ -27,6 +27,7 @@ export function PlantWorkspaceShell({
     { label: 'Model', href: `/plant-model/${encoded}/model` },
     { label: 'Dashboards', href: `/plant-model/${encoded}/dashboards` },
     { label: 'Configure', href: `/plant-model/${encoded}/configure` },
+    { label: t('plantRepairs.tab'), href: `/plant-model/${encoded}/repairs` },
   ];
 
   function allowNavigation(event: React.MouseEvent<HTMLAnchorElement>) {
