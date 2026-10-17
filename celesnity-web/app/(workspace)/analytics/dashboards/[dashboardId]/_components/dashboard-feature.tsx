@@ -7,6 +7,7 @@ import { useAnalyticsRecentsStore } from '@/app/_stores/analytics-recents.store'
 import type { Dashboard } from '@/src/entities/models/dashboard';
 import { readDashboardFilterValues, writeDashboardFilterValue } from './dashboard-filter-controls';
 import { createDashboardRuntimeState, dashboardRuntimeReducer } from './dashboard-runtime-state';
+import { useLiveDemoRuntime } from './live-demo-runtime';
 import { DashboardScreen } from './dashboard-screen';
 
 const getDashboard = getInjection('GetDashboardController');
@@ -15,10 +16,18 @@ const executeDashboard = getInjection('ExecuteDashboardController');
 export function DashboardFeature({
   dashboardId,
   standalone = false,
+  liveDemo = false,
 }: {
   readonly dashboardId: string;
   /** True on /analytics/dashboards/[id], false when embedded in another page. */
   readonly standalone?: boolean;
+  /**
+   * Drift the numbers so a recorded demo looks live. Presentation only — the
+   * executed values are untouched, and every other surface showing this same
+   * dashboard still renders exactly what Core returned. See
+   * `live-demo-jitter.ts`.
+   */
+  readonly liveDemo?: boolean;
 }) {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,15 +73,18 @@ export function DashboardFeature({
       />
     );
   }
-  return <LoadedDashboard dashboard={dashboard} standalone={standalone} />;
+  return <LoadedDashboard dashboard={dashboard} standalone={standalone} liveDemo={liveDemo} />;
 }
 
 function LoadedDashboard({
   dashboard,
   standalone,
+  liveDemo,
 }: {
   readonly dashboard: Dashboard;
   readonly standalone: boolean;
+  /** Presentation-only drift for the embedded demo board. */
+  readonly liveDemo: boolean;
 }) {
   const orderedTabs = useMemo(
     () => [...dashboard.tabs].sort((left, right) => left.order - right.order),
@@ -89,6 +101,8 @@ function LoadedDashboard({
     chartCards.map((card) => card.id),
     createDashboardRuntimeState,
   );
+  /* Presentation-only drift; the reducer above keeps the executed values. */
+  const displayedRuntime = useLiveDemoRuntime(runtime, { enabled: liveDemo });
   const [filterValues, setFilterValues] = useState<Readonly<Record<string, unknown>>>(() =>
     Object.fromEntries(dashboard.filters.map((filter) => [filter.id, filter.defaultValue])),
   );
@@ -182,7 +196,7 @@ function LoadedDashboard({
       dashboard={dashboard}
       loading={false}
       error={runtimeError}
-      runtime={runtime}
+      runtime={displayedRuntime}
       filterValues={filterValues}
       activeTabId={tab?.id}
       onTabChange={setActiveTabId}

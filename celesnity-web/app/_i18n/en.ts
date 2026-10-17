@@ -2152,6 +2152,11 @@ export const en = {
   'plantModel.labelColumnHelp': 'Human-readable text shown in the inspector.',
   'plantModel.resultLimit': 'Maximum options',
   'plantModel.resultLimitHelp': 'Between 1 and 500 distinct catalog options.',
+  'plantModel.searchNodes': 'Search nodes',
+  'plantModel.searchNodesLabel': 'Search plant nodes',
+  'plantModel.allNodeTypes': 'All node types',
+  'plantModel.filterByNodeType': 'Filter by node type',
+  'plantModel.noMatchingNodes': 'No node matches this search.',
   'plantModel.filters': 'Filters',
   'plantModel.filtersHelp':
     'Optional conditions can compare a catalog column with a fixed value or another property on this node.',

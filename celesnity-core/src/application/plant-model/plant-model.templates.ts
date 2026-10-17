@@ -4,6 +4,9 @@ import type {
   PlantReferenceData,
 } from '@domain/plant-model/models/plant-model';
 
+import { demo1HomeAppliance } from './plant-model.template.demo1-home-appliance';
+import { demo2CoffeeCapsules } from './plant-model.template.demo2-coffee-capsules';
+
 const blank: PlantModelDraft = { nodeTypes: [], nodes: [], relationships: [] };
 
 const apparel: PlantModelDraft = {
@@ -430,6 +433,20 @@ export const PLANT_MODEL_TEMPLATES: readonly PlantModelTemplate[] = Object.freez
     description:
       'Start with an area, reusable work centers, child equipment, and a complete route.',
     draft: apparel,
+  },
+  {
+    id: 'demo1-home-appliance',
+    name: 'Demo Data 1 – Home Appliance Plant (Chest Freezers)',
+    description:
+      'A chest-freezer plant: 7 areas, 3 lines, a 13-step route from sheet pressing to finished-goods receipt, equipment and utilities, with two properties read live from the data warehouse.',
+    draft: demo1HomeAppliance,
+  },
+  {
+    id: 'demo2-coffee-capsules',
+    name: 'Demo Data 2 – Coffee Capsule Plant',
+    description:
+      'Two coffee-capsule filling and packing lines: 11 stations per line from powder feed to finished goods, a humidity-controlled filling room, equipment, utilities, and live status, health and environment properties read from the data warehouse.',
+    draft: demo2CoffeeCapsules,
   },
   {
     id: 'property-type-showcase',

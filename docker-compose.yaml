@@ -5,6 +5,7 @@
 #
 # Services:
 #   - Infrastructure: postgres, minio, spark-master, spark-worker, trino-coordinator, trino-worker
+#   - Mock source data: sample-postgres (Demo Data 1 + 2, see mock-data/README.md)
 #   - Celesnity Core: api + worker (NestJS)
 #   - Celesnity Web: Next.js frontend
 #   - Minder Agent: runtime only (Rust minder-serve)
@@ -24,6 +25,7 @@
 #   9000  minio S3 API
 #   9001  minio console
 #   15432 celesnity postgres
+#   15433 sample-postgres (mock source data)
 
 name: minder-sys
 
@@ -48,6 +50,10 @@ x-spark-env: &spark-env
   POSTGRES_USER: ${POSTGRES_USER:-celesnity}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
   POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-celesnity}
+  WAREHOUSE_PATH: s3://${MINIO_BUCKET:-warehouse}
+  CELESNITY_CATALOG_JDBC_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-celesnity}
+  CELESNITY_CATALOG_JDBC_USER: ${POSTGRES_USER:-celesnity}
+  CELESNITY_CATALOG_JDBC_PASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
   SPARK_MASTER_HOST: spark-master
   SPARK_MASTER_INTERNAL_PORT: "7077"
 
@@ -96,8 +102,18 @@ x-core-env: &core-env
   # (http://minder-agent.internal, unresolvable in this network) instead.
   MINDER_AGENT_URL: http://minder-runtime:8080/api/v2
   MINDER_CHAT_AGENT_NAME: chat-assistant
-  REDPANDA_BROKERS: ""
+  # Redpanda carries metadata-crawler runs, automation triggers and the MQTT
+  # bronze stream; without it a crawler run is queued but never executed.
+  INTEGRATION_EVENT_PUBLISHER_BACKEND: redpanda
+  REDPANDA_BROKERS: redpanda:9092
+  REDPANDA_USERNAME: ${REDPANDA_USERNAME:-celesnity-admin}
+  REDPANDA_PASSWORD: ${REDPANDA_PASSWORD:-celesnity_redpanda_password}
   REDPANDA_TLS_ENABLED: "false"
+  # MQTT control plane (EMQX runs with the `streaming` profile).
+  EMQX_API_URL: http://emqx:18083/api/v5
+  EMQX_API_KEY: celesnity-core
+  EMQX_API_SECRET: ${EMQX_API_SECRET:-celesnity_emqx_api_secret}
+  MQTT_PUBLIC_ENDPOINT: mqtt://localhost:${MQTT_PORT:-1883}
 
 # ============================================================================
 # Services
@@ -126,6 +142,36 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Mock source data: PostgreSQL standing in for two plants' MES/ERP systems
+  #
+  # Loads mock-data/init/*.sql.gz (schemas demo1_home_appliance and
+  # demo2_coffee_capsules) the first time the volume is created. To reload
+  # after rebuilding the dumps: docker compose down sample-postgres -v, then up.
+  # Inside the compose network Core reaches it as sample-postgres:5432
+  # (already in CONNECTION_ALLOWED_HOSTS).
+  # --------------------------------------------------------------------------
+  sample-postgres:
+    image: postgres:17.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${SAMPLE_POSTGRES_DB:-sample}
+      POSTGRES_USER: ${SAMPLE_POSTGRES_USER:-sample}
+      POSTGRES_PASSWORD: ${SAMPLE_POSTGRES_PASSWORD:-sample_dev_password}
+    ports:
+      - "127.0.0.1:${SAMPLE_POSTGRES_PORT:-15433}:5432"
+    volumes:
+      - sample_postgres_data:/var/lib/postgresql/data
+      - ./mock-data/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
     networks:
       - infra
 
@@ -175,6 +221,200 @@ services:
         /usr/bin/mc version enable "local/$${MINIO_ARTIFACTS_BUCKET}"
         printf '' | /usr/bin/mc pipe "local/$${MINIO_ARTIFACTS_BUCKET}/scripts/.keep"
         printf '' | /usr/bin/mc pipe "local/$${MINIO_ARTIFACTS_BUCKET}/executions/.keep"
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Messaging: Redpanda (Kafka API) + topic bootstrap
+  # --------------------------------------------------------------------------
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v26.1.14
+    restart: unless-stopped
+    command:
+      - redpanda
+      - start
+      - --kafka-addr=internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr=internal://redpanda:9092,external://localhost:${REDPANDA_PORT:-19092}
+      - --schema-registry-addr=internal://0.0.0.0:8081,external://0.0.0.0:18081
+      - --rpc-addr=redpanda:33145
+      - --advertise-rpc-addr=redpanda:33145
+      - --mode=dev-container
+      - --smp=1
+      - --memory=1G
+      - --reserve-memory=0M
+      - --default-log-level=warn
+    environment:
+      RP_BOOTSTRAP_USER: ${REDPANDA_USERNAME:-celesnity-admin}:${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+    ports:
+      - "127.0.0.1:${REDPANDA_PORT:-19092}:19092"
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+      - ./celesnity-infra/config/redpanda/bootstrap.yaml:/etc/redpanda/.bootstrap.yaml:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "rpk cluster info -X brokers=127.0.0.1:9092 -X user=$${REDPANDA_USERNAME:-celesnity-admin} -X pass=$${REDPANDA_PASSWORD:-celesnity_redpanda_password} -X sasl.mechanism=SCRAM-SHA-256",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+    networks:
+      - infra
+
+  redpanda-init:
+    image: docker.redpanda.com/redpandadata/redpanda:v26.1.14
+    restart: "no"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-ceu"]
+    command:
+      - |
+        RPK_ARGS=(-X brokers=redpanda:9092 -X user="$${REDPANDA_USERNAME}" -X pass="$${REDPANDA_PASSWORD}" -X sasl.mechanism=SCRAM-SHA-256)
+        rpk topic create celesnity.streaming.control.v1 --partitions 1 --replicas 1 --topic-config cleanup.policy=compact "$${RPK_ARGS[@]}" || true
+        rpk topic create celesnity.mqtt.raw.shared-0.v1 --partitions 12 --replicas 1 --topic-config retention.ms=604800000 "$${RPK_ARGS[@]}" || true
+        rpk topic create celesnity.mqtt.dlq.v1 --partitions 3 --replicas 1 --topic-config retention.ms=604800000 "$${RPK_ARGS[@]}" || true
+        rpk topic create celesnity.streaming.audit.v1 --partitions 3 --replicas 1 --topic-config retention.ms=2592000000 "$${RPK_ARGS[@]}" || true
+        rpk topic create celesnity.data-workflow.cdc.v1 --partitions 6 --replicas 1 --topic-config retention.ms=604800000 "$${RPK_ARGS[@]}" || true
+        rpk registry schema create celesnity.mqtt.raw.v1-value --schema /schemas/mqtt-bronze-envelope.schema.json --type json -X registry.hosts=redpanda:8081 -X user="$${REDPANDA_USERNAME}" -X pass="$${REDPANDA_PASSWORD}" || true
+    environment:
+      REDPANDA_USERNAME: ${REDPANDA_USERNAME:-celesnity-admin}
+      REDPANDA_PASSWORD: ${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+    volumes:
+      - ./celesnity-infra/config/redpanda:/schemas:ro
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Streaming (profile `streaming`): MQTT broker → Redpanda → Iceberg bronze
+  #
+  #   SPARK_WORKER_REPLICAS=2 docker compose --profile streaming up -d
+  #
+  # The bronze stream holds one Spark worker permanently, so run two workers
+  # with this profile or batch pipelines will queue behind it.
+  # --------------------------------------------------------------------------
+  emqx:
+    profiles: [streaming]
+    image: emqx/emqx:5.8.9
+    restart: unless-stopped
+    environment:
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD:-celesnity_emqx_dashboard_password}
+    ports:
+      - "127.0.0.1:${MQTT_PORT:-1883}:1883"
+      - "127.0.0.1:${EMQX_DASHBOARD_PORT:-18083}:18083"
+    volumes:
+      - ./celesnity-infra/config/emqx/base.hocon:/opt/emqx/etc/base.hocon:ro
+      - ./celesnity-infra/config/emqx/default_api_key.conf:/opt/emqx/etc/default_api_key.conf:ro
+      - ./celesnity-infra/config/emqx/auth-built-in-db-bootstrap.csv:/opt/emqx/etc/auth-built-in-db-bootstrap.csv:ro
+      - ./celesnity-infra/config/emqx/acl.conf:/opt/emqx/etc/acl.conf:ro
+      - emqx_data:/opt/emqx/data
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx_ctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - infra
+
+  redpanda-connect:
+    profiles: [streaming]
+    image: docker.redpanda.com/redpandadata/connect:4.104.0
+    # The 4.104.0 arm64 binary segfaults on Apple Silicon before configuration
+    # is loaded; the amd64 image runs under Docker Desktop's emulation.
+    platform: ${REDPANDA_CONNECT_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    depends_on:
+      emqx:
+        condition: service_healthy
+      redpanda-init:
+        condition: service_completed_successfully
+    command:
+      [
+        "streams",
+        "--observability",
+        "/etc/redpanda-connect/root.yaml",
+        "/etc/redpanda-connect/streams/mqtt-to-redpanda.yaml",
+      ]
+    environment:
+      MQTT_CONNECT_CLIENT_ID: ${MQTT_CONNECT_CLIENT_ID:-celesnity-redpanda-connect-shared-0}
+      MQTT_CONNECT_USERNAME: ${MQTT_CONNECT_USERNAME:-celesnity-connect}
+      MQTT_CONNECT_PASSWORD: ${MQTT_CONNECT_PASSWORD:-celesnity_connect_password}
+      MQTT_BROKER_INTERNAL_URL: tcp://emqx:1883
+      REDPANDA_BROKERS: redpanda:9092
+      REDPANDA_USERNAME: ${REDPANDA_USERNAME:-celesnity-admin}
+      REDPANDA_PASSWORD: ${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+    volumes:
+      - ./celesnity-infra/config/redpanda-connect/root.yaml:/etc/redpanda-connect/root.yaml:ro
+      - ./celesnity-infra/config/redpanda-connect/mqtt-to-redpanda.yaml:/etc/redpanda-connect/streams/mqtt-to-redpanda.yaml:ro
+    networks:
+      - infra
+
+  mqtt-stream-init:
+    profiles: [streaming]
+    <<: *spark-image
+    user: "0:0"
+    restart: "no"
+    command: ["/bin/bash", "-ceu", "mkdir -p /opt/spark/checkpoints/mqtt/shared-0 && chown -R 185:185 /opt/spark/checkpoints"]
+    volumes:
+      - mqtt_stream_checkpoints:/opt/spark/checkpoints
+    networks:
+      - infra
+
+  # One always-running Structured Streaming driver consumes the raw Redpanda
+  # topic. Registering adapters updates EMQX principals and ACLs; it does not
+  # create another Spark application.
+  mqtt-bronze-stream:
+    profiles: [streaming]
+    <<: *spark-image
+    restart: unless-stopped
+    command:
+      - /opt/spark/bin/spark-submit
+      - --master
+      - spark://spark-master:7077
+      - --deploy-mode
+      - client
+      - --driver-memory
+      - 1g
+      - --executor-memory
+      - 1g
+      - --executor-cores
+      - "1"
+      - --conf
+      - spark.cores.max=1
+      - /opt/celesnity/streaming/mqtt_bronze_stream.py
+    environment:
+      <<: *spark-env
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_SSLMODE: disable
+      ARTIFACTS_BUCKET: ${MINIO_ARTIFACTS_BUCKET:-celesnity-artifacts}
+      REDPANDA_BOOTSTRAP_SERVERS: redpanda:9092
+      REDPANDA_USERNAME: ${REDPANDA_USERNAME:-celesnity-admin}
+      REDPANDA_PASSWORD: ${REDPANDA_PASSWORD:-celesnity_redpanda_password}
+      REDPANDA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      REDPANDA_RAW_TOPIC: celesnity.mqtt.raw.shared-0.v1
+      STREAMING_DEPLOYMENT_ID: shared-0
+      STREAMING_TRIGGER_INTERVAL: 5 seconds
+      STREAMING_CHECKPOINT_LOCATION: file:///opt/spark/checkpoints/mqtt/shared-0
+      SPARK_DRIVER_HOST: mqtt-bronze-stream
+    depends_on:
+      spark-master:
+        condition: service_healthy
+      spark-worker:
+        condition: service_healthy
+      redpanda-init:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      mqtt-stream-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./celesnity-infra/config/spark/mqtt_bronze_stream.py:/opt/celesnity/streaming/mqtt_bronze_stream.py:ro
+      - mqtt_stream_checkpoints:/opt/spark/checkpoints
+      - spark_ivy:/opt/spark/ivy
     networks:
       - infra
 
@@ -369,6 +609,8 @@ services:
         condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
+      redpanda-init:
+        condition: service_completed_successfully
       trino-coordinator:
         condition: service_healthy
     healthcheck:
@@ -398,8 +640,16 @@ services:
       SPARK_EXECUTION_BACKEND: docker
       SPARK_SUBMIT_MASTER_URL: spark://spark-master:7077
       SPARK_CONTAINER: minder-sys-spark-master-1
-      INTEGRATION_EVENT_PUBLISHER_BACKEND: logging
+      # Pin the Iceberg catalog Spark writes to. A pipeline execution injects its
+      # *source* connection as POSTGRES_URL/USER/PASSWORD, and without these the
+      # generated job registers its output tables in the source database, where
+      # Trino never sees them (the run still reports SUCCEEDED).
+      CELESNITY_CATALOG_JDBC_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-celesnity}
+      CELESNITY_CATALOG_JDBC_USER: ${POSTGRES_USER:-celesnity}
+      CELESNITY_CATALOG_JDBC_PASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
     depends_on:
+      redpanda-init:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       celesnity-migrate:
@@ -577,9 +827,9 @@ services:
   minder-sandbox-runner:
     build:
       context: ./minder-agent
-      dockerfile: docker/sandbox-runtime.Dockerfile
-      args:
-        SANDBOX_BASE_IMAGE: minder/sandbox-runner-base:dev
+      # This snapshot of minder-agent ships a self-contained sandbox Dockerfile
+      # (no docker/*-base.Dockerfile), so no base image has to be built first.
+      dockerfile: sandbox-runner/Dockerfile
     image: minder/sandbox-runner:dev
     restart: unless-stopped
     environment:
@@ -648,8 +898,12 @@ networks:
 # ============================================================================
 volumes:
   postgres_data:
+  sample_postgres_data:
   minio_data:
   spark_ivy:
+  redpanda_data:
+  emqx_data:
+  mqtt_stream_checkpoints:
   trino_data:
   minder_pgdata:
   minder_workspace_cache:

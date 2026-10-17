@@ -45,6 +45,7 @@ import { Input } from '@/app/_components/ui/input';
 import { Label } from '@/app/_components/ui/label';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/app/_components/ui/hover-card';
 import { NativeSelect, NativeSelectOption } from '@/app/_components/ui/native-select';
+import { SearchField } from '@/app/_components/ui/search-field';
 import { Switch } from '@/app/_components/ui/switch';
 import type {
   PlantCatalogLookupResult,
@@ -104,6 +105,8 @@ export function PlantModelScreen({
   const [templates, setTemplates] = useState<readonly PlantModelTemplate[]>([]);
   const [versions, setVersions] = useState<readonly PlantModelVersion[]>([]);
   const [activePanel, setActivePanel] = useState<'inspector' | null>(null);
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
 
   useEffect(() => {
     let active = true;
@@ -201,6 +204,30 @@ export function PlantModelScreen({
     }
   }
 
+  /*
+   * Which nodes the type filter leaves on the canvas, and which ones the search
+   * box offers to jump to.
+   *
+   * The overview drops filtered-out nodes from the array it hands React Flow.
+   * This screen cannot: the canvas is an editor whose node list carries drag
+   * positions and selection, and rebuilding it around a filter loses them. The
+   * hidden ids travel to PlantCanvas instead, which sets React Flow's own
+   * `hidden` flag and leaves every node object where it was.
+   */
+  const hiddenNodeIds = useMemo(() => {
+    if (typeFilter === 'all') return new Set<string>();
+    return new Set(
+      (draft?.nodes ?? []).filter((node) => node.nodeTypeId !== typeFilter).map((node) => node.id),
+    );
+  }, [draft?.nodes, typeFilter]);
+  const searchMatches = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (term === '') return [];
+    return (draft?.nodes ?? [])
+      .filter((node) => !hiddenNodeIds.has(node.id) && node.name.toLowerCase().includes(term))
+      .slice(0, 8);
+  }, [draft?.nodes, hiddenNodeIds, search]);
+
   if (!site || !draft)
     return (
       <div className="grid h-full place-items-center text-sm text-muted-foreground">
@@ -263,7 +290,7 @@ export function PlantModelScreen({
       ) : null}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <section className="relative min-h-[420px] min-w-0 flex-1">
-          <div className="absolute top-3 left-3 z-10 flex gap-2">
+          <div className="absolute top-3 right-3 left-3 z-10 flex flex-wrap items-start gap-2">
             <Button
               size="sm"
               disabled={draft.nodeTypes.length === 0}
@@ -297,6 +324,68 @@ export function PlantModelScreen({
               <PlusIcon />
               {t('plantModel.addNode')}
             </Button>
+
+            <div className="relative w-56 max-w-full shrink-0">
+              <SearchField
+                aria-label={t('plantModel.searchNodesLabel')}
+                placeholder={t('plantModel.searchNodes')}
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onClear={() => setSearch('')}
+              />
+              {search.trim() === '' ? null : (
+                <div
+                  role="listbox"
+                  aria-label={t('plantModel.searchNodesLabel')}
+                  className="absolute mt-1 max-h-64 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md"
+                >
+                  {searchMatches.length === 0 ? (
+                    <p className="px-2 py-2 text-sm text-muted-foreground">
+                      {t('plantModel.noMatchingNodes')}
+                    </p>
+                  ) : (
+                    searchMatches.map((node) => (
+                      <button
+                        key={node.id}
+                        type="button"
+                        role="option"
+                        aria-selected={node.id === selectedId}
+                        className="flex w-full items-center justify-between gap-3 rounded-sm px-2 py-2 text-left text-sm hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
+                        onClick={() => {
+                          setSelectedId(node.id);
+                          setSelectedRelationshipId(undefined);
+                          selectWorkspaceNode(node.id);
+                          setActivePanel('inspector');
+                          setSearch('');
+                        }}
+                      >
+                        <span className="truncate font-medium">{node.name}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {draft.nodeTypes.find((type) => type.id === node.nodeTypeId)?.name ?? ''}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="shrink-0">
+              <NativeSelect
+                size="sm"
+                className="max-w-44 bg-background"
+                aria-label={t('plantModel.filterByNodeType')}
+                value={typeFilter}
+                onChange={(event) => setTypeFilter(event.target.value)}
+              >
+                <NativeSelectOption value="all">{t('plantModel.allNodeTypes')}</NativeSelectOption>
+                {draft.nodeTypes.map((type) => (
+                  <NativeSelectOption key={type.id} value={type.id}>
+                    {type.name}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </div>
           </div>
           <PlantCanvas
             draft={draft}
@@ -315,6 +404,7 @@ export function PlantModelScreen({
               setActivePanel(null);
             }}
             updateDraft={updateDraft}
+            hiddenNodeIds={hiddenNodeIds}
           />
         </section>
         {activePanel === 'inspector' && selected && selectedType ? (
@@ -341,6 +431,7 @@ function PlantCanvas({
   select,
   selectRelationship,
   updateDraft,
+  hiddenNodeIds,
 }: {
   readonly draft: PlantModelDraft;
   readonly selectedId?: string;
@@ -348,6 +439,8 @@ function PlantCanvas({
   readonly select: (id?: string) => void;
   readonly selectRelationship: (id?: string) => void;
   readonly updateDraft: (fn: (draft: PlantModelDraft) => PlantModelDraft) => void;
+  /** Filtered out by node type: hidden on the canvas, but still part of the draft. */
+  readonly hiddenNodeIds: ReadonlySet<string>;
 }) {
   const { t } = useTranslation();
   const types = useMemo(
@@ -363,6 +456,7 @@ function PlantCanvas({
         initialWidth: 208,
         initialHeight: 64,
         selected: node.id === selectedId,
+        hidden: hiddenNodeIds.has(node.id),
         data: (() => {
           const type = types.get(node.nodeTypeId);
           const display =
@@ -386,16 +480,22 @@ function PlantCanvas({
           };
         })(),
       })),
-    [draft, selectedId, t, types],
+    [draft, hiddenNodeIds, selectedId, t, types],
   );
   const [nodes, setNodes] = useState<Node[]>(projectedNodes);
-  const [projection, setProjection] = useState({ source: draft.nodes, selectedId, types });
+  const [projection, setProjection] = useState({
+    source: draft.nodes,
+    selectedId,
+    types,
+    hiddenNodeIds,
+  });
   if (
     projection.source !== draft.nodes ||
     projection.selectedId !== selectedId ||
-    projection.types !== types
+    projection.types !== types ||
+    projection.hiddenNodeIds !== hiddenNodeIds
   ) {
-    setProjection({ source: draft.nodes, selectedId, types });
+    setProjection({ source: draft.nodes, selectedId, types, hiddenNodeIds });
     setNodes((current) =>
       projectedNodes.map((projected) => {
         const existing = current.find((node) => node.id === projected.id);
@@ -415,8 +515,11 @@ function PlantCanvas({
           target: edge.targetNodeId,
           markerEnd: { type: MarkerType.ArrowClosed },
           selected: edge.id === selectedRelationshipId,
+          /* React Flow keeps drawing an edge whose endpoints are hidden, which
+             leaves a route line ending in empty space. */
+          hidden: hiddenNodeIds.has(edge.sourceNodeId) || hiddenNodeIds.has(edge.targetNodeId),
         })),
-    [draft.relationships, selectedRelationshipId],
+    [draft.relationships, hiddenNodeIds, selectedRelationshipId],
   );
   const onNodesChange = (changes: NodeChange[]) => {
     setNodes((current) => applyNodeChanges(changes, current));
