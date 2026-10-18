@@ -72,8 +72,44 @@ One line of description
 
 Times (`0:44–0:58`), values (`45 N·m`), codes (`PELLET_DEMO`), revisions (`r3`) and counts in tables use `font-mono tabular-nums`.
 
+## 5. Ask Minder: a notebook, not a messenger
+
+Minder answers questions about data and plants. An answer is read, checked and built on, so the conversation reads as a notebook of exchanges rather than a chat thread.
+
+**Home (no conversation yet)**
+
+```
+ASK MINDER · ● Connected to workspace data
+What can I help you analyze?
+One line of description
+[ composer: scope chips, prompt, send ]
+START FROM          4 starter cards in a 2×2 grid, each showing its /command
+FROM THE FLOOR      Walk the floor · Capture a repair
+RECENT              last three conversations
+```
+
+- Left-aligned, on the reading column, like every other page header.
+- The plant features are one click from home.
+
+**Conversation**
+
+```
+[≡ conversations] ASK MINDER / title            [scope] [timeline] [stage] [new]
+──────────────────────────────────────────────────────────────────────────
+How many customers are in demo.customers?           ← the question is the title
+answer prose, charts, tables, follow-ups
+──────────────────────────────────────────────────────────────────────────
+Break this down by region                           ← next exchange
+…
+            ╭ composer, docked over a fade ╮
+            Enter to send · Shift+Enter new line · / starters
+```
+
+- **Bar:** solid, not floating. It holds the conversation title, then the scope (database, agent) on the right. Scope sets the context for the whole conversation, so it leaves the composer.
+- **Questions:** left-aligned, `text-heading-4`, with no bubble. A rule separates exchanges.
+- **Composer:** docked over the transcript with a fade instead of a bordered strip. The send button turns primary once there is text.
+
 ## Not in scope
 
 - Colours, fonts, radius and elevation stay as they are.
 - Component internals in `app/_components/ui` are not touched.
-- Chat transcript layout is not touched.

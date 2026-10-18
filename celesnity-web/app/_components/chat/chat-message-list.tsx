@@ -121,6 +121,7 @@ export function ChatMessageList({
     (newest, message) => (message.role === 'user' ? message.id : newest),
     undefined,
   );
+  const firstQuestionId = messages.find((message) => message.role === 'user')?.id;
 
   /* The newest question is the scroll anchor: when it arrives the scroller
      brings it to the top once, holds a spacer under it for the answer to
@@ -185,26 +186,39 @@ export function ChatMessageList({
                     messageId={msg.id}
                     scrollAnchor={msg.id === newestQuestionId}
                   >
+                    {/* A question opens an exchange the way a heading opens
+                        a section: on the left, in the answer's gutter, with
+                        a rule above every exchange but the first. A pasted
+                        paragraph stays body-sized; a title that long is a
+                        wall. */}
                     <Message
-                      align="end"
-                      className="motion-safe:animate-message-in"
+                      className={cn(
+                        'motion-safe:animate-message-in',
+                        msg.id !== firstQuestionId && 'mt-4 border-t border-border pt-8',
+                      )}
                       ref={(node: HTMLDivElement | null) => {
                         if (node) messageRowRefs.current.set(msg.id, node);
                         else messageRowRefs.current.delete(msg.id);
                       }}
                     >
-                      <MessageContent>
+                      <MessageContent className="gap-1 px-3 sm:px-4">
                         <Bubble
-                          align="end"
-                          variant="secondary"
-                          className={cn(msg.pending && 'opacity-70')}
+                          variant="ghost"
+                          className={cn('max-w-full', msg.pending && 'opacity-70')}
                         >
-                          <BubbleContent className="text-body-md leading-[1.6] whitespace-pre-wrap sm:px-4 sm:py-3">
+                          <BubbleContent
+                            className={cn(
+                              'whitespace-pre-wrap text-foreground',
+                              questionIsLong(msg.content)
+                                ? 'text-body-md font-medium'
+                                : 'text-title tracking-[-0.01em]',
+                            )}
+                          >
                             <UserMessageContent content={msg.content} />
                           </BubbleContent>
                         </Bubble>
                         {msg.pending ? (
-                          <span className="flex items-center gap-1.5 self-end pr-1 text-micro text-muted-foreground">
+                          <span className="flex items-center gap-1.5 text-micro text-muted-foreground">
                             <svg
                               className="h-3 w-3 text-muted-foreground"
                               viewBox="0 0 16 16"
@@ -229,10 +243,7 @@ export function ChatMessageList({
                             {t('chat.messagePending')}
                           </span>
                         ) : (
-                          <MessageTime
-                            className={cn(REVEALED_ON_HOVER, 'self-end pr-1')}
-                            iso={msg.timestamp}
-                          />
+                          <MessageTime className={REVEALED_ON_HOVER} iso={msg.timestamp} />
                         )}
                       </MessageContent>
                     </Message>
@@ -670,6 +681,11 @@ function formatTimestamp(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+/** Past this a question reads as a paragraph, not a title. */
+function questionIsLong(content: string): boolean {
+  return parseSystemReminderContent(content).content.length > 160;
 }
 
 const ATTACHMENT_PATTERN = /\n\n\(Attached: (.+)\)$/;

@@ -4,13 +4,14 @@
 
 ## 1. The start screen
 
-With no conversation open, the screen asks **"What can I help you analyze?"** and offers:
+With no conversation open, the screen opens with **Ask Minder** and asks **"What can I help you analyze?"**. Under it:
 
-- The **question box** in the middle.
-- **Suggested**: four quick starts: _Explore my data catalog_, _Help me write a SQL query_, _Build a data pipeline_, _Visualize my data_. Clicking one sends it straight away.
-- **Recent**: your latest conversations; click to reopen.
+- The **question box**.
+- **Start from**: four starter cards: _Explore my data catalog_, _Help me write a SQL query_, _Build a data pipeline_, _Visualize my data_. Clicking one sends it straight away. The corner of each card shows the **/** command that does the same from the question box.
+- **From the floor**: _Walk the floor_ opens the Walk-in Twin upload; _Capture a repair_ opens repair capture for your first plant (or the plant list when there is none yet).
+- **Recent**: your three latest conversations; click to reopen.
 
-The status line above reads **"Connected to workspace data"** when the assistant is ready. If it says **"Chat service is unavailable"**, wait a moment and reload; if it persists, tell your administrator.
+The status line next to **Ask Minder** reads **"Connected to workspace data"** when the assistant is ready. If it says **"Chat service is unavailable"**, wait a moment and reload; if it persists, tell your administrator.
 
 ## 2. The question box
 
@@ -45,6 +46,10 @@ While the assistant is still working, a **"Thinking…"** card under the text al
 - **System approval** ("Waiting for your approval"): the same idea, with **Approve / Deny**. An expired request says _"Approval request expired"_; ask again and the assistant creates a new one.
 
 ## 5. Conversations and the side panel
+
+Each question opens its own section: it is shown on the left as the section's title, the answer follows under it, and a line separates one question and its answer from the next.
+
+The bar across the top of a conversation shows its title. The data scope (**Asking about**) and the **Agent** sit on the right of that bar rather than in the question box, because they apply to the whole conversation. On a phone they wrap to a second row.
 
 - **Conversations** (top left of the chat area): **New conversation**, search, and reopening older ones. Every conversation has its own address, which you can send to a colleague who has access.
 - **Show conversation timeline**: a timeline of turns, handy in a long conversation.

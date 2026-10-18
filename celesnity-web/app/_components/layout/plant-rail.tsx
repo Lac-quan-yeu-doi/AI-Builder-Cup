@@ -123,8 +123,8 @@ export function PlantRail({
       className={cn(
         'flex min-h-[34px] items-center gap-2.5 rounded-lg px-2.5 text-body-sm focus-visible:outline-none',
         active
-          ? 'bg-sidebar-selected font-[650] text-foreground'
-          : 'text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground',
+          ? 'bg-background font-[650] text-foreground shadow-100 ring-1 ring-border'
+          : 'text-muted-foreground hover:bg-background/60 hover:text-foreground focus-visible:bg-background/60 focus-visible:text-foreground',
         collapsed && 'md:justify-center md:px-0',
       )}
     >
@@ -147,7 +147,7 @@ export function PlantRail({
             aria-label={t('plantRail.switch')}
             title={current?.name ?? t('plantRail.switch')}
             className={cn(
-              'mt-2 mb-1 flex items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent',
+              'mt-2 mb-1 flex items-center gap-2.5 rounded-lg border border-border bg-background px-2.5 py-2 text-left shadow-100 hover:bg-background/80',
               collapsed && 'md:justify-center md:border-0 md:bg-transparent md:px-0',
             )}
           >
@@ -212,8 +212,8 @@ export function PlantRail({
         className={cn(
           'mt-4 flex min-h-[34px] items-center gap-2.5 rounded-lg px-2.5 text-body-sm',
           assistantOpen
-            ? 'bg-sidebar-selected font-[650] text-foreground'
-            : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+            ? 'bg-background font-[650] text-foreground shadow-100 ring-1 ring-border'
+            : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
           collapsed && 'md:justify-center md:px-0',
         )}
       >

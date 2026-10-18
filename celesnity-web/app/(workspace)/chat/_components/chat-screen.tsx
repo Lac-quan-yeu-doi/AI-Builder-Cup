@@ -11,6 +11,8 @@ import {
   FolderTreeIcon,
   InfoIcon,
   SquarePenIcon,
+  UploadIcon,
+  VideoIcon,
 } from 'lucide-react';
 
 import { ChartIcon, PanelLeftOpenIcon, WorkflowIcon } from '@/app/_components/ui/icons';
@@ -38,6 +40,7 @@ import type { ListWorkspaceTreeController } from '@/src/interface-adapters/contr
 import type { GetWorkspaceFileContentController } from '@/src/interface-adapters/controllers/workspace-tree/get-workspace-file-content.controller';
 import type { ListAgentManifestsController } from '@/src/interface-adapters/controllers/agent-manifests/list-agent-manifests.controller';
 import type { AgentManifestSummary } from '@/src/entities/models/agent-manifest';
+import type { PlantSiteSummary } from '@/src/entities/models/plant-model';
 
 import {
   ChatComposer,
@@ -47,7 +50,11 @@ import {
 import { PLUGINS } from '@/app/(workspace)/plugins/_components/plugin-registry';
 import { GoogleDriveIcon } from '@/app/(workspace)/plugins/_components/google-drive-icon';
 import { ChatDatabasePicker } from './chat-database-picker';
-import { ChatLanding, type ChatConnectionStatus } from '@/app/_components/chat/chat-landing';
+import {
+  ChatLanding,
+  type ChatConnectionStatus,
+  type LandingShortcut,
+} from '@/app/_components/chat/chat-landing';
 import { ChatMessageList } from '@/app/_components/chat/chat-message-list';
 import { READING_COLUMN } from '@/app/_components/chat/reading-column';
 import { ConversationsMenu } from './conversations-menu';
@@ -147,6 +154,8 @@ interface ChatScreenProps {
   readonly cancelCanonicalChartRun?: CancelCanonicalChartRunController;
   readonly chartRenderer?: ChartRenderer;
   readonly saveChatPreview?: SaveChatChartPreviewController;
+  /** Plants in the workspace, so home can link straight into one. */
+  readonly listPlantSites?: () => Promise<readonly PlantSiteSummary[]>;
 }
 
 /**
@@ -209,6 +218,7 @@ export function ChatScreen({
   cancelCanonicalChartRun,
   chartRenderer,
   saveChatPreview,
+  listPlantSites,
 }: ChatScreenProps) {
   const { t } = useTranslation();
   const narrowChatLayout = useNarrowChatLayout();
@@ -270,6 +280,50 @@ export function ChatScreen({
   const messageRowRefs = useRef(new Map<string, HTMLDivElement>());
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [attachments, setAttachments] = useState<readonly ChatAttachment[]>([]);
+  const [firstPlantId, setFirstPlantId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!listPlantSites) return;
+    let active = true;
+    void listPlantSites().then(
+      (sites) => {
+        if (active) setFirstPlantId(sites[0]?.id ?? null);
+      },
+      () => undefined,
+    );
+    return () => {
+      active = false;
+    };
+  }, [listPlantSites]);
+
+  /* Home is the workspace's front door, and the two plant flows are the ones
+     that start from a video rather than a question. A repair belongs to a
+     plant, so without one it opens the plant list instead. */
+  const floorShortcuts = useMemo<readonly LandingShortcut[]>(
+    () =>
+      listPlantSites
+        ? [
+            {
+              id: 'walk',
+              href: '/plant-model/walkthrough',
+              label: t('chat.landing.walk'),
+              description: t('chat.landing.walk.desc'),
+              icon: <UploadIcon size={16} />,
+            },
+            {
+              id: 'repair',
+              href:
+                firstPlantId === null
+                  ? '/plant-model'
+                  : `/plant-model/${encodeURIComponent(firstPlantId)}/repairs/capture`,
+              label: t('chat.landing.repair'),
+              description: t('chat.landing.repair.desc'),
+              icon: <VideoIcon size={16} />,
+            },
+          ]
+        : [],
+    [firstPlantId, listPlantSites, t],
+  );
 
   const PLUGIN_ICON_MAP: Record<string, React.ReactNode> = useMemo(
     () => ({
@@ -720,11 +774,11 @@ export function ChatScreen({
 
   const messages = useMemo(() => activeSession?.messages ?? [], [activeSession]);
 
-  /* The two most recent conversations, for the opening screen's Recent list.
+  /* The three most recent conversations, for the opening screen's Recent list.
      Already in the store for the conversations menu, so this costs no read. */
   const recentConversations = useMemo(
     () =>
-      sessions.slice(0, 2).map((session) => ({
+      sessions.slice(0, 3).map((session) => ({
         id: session.id,
         title: session.title,
         subject: session.databaseName,
@@ -990,14 +1044,11 @@ export function ChatScreen({
             onRemoveAttachment={(id) => setAttachments((prev) => prev.filter((a) => a.id !== id))}
             recent={recentConversations}
             onSelectRecent={selectChat}
+            shortcuts={floorShortcuts}
             header={
-              <div className="flex w-full items-center gap-1.5">
+              <div className="flex w-full items-center gap-1">
                 <ConversationsMenu activeId={null} onSelect={selectChat} onNew={startNewChat} />
-                <IconButton
-                  label={t('chat.newConversation')}
-                  onClick={startNewChat}
-                  className="bg-[rgb(255_255_255/88%)] shadow-[0_8px_26px_rgb(28_50_40/9%)]"
-                >
+                <IconButton label={t('chat.newConversation')} onClick={startNewChat}>
                   <SquarePenIcon size={18} />
                 </IconButton>
               </div>
@@ -1027,41 +1078,42 @@ export function ChatScreen({
           minSize={stageVisible && narrowChatLayout ? 40 : 340}
         >
           <main className="relative flex h-full min-h-0 flex-col bg-card">
-            {/* Floating chrome — no second full-width header bar. */}
-            <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-3 py-2 sm:px-5 sm:py-3">
-              {/* The chrome floats over the transcript, so a message scrolling
-                  past it used to be guillotined by the viewport edge a few
-                  pixels below. This dissolves it instead. First child, so it
-                  paints behind the controls. */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-card via-card to-transparent"
-              />
-              <div className="relative z-10 flex items-center gap-1.5">
+            {/* The conversation bar. It used to be icons floating over the
+                transcript with a fade under them; a notebook has a title, and
+                the scope (which database, which agent) is set once for the
+                whole conversation, so it lives here rather than in the
+                composer. On a phone the scope wraps to a second row. */}
+            <header
+              aria-label={t('chat.bar.label')}
+              className="relative z-10 flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border px-3 py-2 sm:px-4"
+            >
+              <div className="relative z-10 flex items-center gap-1">
                 <ConversationsMenu
                   activeId={activeSessionId}
                   onSelect={selectChat}
                   onNew={startNewChat}
                 />
-                <IconButton
-                  label={t('chat.newConversation')}
-                  onClick={startNewChat}
-                  className="bg-card/[0.88] shadow-300"
-                >
+                <IconButton label={t('chat.newConversation')} onClick={startNewChat}>
                   <SquarePenIcon size={18} />
                 </IconButton>
+              </div>
+              <div className="grid min-w-0 flex-1 leading-tight">
+                <span className="font-mono text-micro tracking-[0.12em] text-muted-foreground uppercase">
+                  {t('chat.bar.eyebrow')}
+                </span>
+                <span className="truncate text-label text-foreground">{activeSession?.title}</span>
+              </div>
+              <div className="order-last flex w-full min-w-0 items-center gap-2 overflow-x-auto sm:order-none sm:w-auto sm:shrink-0">
+                {databasePicker}
+                {agentPicker}
+              </div>
+              <div className="flex items-center gap-1">
                 {messages.length > 0 && (
-                  <IconButton
-                    label={t('chat.timeline.open')}
-                    onClick={() => setTimelineOpen(true)}
-                    className="bg-card/[0.88] shadow-300"
-                  >
+                  <IconButton label={t('chat.timeline.open')} onClick={() => setTimelineOpen(true)}>
                     <PanelLeftOpenIcon size={18} />
                   </IconButton>
                 )}
-              </div>
-              {paneCount > 0 && (
-                <div className="relative z-10 flex items-center gap-2">
+                {paneCount > 0 && (
                   <IconButton
                     label={
                       stageVisible
@@ -1069,7 +1121,6 @@ export function ChatScreen({
                         : t('chat.stage.show', { count: paneCount })
                     }
                     onClick={() => dispatchStage({ type: 'setOpen', open: !stage.open })}
-                    className="bg-card/[0.88] shadow-300"
                   >
                     {stage.open ? (
                       <PanelRightCloseIcon size={18} />
@@ -1077,9 +1128,9 @@ export function ChatScreen({
                       <PanelRightOpenIcon size={18} />
                     )}
                   </IconButton>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </header>
 
             {timelineOpen && (
               <ChatTimelineRail
@@ -1094,7 +1145,7 @@ export function ChatScreen({
               <div
                 role="status"
                 aria-live="polite"
-                className="absolute inset-x-0 top-12 z-20 mx-auto flex w-fit items-center gap-2 rounded-full border border-status-warning/40 bg-status-warning-light px-3 py-1.5 text-xs text-status-warning-dark shadow-sm"
+                className="absolute inset-x-0 top-20 z-20 mx-auto flex w-fit items-center gap-2 rounded-full border border-status-warning/40 bg-status-warning-light px-3 py-1.5 text-xs text-status-warning-dark shadow-sm"
               >
                 <ThinkingOrb label={t('chat.reconnecting')} size={20} state="connecting" />
                 {t('chat.reconnecting')}
@@ -1103,7 +1154,7 @@ export function ChatScreen({
             {streamStatus === 'disconnected' && activeSession?.roomId && (
               <div
                 role="alert"
-                className="absolute inset-x-0 top-12 z-20 mx-auto flex w-fit items-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs text-destructive shadow-sm"
+                className="absolute inset-x-0 top-20 z-20 mx-auto flex w-fit items-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs text-destructive shadow-sm"
               >
                 <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
                 {t('chat.disconnected')}
@@ -1143,9 +1194,9 @@ export function ChatScreen({
                   setChartFocusRequest({ chartId: citation.id, nonce: Date.now() });
                 }}
                 onSuggestionSelect={handleSend}
-                /* Clears the floating chrome and the gradient under it, so the
-                   first message starts below the fade rather than inside it. */
-                contentClassName="pt-24 pb-4 sm:pt-24 sm:pb-5"
+                /* The bar is solid now, so the first exchange only needs
+                   breathing room; the bottom clears the composer's fade. */
+                contentClassName="pt-6 pb-8 sm:pt-8 sm:pb-10"
                 onOpenArtifact={openBlockArtifact}
                 openArtifactIds={openArtifactIds}
                 onInspectRun={openRunInspector}
@@ -1171,13 +1222,18 @@ export function ChatScreen({
               </div>
             )}
 
-            {/* Single composer at bottom */}
-            <div className="shrink-0 border-t border-border px-3 py-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] sm:px-5 sm:py-3 sm:pb-3">
+            {/* The composer docks under the transcript with no rule above
+                it: the last lines of an answer fade out behind it instead. The
+                scope moved to the bar, so the composer is only for writing. */}
+            <div className="relative shrink-0 px-3 pt-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] sm:px-5 sm:pb-3">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 bottom-full h-10 bg-gradient-to-t from-card to-transparent"
+              />
               <div className={READING_COLUMN}>
                 <ChatComposer
                   compact
                   disabled={isStreaming || pendingQuestion?.allowOther === false || pendingApproval}
-                  toolbar={chatToolbar}
                   tools={composerTools}
                   mentionSources={mentionSources}
                   onMentionAdd={handleMentionAdd}
@@ -1210,6 +1266,9 @@ export function ChatScreen({
                       : undefined
                   }
                 />
+                <p className="m-0 mt-2 hidden text-center font-mono text-micro text-muted-foreground sm:block">
+                  {t('chat.composer.hint')}
+                </p>
               </div>
             </div>
           </main>

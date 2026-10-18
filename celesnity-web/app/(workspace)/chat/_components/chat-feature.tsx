@@ -37,6 +37,8 @@ const runSavedCanonicalChart = getInjection('RunSavedCanonicalChartController');
 const cancelCanonicalChartRun = getInjection('CancelCanonicalChartRunController');
 const chartRenderer = getInjection('ChartRendererService');
 const saveChatPreview = getInjection('SaveChatChartPreviewController');
+const plantModel = getInjection('PlantModelController');
+const listPlantSites = () => plantModel.listSites();
 
 export function ChatFeature() {
   const activeExperience = useTutorialSessionStore((state) => state.activeExperience);
@@ -85,6 +87,7 @@ export function ChatFeature() {
       cancelCanonicalChartRun={cancelCanonicalChartRun}
       chartRenderer={chartRenderer}
       saveChatPreview={saveChatPreview}
+      listPlantSites={listPlantSites}
     />
   );
 }

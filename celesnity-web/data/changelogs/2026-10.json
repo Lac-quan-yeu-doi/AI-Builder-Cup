@@ -2,6 +2,26 @@
   "month": "2026-10",
   "entries": [
     {
+      "id": "2026-10-18-ask-minder-notebook",
+      "date": "2026-10-18",
+      "areas": [
+        "web"
+      ],
+      "kind": "improvement",
+      "version": "0.5.0",
+      "authors": [
+        "Hung"
+      ],
+      "title": {
+        "en": "Ask Minder reads like a notebook",
+        "vi": "Hỏi Minder giờ đọc như một cuốn sổ ghi chép"
+      },
+      "summary": {
+        "en": "Home opens like every other page, with four starter cards that show their / command, links to walk the floor or capture a repair, and your three latest conversations. In a conversation, each question is the title of its own section instead of a bubble on the right. The bar on top shows the conversation's title, with the database and agent beside it, and the question box sits under the answer with no line above it.",
+        "vi": "Trang chủ mở đầu giống mọi trang khác, có bốn thẻ gợi ý kèm lệnh /, lối vào đi một vòng xưởng hoặc ghi lại một lần sửa, và ba cuộc trò chuyện gần nhất. Trong cuộc trò chuyện, mỗi câu hỏi là tiêu đề của một phần riêng thay vì một bong bóng bên phải. Thanh trên cùng hiện tên cuộc trò chuyện, kèm cơ sở dữ liệu và agent bên cạnh, và ô nhập nằm ngay dưới câu trả lời, không còn đường kẻ phía trên."
+      }
+    },
+    {
       "id": "2026-10-18-plant-landing-and-rail",
       "date": "2026-10-18",
       "areas": [
@@ -17,8 +37,8 @@
         "vi": "Trang Mô hình nhà máy mới, thanh điều hướng theo nhà máy, một kiểu tiêu đề cho mọi màn"
       },
       "summary": {
-        "en": "Plant model now opens on the two ways to start, walking the floor or capturing a repair, then every plant and the latest repair guides; creating a plant by hand moved to a dialog. Inside a plant the left rail becomes the plant's navigation, with a plant switcher, its pages and Ask Minder about this plant, so the page gets the full width. Every screen opens with the same header: where you are, the title, and its actions.",
-        "vi": "Mô hình nhà máy giờ mở đầu bằng hai cách bắt đầu là đi một vòng xưởng hoặc ghi lại một lần sửa, rồi đến danh sách nhà máy và các hướng dẫn sửa máy gần đây; tạo nhà máy thủ công chuyển vào một hộp thoại. Khi mở một nhà máy, thanh bên trái trở thành điều hướng của nhà máy đó, có bộ chuyển nhà máy, các trang của nhà máy và Hỏi Minder về nhà máy này, nên nội dung được dùng hết chiều rộng. Mọi màn mở đầu bằng cùng một kiểu tiêu đề: bạn đang ở đâu, tên màn và các thao tác."
+        "en": "Plant model now opens on the two ways to start, walking the floor or capturing a repair, then every plant and the latest repair guides; creating a plant by hand moved to a dialog. Inside a plant the left rail becomes the plant's navigation, with a plant switcher, its pages and Ask Minder about this plant, so the page gets the full width. Every screen opens with the same header: where you are, the title, and its actions. The sidebar now sits behind the page like a tray: the current page is a raised chip, groups fold, and your account sits at the bottom.",
+        "vi": "Mô hình nhà máy giờ mở đầu bằng hai cách bắt đầu là đi một vòng xưởng hoặc ghi lại một lần sửa, rồi đến danh sách nhà máy và các hướng dẫn sửa máy gần đây; tạo nhà máy thủ công chuyển vào một hộp thoại. Khi mở một nhà máy, thanh bên trái trở thành điều hướng của nhà máy đó, có bộ chuyển nhà máy, các trang của nhà máy và Hỏi Minder về nhà máy này, nên nội dung được dùng hết chiều rộng. Mọi màn mở đầu bằng cùng một kiểu tiêu đề: bạn đang ở đâu, tên màn và các thao tác. Thanh bên giờ nằm phía sau trang như một khay: trang đang mở nổi lên thành một ô, các nhóm có thể thu gọn, và tài khoản nằm ở cuối."
       }
     },
     {

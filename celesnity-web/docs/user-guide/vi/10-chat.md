@@ -4,13 +4,14 @@
 
 ## 1. Màn hình bắt đầu
 
-Khi chưa có cuộc trò chuyện, màn hình hỏi **"What can I help you analyze?"** và có:
+Khi chưa có cuộc trò chuyện, màn hình mở đầu bằng **Hỏi Minder** và câu hỏi **"What can I help you analyze?"**. Bên dưới có:
 
-- **Ô nhập câu hỏi** ở giữa.
-- **Suggested**: bốn gợi ý bắt đầu nhanh: _Explore my data catalog_, _Help me write a SQL query_, _Build a data pipeline_, _Visualize my data_. Bấm một gợi ý là gửi ngay.
-- **Recent**: các cuộc trò chuyện gần đây, bấm để mở lại.
+- **Ô nhập câu hỏi**.
+- **Bắt đầu từ**: bốn thẻ gợi ý: _Explore my data catalog_, _Help me write a SQL query_, _Build a data pipeline_, _Visualize my data_. Bấm một thẻ là gửi ngay. Góc mỗi thẻ ghi lệnh **/** tương ứng để gõ trong ô nhập.
+- **Từ xưởng**: _Đi một vòng xưởng_ mở trang tải video Walk-in Twin; _Ghi lại một lần sửa_ mở trang ghi lần sửa của nhà máy đầu tiên (hoặc danh sách nhà máy nếu chưa có).
+- **Gần đây**: ba cuộc trò chuyện mới nhất, bấm để mở lại.
 
-Dòng trạng thái phía trên cho biết **"Connected to workspace data"** khi trợ lý sẵn sàng. Nếu thấy **"Chat service is unavailable"**, hãy chờ một lát rồi tải lại; nếu vẫn vậy, báo quản trị viên.
+Dòng trạng thái cạnh **Hỏi Minder** cho biết **"Connected to workspace data"** khi trợ lý sẵn sàng. Nếu thấy **"Chat service is unavailable"**, hãy chờ một lát rồi tải lại; nếu vẫn vậy, báo quản trị viên.
 
 ## 2. Ô nhập câu hỏi
 
@@ -45,6 +46,10 @@ Trong lúc trợ lý còn làm việc, một thẻ **"Thinking…"** hiện bư�
 - **Yêu cầu duyệt từ hệ thống** ("Waiting for your approval"): tương tự, với **Approve / Deny**. Yêu cầu quá hạn sẽ báo _"Approval request expired"_; hỏi lại để trợ lý tạo yêu cầu mới.
 
 ## 5. Cuộc trò chuyện và bảng bên phải
+
+Mỗi câu hỏi mở một phần riêng: câu hỏi nằm bên trái làm tiêu đề, câu trả lời ở ngay dưới, và một đường kẻ ngăn cách với câu hỏi tiếp theo.
+
+Thanh trên cùng của cuộc trò chuyện hiện tên cuộc trò chuyện. Phạm vi dữ liệu (**Asking about**) và **Agent** nằm ở bên phải thanh này thay vì trong ô nhập, vì chúng áp dụng cho cả cuộc trò chuyện. Trên điện thoại, chúng xuống dòng thứ hai.
 
 - **Conversations** (góc trên trái vùng chat): tạo **New conversation**, tìm kiếm, mở lại cuộc trò chuyện cũ. Mỗi cuộc trò chuyện có địa chỉ riêng, có thể gửi cho đồng nghiệp có quyền.
 - **Show conversation timeline**: dòng thời gian các lượt hỏi/đáp, tiện khi cuộc trò chuyện dài.

@@ -62,7 +62,6 @@ export function ConversationsMenu({
         <IconButton
           data-tutorial-target="chat-conversation-history"
           label={t('chat.conversations.open')}
-          className="bg-card/[0.88] shadow-300"
         >
           <MessageSquareIcon size={18} />
         </IconButton>

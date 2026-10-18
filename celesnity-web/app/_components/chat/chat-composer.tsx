@@ -620,7 +620,12 @@ export function ChatComposer({
           <InputGroupButton
             type="submit"
             size="icon-sm"
-            className="shrink-0 rounded-xl bg-muted text-muted-foreground hover:bg-muted/80"
+            className={cn(
+              'shrink-0 rounded-full transition-colors',
+              value.trim() === ''
+                ? 'bg-muted text-muted-foreground hover:bg-muted/80'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90',
+            )}
             disabled={disabled}
             aria-busy={disabled}
             aria-label={t('chat.composer.sendPrompt')}

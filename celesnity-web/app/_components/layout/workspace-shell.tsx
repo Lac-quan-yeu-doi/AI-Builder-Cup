@@ -12,7 +12,14 @@ import {
   DropdownMenuTrigger,
 } from '@/app/_components/ui/dropdown-menu';
 import { cn } from '@/app/_components/ui/utils';
-import { LogOutIcon, MenuIcon, PanelLeftIcon, ShieldIcon, XIcon } from 'lucide-react';
+import {
+  ChevronDownIcon,
+  ChevronsUpDownIcon,
+  LogOutIcon,
+  MenuIcon,
+  PanelLeftIcon,
+  XIcon,
+} from 'lucide-react';
 import { useTranslation } from '@/app/_i18n/use-translation';
 import { useSidebarStore } from '@/app/_stores/sidebar.store';
 import { useChatSessionsStore } from '@/app/_stores/chat-sessions.store';
@@ -76,6 +83,15 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
   const [signingOut, setSigningOut] = useState(false);
   const [signOutFailed, setSignOutFailed] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  // Groups the user folded this visit; every group starts open.
+  const [foldedGroups, setFoldedGroups] = useState<ReadonlySet<string>>(new Set());
+  const toggleGroup = (key: string) =>
+    setFoldedGroups((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
 
   const signOut = async () => {
     setSigningOut(true);
@@ -196,8 +212,8 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           // list of places, and one of them being blue reads as a status
           // rather than as "you are here".
           current
-            ? 'bg-sidebar-selected font-[650] text-foreground'
-            : 'text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground',
+            ? 'bg-background font-[650] text-foreground shadow-100 ring-1 ring-border'
+            : 'text-muted-foreground hover:bg-background/60 hover:text-foreground focus-visible:bg-background/60 focus-visible:text-foreground',
           collapsed && 'md:justify-center md:px-0',
           nested && 'ml-3',
           nested && collapsed && 'md:ml-0',
@@ -217,20 +233,20 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-sidebar">
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-[268px] flex-col border-r border-border bg-sidebar',
+          'fixed inset-y-0 left-0 z-50 w-[268px] flex-col border-r border-border bg-sidebar md:border-r-0',
           menuOpen ? 'flex' : 'hidden',
           'md:sticky md:top-0 md:z-auto md:flex md:h-screen',
           collapsed ? 'md:w-14' : 'md:w-[268px]',
         )}
       >
-        <div className="flex h-14 shrink-0 items-center gap-2 px-3">
+        <div className="flex shrink-0 items-center gap-1 px-2 pt-2 pb-1">
           <Link
             aria-label={t('brand.homeLabel')}
             className={cn(
-              'flex min-w-0 shrink items-center gap-2.5',
+              'flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-background/60',
               // A 56px rail cannot hold the mark and the control side by side,
               // so the control takes the row and doubles as the way back.
               collapsed && 'md:hidden',
@@ -239,19 +255,22 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           >
             {/* Decorative: the link is already named by `brand.homeLabel` and
              * the wordmark beside it, so a label here would be read twice. */}
-            <LogoMark className="size-[26px] shrink-0 rounded-lg" />
-            <strong
-              className={cn('truncate text-body-sm tracking-[-0.01em]', collapsed && 'md:hidden')}
-            >
-              {t('brand.name')}
-            </strong>
+            <LogoMark className="size-8 shrink-0 rounded-lg" />
+            <span className="grid min-w-0">
+              <strong className="truncate text-body-sm tracking-[-0.01em]">
+                {t('brand.name')}
+              </strong>
+              <span className="truncate text-micro text-muted-foreground">
+                {t('brand.tagline')}
+              </span>
+            </span>
           </Link>
 
           <button
             aria-label={collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')}
             className={cn(
-              'hidden size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground md:grid',
-              collapsed ? 'md:mx-auto' : 'md:ml-auto',
+              'hidden size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-background/60 hover:text-foreground md:grid',
+              collapsed && 'md:mx-auto',
             )}
             onClick={toggleCollapsed}
             title={collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')}
@@ -285,78 +304,116 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             />
           ) : null}
           {plantSiteId === undefined &&
-            visibleGroups.map((group, index) => (
-              <div
-                className={cn('grid gap-0.5', group.isolated && 'mt-3 border-y border-border py-3')}
-                key={group.labelKey ?? `group-${index}`}
-              >
-                {group.labelKey ? (
-                  <span
-                    className={cn(
-                      'px-2.5 pt-3.5 pb-1 text-micro font-[650] tracking-[0.07em] text-muted-foreground uppercase',
-                      collapsed && 'md:hidden',
-                    )}
-                  >
-                    {t(group.labelKey)}
-                  </span>
-                ) : null}
-                {group.sections?.map((section) => (
-                  <div className="grid gap-0.5" key={section.labelKey}>
-                    <span
+            visibleGroups.map((group, index) => {
+              const folded =
+                group.labelKey !== undefined && foldedGroups.has(group.labelKey) && !collapsed;
+              return (
+                <div
+                  className={cn(
+                    'grid gap-0.5',
+                    group.isolated && 'mt-3 border-y border-border py-3',
+                  )}
+                  key={group.labelKey ?? `group-${index}`}
+                >
+                  {group.labelKey ? (
+                    <button
+                      type="button"
+                      aria-expanded={!folded}
+                      onClick={() => toggleGroup(group.labelKey ?? '')}
                       className={cn(
-                        'px-3 pt-2 pb-0.5 text-caption font-[650] text-foreground',
+                        'group/heading flex items-center gap-1 rounded-md px-2.5 pt-3.5 pb-1 text-left text-micro font-[650] tracking-[0.07em] text-muted-foreground uppercase hover:text-foreground',
                         collapsed && 'md:hidden',
                       )}
                     >
-                      {t(section.labelKey)}
-                    </span>
-                    {section.items.map((item) => renderLink(item, true))}
-                  </div>
-                ))}
-                {group.items.map((item) => (
-                  <div className="grid gap-0.5" key={item.href}>
-                    {renderLink(item)}
-                  </div>
-                ))}
-              </div>
-            ))}
+                      {t(group.labelKey)}
+                      <ChevronDownIcon
+                        aria-hidden
+                        size={12}
+                        className={cn(
+                          'opacity-0 transition-transform group-hover/heading:opacity-100',
+                          folded && '-rotate-90 opacity-100',
+                        )}
+                      />
+                    </button>
+                  ) : null}
+                  {folded ? null : (
+                    <>
+                      {group.sections?.map((section) => (
+                        <div className="grid gap-0.5" key={section.labelKey}>
+                          <span
+                            className={cn(
+                              'px-3 pt-2 pb-0.5 text-caption font-[650] text-foreground',
+                              collapsed && 'md:hidden',
+                            )}
+                          >
+                            {t(section.labelKey)}
+                          </span>
+                          {section.items.map((item) => renderLink(item, true))}
+                        </div>
+                      ))}
+                      {group.items.map((item) => (
+                        <div className="grid gap-0.5" key={item.href}>
+                          {renderLink(item)}
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              );
+            })}
         </nav>
 
-        <div className="grid shrink-0 gap-2 border-t border-border p-2">
+        <div className="grid shrink-0 gap-1.5 p-2">
           {visibleFooter.map((item) => renderLink(item))}
 
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  aria-label={t('shell.accountMenu')}
-                  className="size-8 shrink-0 rounded-full border-status-warning/40 bg-status-warning-light text-status-warning-dark hover:bg-status-warning-light hover:text-status-warning-dark"
-                  disabled={signingOut}
-                  size="icon"
-                  title={t('shell.accountMenu')}
-                  variant="outline"
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label={t('shell.accountMenu')}
+                title={t('shell.accountMenu')}
+                disabled={signingOut}
+                className={cn(
+                  'flex min-w-0 items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-background/60',
+                  collapsed && 'md:justify-center md:px-0',
+                )}
+              >
+                <span
+                  aria-hidden
+                  className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-micro font-[650] text-primary-foreground uppercase"
                 >
-                  <ShieldIcon size={18} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" side="top">
-                <DropdownMenuItem onSelect={() => setPasswordDialogOpen(true)}>
-                  {t('auth.changePassword')}
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled={signingOut} onSelect={() => void signOut()}>
-                  <LogOutIcon size={18} />
-                  {signingOut ? t('auth.signingOut') : t('auth.signOut')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {userId.replace(/[^a-z0-9]/giu, '').slice(0, 2) || '?'}
+                </span>
+                <span className={cn('grid min-w-0 flex-1', collapsed && 'md:hidden')}>
+                  <span className="truncate text-body-sm font-[650]">{userId}</span>
+                  <span className="truncate text-micro text-muted-foreground">
+                    {t('shell.accountMenu')}
+                  </span>
+                </span>
+                <ChevronsUpDownIcon
+                  aria-hidden
+                  size={16}
+                  className={cn('shrink-0 text-muted-foreground', collapsed && 'md:hidden')}
+                />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" side="top">
+              <DropdownMenuItem onSelect={() => setPasswordDialogOpen(true)}>
+                {t('auth.changePassword')}
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={signingOut} onSelect={() => void signOut()}>
+                <LogOutIcon size={18} />
+                {signingOut ? t('auth.signingOut') : t('auth.signOut')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-            {/* The switcher is wider than the 56px rail, and changing locale
-             * from a collapsed rail is not a thing anyone does mid-task — one
-             * click reopens it. */}
-            <span className={cn(collapsed && 'md:hidden')}>
-              <LanguageSwitcher />
-            </span>
-          </div>
+          {/* The switcher is wider than the 56px rail, and changing locale
+           * from a collapsed rail is not a thing anyone does mid-task — one
+           * click reopens it. */}
+          <span className={cn('px-1', collapsed && 'md:hidden')}>
+            <LanguageSwitcher />
+          </span>
         </div>
       </aside>
 
@@ -386,7 +443,11 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
 
       <div
         className={cn(
-          'flex min-w-0 flex-1 flex-col transition-[margin] duration-200',
+          'flex min-w-0 flex-1 flex-col bg-background transition-[margin] duration-200',
+          // The page is a sheet laid over the rail: flush with the top and
+          // bottom edges, so every screen's viewport-height maths still
+          // holds, with only its leading edge rounded and lifted.
+          'md:rounded-l-2xl md:border-l md:border-border md:shadow-100',
           tutorialPanelDocked && 'min-[1024px]:mr-[24rem]',
         )}
         data-workspace-content=""

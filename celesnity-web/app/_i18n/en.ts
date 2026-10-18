@@ -1280,6 +1280,16 @@ export const en = {
   /* The opening screen. */
   'chat.landing.suggested': 'Suggested',
   'chat.landing.recent': 'Recent',
+  'chat.landing.eyebrow': 'Ask Minder',
+  'chat.landing.startFrom': 'Start from',
+  'chat.landing.fromFloor': 'From the floor',
+  'chat.landing.walk': 'Walk the floor',
+  'chat.landing.walk.desc': 'Turn a walkthrough video into a plant twin.',
+  'chat.landing.repair': 'Capture a repair',
+  'chat.landing.repair.desc': 'Turn an expert\u2019s repair video into a guided procedure.',
+  'chat.composer.hint': 'Enter to send · Shift+Enter for a new line · / for starters',
+  'chat.bar.eyebrow': 'Ask Minder',
+  'chat.bar.label': 'Conversation',
   'chat.landing.resume': 'Open {title}',
   'chat.suggestion.schema': 'Explore my data catalog',
   'chat.suggestion.schema.desc':
