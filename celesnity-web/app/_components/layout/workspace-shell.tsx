@@ -43,6 +43,7 @@ import {
 } from './workspace-navigation';
 import { LogoMark } from './logo-mark';
 import { PlantRail, plantSiteFromPath } from './plant-rail';
+import { RAIL_CURRENT, RAIL_IDLE } from './rail-styles';
 
 interface WorkspaceShellProps {
   readonly children: ReactNode;
@@ -207,13 +208,8 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
         aria-current={current ? 'page' : undefined}
         aria-label={label}
         className={cn(
-          'flex min-h-[34px] items-center gap-2.5 rounded-lg px-2.5 text-body-sm focus-visible:outline-none',
-          // Darker ink on a darker row, not a second colour: the rail is a
-          // list of places, and one of them being blue reads as a status
-          // rather than as "you are here".
-          current
-            ? 'bg-background font-[650] text-foreground shadow-100 ring-1 ring-border'
-            : 'text-muted-foreground hover:bg-background/60 hover:text-foreground focus-visible:bg-background/60 focus-visible:text-foreground',
+          'relative flex min-h-[34px] items-center gap-2.5 rounded-lg px-2.5 text-body-sm focus-visible:outline-none',
+          current ? RAIL_CURRENT : RAIL_IDLE,
           collapsed && 'md:justify-center md:px-0',
           nested && 'ml-3',
           nested && collapsed && 'md:ml-0',
@@ -233,20 +229,24 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
   };
 
   return (
-    <div className="flex min-h-screen bg-sidebar">
+    <div className="flex min-h-screen bg-background">
+      {/* The rail is the dark theme, scoped: `dark` flips every token under
+          it, so the switcher, avatar and language menu follow without a
+          second palette. Above md it runs 12px under the page sheet, so the
+          sheet's rounded corners show the rail and not the page behind it. */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-[268px] flex-col border-r border-border bg-sidebar md:border-r-0',
+          'dark fixed inset-y-0 left-0 z-50 w-[268px] flex-col bg-sidebar text-foreground',
           menuOpen ? 'flex' : 'hidden',
-          'md:sticky md:top-0 md:z-auto md:flex md:h-screen',
-          collapsed ? 'md:w-14' : 'md:w-[268px]',
+          'md:sticky md:top-0 md:z-auto md:flex md:h-screen md:pr-3',
+          collapsed ? 'md:w-[68px]' : 'md:w-[280px]',
         )}
       >
         <div className="flex shrink-0 items-center gap-1 px-2 pt-2 pb-1">
           <Link
             aria-label={t('brand.homeLabel')}
             className={cn(
-              'flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-background/60',
+              'flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-sidebar-accent',
               // A 56px rail cannot hold the mark and the control side by side,
               // so the control takes the row and doubles as the way back.
               collapsed && 'md:hidden',
@@ -269,7 +269,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           <button
             aria-label={collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')}
             className={cn(
-              'hidden size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-background/60 hover:text-foreground md:grid',
+              'hidden size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-sidebar-accent hover:text-foreground md:grid',
               collapsed && 'md:mx-auto',
             )}
             onClick={toggleCollapsed}
@@ -283,7 +283,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             aria-controls={navigationId}
             aria-expanded={menuOpen}
             aria-label={t('nav.closeMenu')}
-            className="ml-auto grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground md:hidden"
+            className="ml-auto grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-sidebar-accent hover:text-foreground md:hidden"
             onClick={() => setMenuOpen(false)}
             type="button"
           >
@@ -311,7 +311,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
                 <div
                   className={cn(
                     'grid gap-0.5',
-                    group.isolated && 'mt-3 border-y border-border py-3',
+                    group.isolated && 'mt-3 border-y border-sidebar-border py-3',
                   )}
                   key={group.labelKey ?? `group-${index}`}
                 >
@@ -321,7 +321,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
                       aria-expanded={!folded}
                       onClick={() => toggleGroup(group.labelKey ?? '')}
                       className={cn(
-                        'group/heading flex items-center gap-1 rounded-md px-2.5 pt-3.5 pb-1 text-left text-micro font-[650] tracking-[0.07em] text-muted-foreground uppercase hover:text-foreground',
+                        'group/heading flex items-center gap-1 rounded-md px-2.5 pt-4 pb-1 text-left font-mono text-micro tracking-[0.12em] text-muted-foreground/70 uppercase hover:text-foreground',
                         collapsed && 'md:hidden',
                       )}
                     >
@@ -363,7 +363,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             })}
         </nav>
 
-        <div className="grid shrink-0 gap-1.5 p-2">
+        <div className="grid shrink-0 gap-1.5 border-t border-sidebar-border p-2">
           {visibleFooter.map((item) => renderLink(item))}
 
           <DropdownMenu>
@@ -374,13 +374,13 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
                 title={t('shell.accountMenu')}
                 disabled={signingOut}
                 className={cn(
-                  'flex min-w-0 items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-background/60',
+                  'flex min-w-0 items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-sidebar-accent',
                   collapsed && 'md:justify-center md:px-0',
                 )}
               >
                 <span
                   aria-hidden
-                  className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-micro font-[650] text-primary-foreground uppercase"
+                  className="grid size-8 shrink-0 place-items-center rounded-full bg-ring text-micro font-[650] text-primary-foreground uppercase"
                 >
                   {userId.replace(/[^a-z0-9]/giu, '').slice(0, 2) || '?'}
                 </span>
@@ -443,11 +443,11 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
 
       <div
         className={cn(
-          'flex min-w-0 flex-1 flex-col bg-background transition-[margin] duration-200',
-          // The page is a sheet laid over the rail: flush with the top and
-          // bottom edges, so every screen's viewport-height maths still
-          // holds, with only its leading edge rounded and lifted.
-          'md:rounded-l-2xl md:border-l md:border-border md:shadow-100',
+          'relative flex min-w-0 flex-1 flex-col bg-background transition-[margin] duration-200',
+          // The page is a sheet laid over the dark rail: flush with the top
+          // and bottom edges, so every screen's viewport-height maths still
+          // holds, with only its leading edge rounded.
+          'md:z-10 md:-ml-3 md:rounded-l-2xl',
           tutorialPanelDocked && 'min-[1024px]:mr-[24rem]',
         )}
         data-workspace-content=""

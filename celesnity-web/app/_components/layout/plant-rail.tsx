@@ -26,6 +26,8 @@ import { cn } from '@/app/_components/ui/utils';
 import type { TranslationKey } from '@/app/_i18n/en';
 import { useTranslation } from '@/app/_i18n/use-translation';
 import { getInjection } from '@/di/container';
+
+import { RAIL_CURRENT, RAIL_IDLE } from './rail-styles';
 import type { PlantSiteSummary } from '@/src/entities/models/plant-model';
 
 /*
@@ -121,10 +123,8 @@ export function PlantRail({
       title={label}
       onClick={onNavigate}
       className={cn(
-        'flex min-h-[34px] items-center gap-2.5 rounded-lg px-2.5 text-body-sm focus-visible:outline-none',
-        active
-          ? 'bg-background font-[650] text-foreground shadow-100 ring-1 ring-border'
-          : 'text-muted-foreground hover:bg-background/60 hover:text-foreground focus-visible:bg-background/60 focus-visible:text-foreground',
+        'relative flex min-h-[34px] items-center gap-2.5 rounded-lg px-2.5 text-body-sm focus-visible:outline-none',
+        active ? RAIL_CURRENT : RAIL_IDLE,
         collapsed && 'md:justify-center md:px-0',
       )}
     >
@@ -147,7 +147,7 @@ export function PlantRail({
             aria-label={t('plantRail.switch')}
             title={current?.name ?? t('plantRail.switch')}
             className={cn(
-              'mt-2 mb-1 flex items-center gap-2.5 rounded-lg border border-border bg-background px-2.5 py-2 text-left shadow-100 hover:bg-background/80',
+              'mt-2 mb-1 flex items-center gap-2.5 rounded-lg border border-sidebar-border bg-background px-2.5 py-2 text-left hover:bg-sidebar-accent',
               collapsed && 'md:justify-center md:border-0 md:bg-transparent md:px-0',
             )}
           >
@@ -187,7 +187,7 @@ export function PlantRail({
         <div key={group.labelKey} className="grid gap-0.5">
           <span
             className={cn(
-              'px-2.5 pt-3.5 pb-1 text-micro font-[650] tracking-[0.07em] text-muted-foreground uppercase',
+              'px-2.5 pt-4 pb-1 font-mono text-micro tracking-[0.12em] text-muted-foreground/70 uppercase',
               collapsed && 'md:hidden',
             )}
           >
@@ -210,10 +210,8 @@ export function PlantRail({
         aria-pressed={assistantOpen}
         title={t('plantRail.ask')}
         className={cn(
-          'mt-4 flex min-h-[34px] items-center gap-2.5 rounded-lg px-2.5 text-body-sm',
-          assistantOpen
-            ? 'bg-background font-[650] text-foreground shadow-100 ring-1 ring-border'
-            : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
+          'relative mt-4 flex min-h-[34px] items-center gap-2.5 rounded-lg px-2.5 text-body-sm',
+          assistantOpen ? RAIL_CURRENT : RAIL_IDLE,
           collapsed && 'md:justify-center md:px-0',
         )}
       >

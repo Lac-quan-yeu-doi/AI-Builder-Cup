@@ -142,7 +142,7 @@ export function PlantSitesScreen({
       ) : null}
 
       <section className="grid gap-4 lg:grid-cols-2" aria-label={t('plantHub.featuresLabel')}>
-        <article className="grid overflow-hidden rounded-xl border bg-card sm:grid-cols-[minmax(0,1fr)_200px]">
+        <article className="grid overflow-hidden rounded-xl border bg-card sm:grid-cols-[minmax(0,1fr)_200px] lg:grid-cols-1 min-[1280px]:grid-cols-[minmax(0,1fr)_200px]">
           <div className="flex flex-col gap-3 p-6">
             <p className="font-mono text-micro tracking-[0.12em] text-muted-foreground uppercase">
               01 · {t('plantHub.twin.eyebrow')}
@@ -158,7 +158,7 @@ export function PlantSitesScreen({
               </Button>
             </div>
           </div>
-          <FloorSketch className="hidden h-full w-full border-l bg-muted/40 sm:block" />
+          <FloorSketch className="hidden h-full w-full border-l bg-muted/40 sm:block lg:hidden min-[1280px]:block" />
         </article>
 
         <article className="flex flex-col gap-3 rounded-xl border bg-card p-6">

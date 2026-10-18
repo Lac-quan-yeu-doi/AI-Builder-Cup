@@ -159,8 +159,8 @@ export function ChatLanding({
           zero the moment free space runs out, so a tall block simply starts at
           the top and scrolls. */}
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pt-6 pb-16 sm:px-5">
-        <div className={cn(READING_COLUMN, 'my-auto grid gap-8')}>
-          <header className="grid gap-2">
+        <div className={cn(READING_COLUMN, 'my-auto grid grid-cols-1 gap-8')}>
+          <header className="grid grid-cols-1 gap-2">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <span className="font-mono text-micro tracking-[0.12em] text-muted-foreground uppercase">
                 {t('chat.landing.eyebrow')}
@@ -188,7 +188,7 @@ export function ChatLanding({
             </p>
           </header>
 
-          <div className="grid gap-1.5">
+          <div className="grid grid-cols-1 gap-1.5">
             <ChatComposer
               disabled={pending}
               onSubmit={onSubmit}
