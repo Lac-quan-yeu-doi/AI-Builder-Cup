@@ -234,6 +234,11 @@ export function MetadataCrawlerScreen({ controller, listDatabaseServices }: Prop
           </>
         }
         description={t('page.metadataCrawler.description')}
+        eyebrow={
+          <>
+            {t('nav.group.data')} · {t('nav.databases')}
+          </>
+        }
         title={t('page.metadataCrawler.title')}
       />
       {error && !assignDialogOpen && !selected ? <InlineError>{error}</InlineError> : null}

@@ -299,6 +299,11 @@ export function DatabaseScreen({ controllers, database }: DatabaseScreenProps) {
                 </Button>
               </>
             }
+            eyebrow={
+              <>
+                {t('nav.group.data')} · {t('nav.databases')}
+              </>
+            }
             meta={
               contents ? (
                 <Badge variant="secondary">

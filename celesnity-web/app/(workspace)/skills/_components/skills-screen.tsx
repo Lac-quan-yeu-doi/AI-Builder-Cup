@@ -18,6 +18,7 @@ import { Button } from '@/app/_components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader } from '@/app/_components/ui/card';
 import { EmptyState } from '@/app/_components/ui/empty-state';
 import { PageAlert } from '@/app/_components/ui/page-alert';
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { Spinner } from '@/app/_components/ui/spinner';
 import { useTranslation } from '@/app/_i18n/use-translation';
 import type { TranslationKey } from '@/app/_i18n/en';
@@ -255,6 +256,39 @@ export function SkillsScreen({ controllers }: SkillsScreenProps) {
        * A viewport rule cannot see the dock at all: at 1440px with it open
        * there are 740px here, and splitting those left the editor 396px wide. */}
       <div className="@container/skills flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto @[52rem]/skills:overflow-visible">
+        <div className="shrink-0 pt-5">
+          {/* No subtitle. "Browse and manage project-defined skills used by
+           * the agent" restated the page title and the list under it. */}
+          <PageBar
+            actions={
+              <>
+                {/* Docked on request, not a second screen. The panel costs
+                 * half the width and is about the skill you have open, so it
+                 * opens when asked for — the same toggle `/databases` uses,
+                 * and Cmd+J still works. */}
+                <Button
+                  aria-pressed={assistant.open}
+                  onClick={assistant.toggle}
+                  size="sm"
+                  variant="outline"
+                >
+                  <SparklesIcon aria-hidden="true" />
+                  {t('assistant.toggle')}
+                </Button>
+                <Button disabled={busy} onClick={selectCreate} size="sm">
+                  <PlusIcon aria-hidden="true" />
+                  {t('skills.create')}
+                </Button>
+              </>
+            }
+            eyebrow={
+              <>
+                {t('nav.group.tools')} · {t('nav.skills')}
+              </>
+            }
+            title={t('skills.title')}
+          />
+        </div>
         <div
           className="grid min-w-0 gap-6 py-5 @[52rem]/skills:min-h-0 @[52rem]/skills:flex-1 @[52rem]/skills:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.4fr)]"
           data-skills-layout
@@ -266,34 +300,6 @@ export function SkillsScreen({ controllers }: SkillsScreenProps) {
             className="max-h-[50svh] min-w-0 overflow-hidden @[52rem]/skills:max-h-none @[52rem]/skills:min-h-0"
           >
             <section aria-label={t('skills.listTitle')}>
-              <CardHeader className="border-b">
-                {/* No subtitle. "Browse and manage project-defined skills used by
-                 * the agent" restated the page title and the list under it, and
-                 * once the assistant toggle joined the row it wrapped to four
-                 * lines to say nothing. */}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h1 className="text-heading-2">{t('skills.title')}</h1>
-                  <div className="flex shrink-0 items-center gap-2">
-                    {/* Docked on request, not a second screen. The panel costs
-                     * half the width and is about the skill you have open, so it
-                     * opens when asked for — the same toggle `/databases` uses,
-                     * and Cmd+J still works. */}
-                    <Button
-                      aria-pressed={assistant.open}
-                      onClick={assistant.toggle}
-                      size="sm"
-                      variant="outline"
-                    >
-                      <SparklesIcon aria-hidden="true" />
-                      {t('assistant.toggle')}
-                    </Button>
-                    <Button disabled={busy} onClick={selectCreate} size="sm">
-                      <PlusIcon aria-hidden="true" />
-                      {t('skills.create')}
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
               <CardContent className="min-h-0 min-w-0 flex-1 overflow-y-auto pt-5">
                 {/* One error, one place. A failed list load is the list's problem;
                  * everything else belongs beside the form that caused it. */}

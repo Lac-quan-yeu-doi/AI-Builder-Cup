@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DatabaseIcon, GitBranchIcon, ShapesIcon } from 'lucide-react';
 import { Button } from '@/app/_components/ui/button';
+import { PageBar } from '@/app/_components/ui/page-bar';
 
 export const metadata: Metadata = { title: 'Configure plant model' };
 
@@ -34,10 +35,11 @@ export default async function PlantConfigurePage({
   ];
   return (
     <main className="mx-auto max-w-5xl p-4 min-[900px]:p-8">
-      <h1 className="text-2xl font-semibold">Configure plant model</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Configuration remains versioned with the plant model draft.
-      </p>
+      <PageBar
+        eyebrow="Plant · Configure"
+        title="Configure plant model"
+        description="Configuration remains versioned with the plant model draft."
+      />
       <section className="mt-6 grid gap-3 md:grid-cols-3">
         {items.map(({ title, description, icon: Icon }) => (
           <article key={title} className="rounded-lg border bg-card p-5">

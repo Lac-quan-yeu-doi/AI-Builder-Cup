@@ -388,7 +388,15 @@ export function QueryWorkbenchScreen({ controllers }: QueryWorkbenchScreenProps)
 
   return (
     <section className="grid gap-5">
-      <PageBar description={t('page.sql.description')} title={t('page.sql.title')} />
+      <PageBar
+        description={t('page.sql.description')}
+        eyebrow={
+          <>
+            {t('nav.group.tools')} · {t('nav.query')}
+          </>
+        }
+        title={t('page.sql.title')}
+      />
 
       <div className="grid min-w-0 grid-cols-1 items-start gap-[18px] min-[901px]:grid-cols-[240px_minmax(0,1fr)] min-[1081px]:grid-cols-[288px_minmax(0,1fr)]">
         <ExecutionHistory

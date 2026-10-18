@@ -35,6 +35,7 @@ import {
   type WorkspaceNavigationItem,
 } from './workspace-navigation';
 import { LogoMark } from './logo-mark';
+import { PlantRail, plantSiteFromPath } from './plant-rail';
 
 interface WorkspaceShellProps {
   readonly children: ReactNode;
@@ -125,6 +126,8 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
   const routeAllowed =
     requiredFeature === undefined || canAccessWorkspaceFeature(visibleFeatures, requiredFeature);
   const firstDestination = firstVisibleWorkspaceDestination(visibleFeatures);
+  // Inside a plant the rail becomes the plant's own navigation (see plant-rail).
+  const plantSiteId = routeAllowed ? plantSiteFromPath(pathname) : undefined;
 
   if (isFullscreenWorkspaceRoute(pathname) && routeAllowed && workspaceAccess.status === 'ready') {
     return (
@@ -274,41 +277,49 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-2"
           id={navigationId}
         >
-          {visibleGroups.map((group, index) => (
-            <div
-              className={cn('grid gap-0.5', group.isolated && 'mt-3 border-y border-border py-3')}
-              key={group.labelKey ?? `group-${index}`}
-            >
-              {group.labelKey ? (
-                <span
-                  className={cn(
-                    'px-2.5 pt-3.5 pb-1 text-micro font-[650] tracking-[0.07em] text-muted-foreground uppercase',
-                    collapsed && 'md:hidden',
-                  )}
-                >
-                  {t(group.labelKey)}
-                </span>
-              ) : null}
-              {group.sections?.map((section) => (
-                <div className="grid gap-0.5" key={section.labelKey}>
+          {plantSiteId !== undefined ? (
+            <PlantRail
+              siteId={plantSiteId}
+              collapsed={collapsed}
+              onNavigate={() => setMenuOpen(false)}
+            />
+          ) : null}
+          {plantSiteId === undefined &&
+            visibleGroups.map((group, index) => (
+              <div
+                className={cn('grid gap-0.5', group.isolated && 'mt-3 border-y border-border py-3')}
+                key={group.labelKey ?? `group-${index}`}
+              >
+                {group.labelKey ? (
                   <span
                     className={cn(
-                      'px-3 pt-2 pb-0.5 text-caption font-[650] text-foreground',
+                      'px-2.5 pt-3.5 pb-1 text-micro font-[650] tracking-[0.07em] text-muted-foreground uppercase',
                       collapsed && 'md:hidden',
                     )}
                   >
-                    {t(section.labelKey)}
+                    {t(group.labelKey)}
                   </span>
-                  {section.items.map((item) => renderLink(item, true))}
-                </div>
-              ))}
-              {group.items.map((item) => (
-                <div className="grid gap-0.5" key={item.href}>
-                  {renderLink(item)}
-                </div>
-              ))}
-            </div>
-          ))}
+                ) : null}
+                {group.sections?.map((section) => (
+                  <div className="grid gap-0.5" key={section.labelKey}>
+                    <span
+                      className={cn(
+                        'px-3 pt-2 pb-0.5 text-caption font-[650] text-foreground',
+                        collapsed && 'md:hidden',
+                      )}
+                    >
+                      {t(section.labelKey)}
+                    </span>
+                    {section.items.map((item) => renderLink(item, true))}
+                  </div>
+                ))}
+                {group.items.map((item) => (
+                  <div className="grid gap-0.5" key={item.href}>
+                    {renderLink(item)}
+                  </div>
+                ))}
+              </div>
+            ))}
         </nav>
 
         <div className="grid shrink-0 gap-2 border-t border-border p-2">

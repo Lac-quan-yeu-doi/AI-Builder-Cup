@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronRightIcon, MoreHorizontalIcon, PlusIcon } from 'lucide-react';
+import { MoreHorizontalIcon, PlusIcon } from 'lucide-react';
 
 import { Badge } from '@/app/_components/ui/badge';
 import { Button } from '@/app/_components/ui/button';
@@ -14,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/app/_components/ui/dropdown-menu';
 import { PageAlert } from '@/app/_components/ui/page-alert';
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { Spinner } from '@/app/_components/ui/spinner';
 import { CSRF_COOKIE } from '@/src/entities/models/session';
 import { useTranslation } from '@/app/_i18n/use-translation';
@@ -74,36 +74,34 @@ export function GoogleDriveDetail() {
 
   return (
     <div>
-      {/* Breadcrumb */}
-      <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link className="hover:text-foreground" href="/plugins">
-          {t('plugins.title')}
-        </Link>
-        <ChevronRightIcon className="size-3.5" />
-        <span className="text-foreground">{t(plugin.nameKey)}</span>
-      </nav>
+      <PageBar
+        backTo={{ href: '/plugins', label: t('plugins.title') }}
+        description={t(plugin.descriptionKey)}
+        eyebrow={
+          <>
+            {t('nav.group.tools')} · {t('nav.plugins')}
+          </>
+        }
+        title={
+          <span className="flex items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+              <GoogleDriveIcon size={22} />
+            </span>
+            {t(plugin.nameKey)}
+          </span>
+        }
+      />
 
       {error ? (
-        <PageAlert className="mb-6" tone="error">
+        <PageAlert className="mt-5" tone="error">
           {error}
         </PageAlert>
       ) : null}
       {success ? (
-        <PageAlert className="mb-6" tone="success">
+        <PageAlert className="mt-5" tone="success">
           {success}
         </PageAlert>
       ) : null}
-
-      {/* Header */}
-      <div className="flex items-start gap-5">
-        <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-muted">
-          <GoogleDriveIcon size={36} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t(plugin.nameKey)}</h1>
-          <p className="text-sm text-muted-foreground">{t(plugin.descriptionKey)}</p>
-        </div>
-      </div>
 
       {/* Sign-in banner (when not connected) */}
       {!loading && data?.status !== 'connected' ? (

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 
 import { Badge } from '@/app/_components/ui/badge';
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { Spinner } from '@/app/_components/ui/spinner';
 import { useTranslation } from '@/app/_i18n/use-translation';
 
@@ -47,11 +48,18 @@ export function PluginsList() {
   const { t } = useTranslation();
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold tracking-tight">{t('plugins.title')}</h1>
-      <p className="mt-1 text-sm text-muted-foreground">{t('plugins.description')}</p>
+    <div className="grid gap-5">
+      <PageBar
+        description={t('plugins.description')}
+        eyebrow={
+          <>
+            {t('nav.group.tools')} · {t('nav.plugins')}
+          </>
+        }
+        title={t('plugins.title')}
+      />
 
-      <div className="mt-8 divide-y divide-border rounded-lg border border-border">
+      <div className="divide-y divide-border rounded-lg border border-border">
         {PLUGINS.map((plugin) => (
           <PluginRow key={plugin.id} plugin={plugin} />
         ))}

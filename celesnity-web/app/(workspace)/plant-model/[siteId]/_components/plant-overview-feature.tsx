@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { LayoutDashboardIcon, RouteIcon, ShapesIcon } from 'lucide-react';
 
 import { Button } from '@/app/_components/ui/button';
+import { PageBar } from '@/app/_components/ui/page-bar';
+import { useTranslation } from '@/app/_i18n/use-translation';
 import { getInjection } from '@/di/container';
 import type { PlantDashboardAssociation } from '@/src/entities/models/plant-model';
 import { DashboardFeature } from '@/app/(workspace)/analytics/dashboards/[dashboardId]/_components/dashboard-feature';
@@ -16,6 +18,7 @@ const plantModel = getInjection('PlantModelController');
 const getDashboard = getInjection('GetDashboardController');
 
 export function PlantOverviewFeature({ siteId }: { readonly siteId: string }) {
+  const { t } = useTranslation();
   const { site, selectDashboard } = usePlantWorkspace();
   const [associations, setAssociations] = useState<readonly PlantDashboardAssociation[]>([]);
   const [defaultName, setDefaultName] = useState('');
@@ -61,18 +64,23 @@ export function PlantOverviewFeature({ siteId }: { readonly siteId: string }) {
 
   return (
     <main className="mx-auto w-full max-w-[1600px] p-4 min-[900px]:p-6" aria-label="Plant overview">
-      <div className="mb-5 flex flex-wrap items-end gap-3">
-        <div className="mr-auto">
-          <h1 className="text-2xl font-semibold">Production overview</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Topology and dashboards for {site.name}
-          </p>
-        </div>
-        <Button asChild variant="outline">
-          <Link href={`/plant-model/${encodeURIComponent(siteId)}/dashboards`}>
-            Manage dashboards
-          </Link>
-        </Button>
+      <div className="mb-6">
+        <PageBar
+          eyebrow={
+            <>
+              {t('plantRail.group.plant')} · {site.name}
+            </>
+          }
+          title="Production overview"
+          description={`Topology and dashboards for ${site.name}`}
+          actions={
+            <Button asChild variant="outline">
+              <Link href={`/plant-model/${encodeURIComponent(siteId)}/dashboards`}>
+                Manage dashboards
+              </Link>
+            </Button>
+          }
+        />
       </div>
 
       <section className="mb-4 grid gap-3 sm:grid-cols-3" aria-label="Plant summary">

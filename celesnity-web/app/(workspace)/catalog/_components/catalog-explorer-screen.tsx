@@ -415,6 +415,11 @@ export function CatalogExplorerScreen({
             ? 'page.catalogDatabases.description'
             : 'page.catalogTables.description',
         )}
+        eyebrow={
+          <>
+            {t('nav.group.data')} · {t('nav.databases')}
+          </>
+        }
         title={t(view === 'databases' ? 'page.catalogDatabases.title' : 'page.catalogTables.title')}
       />
 

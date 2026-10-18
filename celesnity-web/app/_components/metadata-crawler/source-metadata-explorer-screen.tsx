@@ -346,6 +346,11 @@ export function SourceMetadataExplorerScreen({
               : { href: '/metadata-crawler', label: t('metadataExplorer.back') }
           }
           description={t('metadataExplorer.subtitle')}
+          eyebrow={
+            <>
+              {t('nav.group.data')} · {t('nav.databases')}
+            </>
+          }
           meta={
             crawler ? (
               <>

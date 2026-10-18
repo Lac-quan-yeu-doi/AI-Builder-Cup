@@ -5,8 +5,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { LayoutDashboardIcon, PlusIcon, StarIcon, Trash2Icon } from 'lucide-react';
 
 import { Button } from '@/app/_components/ui/button';
+import { PageBar } from '@/app/_components/ui/page-bar';
+import { useTranslation } from '@/app/_i18n/use-translation';
 import { NativeSelect, NativeSelectOption } from '@/app/_components/ui/native-select';
 import { getInjection } from '@/di/container';
+import { usePlantWorkspace } from './plant-workspace-context';
 import type { ChartCollection } from '@/src/entities/models/chart-collection';
 import type { DashboardSummary } from '@/src/entities/models/dashboard';
 import type {
@@ -28,6 +31,8 @@ const roles: readonly PlantDashboardRole[] = [
 ];
 
 export function PlantDashboardsFeature({ siteId }: { readonly siteId: string }) {
+  const { t } = useTranslation();
+  const workspace = usePlantWorkspace();
   const [collections, setCollections] = useState<readonly ChartCollection[]>([]);
   const [dashboards, setDashboards] = useState<readonly DashboardSummary[]>([]);
   const [associations, setAssociations] = useState<readonly PlantDashboardAssociation[]>([]);
@@ -170,17 +175,22 @@ export function PlantDashboardsFeature({ siteId }: { readonly siteId: string }) 
 
   return (
     <main className="mx-auto max-w-6xl p-4 min-[900px]:p-8" aria-label="Plant dashboards">
-      <header className="mb-6 flex flex-wrap items-end gap-3">
-        <div className="mr-auto">
-          <h1 className="text-2xl font-semibold">Plant dashboards</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Associate multiple reusable Analytics dashboards with this plant.
-          </p>
-        </div>
-        <Button type="button" onClick={() => void createAndAssociate()}>
-          <PlusIcon aria-hidden="true" /> New dashboard
-        </Button>
-      </header>
+      <div className="mb-6">
+        <PageBar
+          eyebrow={
+            <>
+              {t('plantRail.group.plant')} · {workspace.site?.name ?? ''}
+            </>
+          }
+          title="Plant dashboards"
+          description="Associate multiple reusable Analytics dashboards with this plant."
+          actions={
+            <Button type="button" onClick={() => void createAndAssociate()}>
+              <PlusIcon aria-hidden="true" /> New dashboard
+            </Button>
+          }
+        />
+      </div>
       {error ? (
         <p role="alert" className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
           {error}

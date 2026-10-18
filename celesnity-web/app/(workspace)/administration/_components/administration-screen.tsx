@@ -6,6 +6,7 @@ import { RefreshCw } from 'lucide-react';
 import { Button } from '@/app/_components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/app/_components/ui/tabs';
 import { PageAlert } from '@/app/_components/ui/page-alert';
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { Spinner } from '@/app/_components/ui/spinner';
 import { contextualErrorMessage } from '@/app/_components/shared/error-message';
 import { useTranslation } from '@/app/_i18n/use-translation';
@@ -128,7 +129,7 @@ export function AdministrationScreen({ controllers }: AdministrationScreenProps)
   if (data === undefined) {
     return (
       <section className="grid gap-4">
-        <h1 className="text-2xl font-semibold">{t('administration.title')}</h1>
+        <PageBar eyebrow={t('nav.administration')} title={t('administration.title')} />
         {error ? (
           <>
             <PageAlert tone="error">{error}</PageAlert>
@@ -173,23 +174,22 @@ export function AdministrationScreen({ controllers }: AdministrationScreenProps)
   };
   return (
     <div className="flex min-w-0 flex-col gap-5">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="m-0 text-heading-3 font-medium tracking-[-0.02em]">
-            {t('administration.title')}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">{t('administration.subtitle')}</p>
-        </div>
-        <Button
-          variant="outline"
-          disabled={busy || refreshing}
-          aria-busy={refreshing}
-          onClick={() => void reload()}
-        >
-          {refreshing ? <Spinner /> : <RefreshCw aria-hidden="true" />}
-          {t('administration.refresh')}
-        </Button>
-      </header>
+      <PageBar
+        actions={
+          <Button
+            variant="outline"
+            disabled={busy || refreshing}
+            aria-busy={refreshing}
+            onClick={() => void reload()}
+          >
+            {refreshing ? <Spinner /> : <RefreshCw aria-hidden="true" />}
+            {t('administration.refresh')}
+          </Button>
+        }
+        description={t('administration.subtitle')}
+        eyebrow={t('nav.administration')}
+        title={t('administration.title')}
+      />
       {error ? <PageAlert tone="error">{error}</PageAlert> : null}
       {notice ? <PageAlert tone="success">{notice}</PageAlert> : null}
       {refreshFailedAfterSave ? (

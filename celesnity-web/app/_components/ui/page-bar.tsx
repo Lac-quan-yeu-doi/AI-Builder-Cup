@@ -18,6 +18,12 @@ interface PageBarProps {
   readonly meta?: ReactNode;
   /** One short line under the title. Omit it when the title is self-evident. */
   readonly description?: ReactNode;
+  /**
+   * Celesnity addition: where this screen sits, in small caps above the title
+   * (`DATA · DATABASES`, `REPAIR GUIDE · WASHER W1`). It replaces the
+   * breadcrumb the rail can no longer imply once it follows the plant.
+   */
+  readonly eyebrow?: ReactNode;
   readonly title: ReactNode;
 }
 
@@ -33,9 +39,9 @@ interface PageBarProps {
  * The title sits at `text-xl`: large enough to anchor the page, small enough
  * that the data starts immediately under it.
  */
-export function PageBar({ actions, backTo, description, meta, title }: PageBarProps) {
+export function PageBar({ actions, backTo, description, eyebrow, meta, title }: PageBarProps) {
   return (
-    <header className="grid gap-2 pb-5">
+    <header className="grid gap-3 border-b border-border pb-5">
       {backTo ? (
         <Link
           className="-ml-1 flex w-fit items-center gap-1.5 rounded-md px-1 py-0.5 text-caption text-muted-foreground hover:text-foreground"
@@ -46,16 +52,19 @@ export function PageBar({ actions, backTo, description, meta, title }: PageBarPr
         </Link>
       ) : null}
 
-      <div
-        className={cn('flex flex-col items-start gap-3', 'md:flex-row md:items-center md:gap-4')}
-      >
-        <div className="flex min-w-0 flex-col gap-1">
+      <div className={cn('flex flex-col items-start gap-3', 'md:flex-row md:items-end md:gap-6')}>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          {eyebrow ? (
+            <p className="m-0 font-mono text-micro tracking-[0.12em] text-muted-foreground uppercase">
+              {eyebrow}
+            </p>
+          ) : null}
           <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-            <h1 className="m-0 truncate text-xl font-[650] tracking-[-0.02em]">{title}</h1>
+            <h1 className="m-0 min-w-0 text-heading-2 break-words">{title}</h1>
             {meta}
           </div>
           {description ? (
-            <p className="m-0 max-w-[760px] text-body-sm leading-[1.55] text-muted-foreground">
+            <p className="m-0 max-w-[760px] text-body-md leading-[1.55] text-muted-foreground">
               {description}
             </p>
           ) : null}

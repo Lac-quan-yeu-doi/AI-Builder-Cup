@@ -182,6 +182,11 @@ export function AutomationWorkflowScreen({ controller }: Props) {
               </>
             }
             description={t('page.automations.description')}
+            eyebrow={
+              <>
+                {t('nav.group.tools')} · {t('nav.automations')}
+              </>
+            }
             title={t('page.automations.title')}
           />
           {error ? <InlineError>{error}</InlineError> : null}

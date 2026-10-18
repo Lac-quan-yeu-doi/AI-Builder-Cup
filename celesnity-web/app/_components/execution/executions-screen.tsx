@@ -405,6 +405,11 @@ export function ExecutionsScreen({
             </Button>
           }
           description={t('page.executions.description')}
+          eyebrow={
+            <>
+              {t('nav.group.data')} · {t('nav.databases')}
+            </>
+          }
           title={t('page.executions.title')}
         />
       )}

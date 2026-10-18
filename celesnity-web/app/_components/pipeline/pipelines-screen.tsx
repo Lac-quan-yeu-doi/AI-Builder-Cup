@@ -276,6 +276,11 @@ export function PipelinesScreen({
             </Button>
           }
           description={t('page.pipelines.description')}
+          eyebrow={
+            <>
+              {t('nav.group.data')} · {t('nav.databases')}
+            </>
+          }
           title={t('page.pipelines.title')}
         />
       )}

@@ -39,6 +39,7 @@ import { EmptyState } from '@/app/_components/ui/empty-state';
 import { Input } from '@/app/_components/ui/input';
 import { NativeSelect } from '@/app/_components/ui/native-select';
 import { PageAlert } from '@/app/_components/ui/page-alert';
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { Pager } from '@/app/_components/ui/pager';
 import { SearchField } from '@/app/_components/ui/search-field';
 import { Skeleton } from '@/app/_components/ui/skeleton';
@@ -194,83 +195,89 @@ export function CollectionBrowserScreen({
   const searchable = inScope.length > SEARCH_THRESHOLD || query.length > 0;
 
   return (
-    <main className="min-h-[calc(100vh-8rem)]" aria-label={t('analytics.library')}>
+    <main
+      className="grid min-h-[calc(100vh-8rem)] content-start gap-6"
+      aria-label={t('analytics.library')}
+    >
       {/* The page is "Analytics". It used to title itself with whichever
           collection was open — a container's name, repeated from the rail
           beside it and the nav beside that. */}
-      <header className="flex flex-wrap items-center justify-between gap-4 pb-6">
-        <h1 className="text-heading-2">{t('nav.analytics')}</h1>
-        <div className="flex items-center gap-2">
-          {searchable ? (
-            <SearchField
-              className="w-full sm:w-72"
-              aria-label={t('analytics.searchLibrary')}
-              placeholder={t('analytics.searchLibrary')}
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setPage(1);
-              }}
-              onClear={() => {
-                setQuery('');
-                setPage(1);
-              }}
-              clearLabel={t('analytics.clearSearch')}
-            />
-          ) : null}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button type="button" className="gap-1.5">
-                <PlusIcon aria-hidden="true" /> {t('analytics.new')}{' '}
-                <ChevronDownIcon aria-hidden="true" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/analytics/charts/new${newChartQuery}${newChartQuery ? '&' : '?'}entry=question`}
-                >
-                  <BarChart3Icon aria-hidden="true" /> {t('analytics.newQuestion')}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/analytics/charts/new${newChartQuery}${newChartQuery ? '&' : '?'}entry=sql`}
-                >
-                  <Code2Icon aria-hidden="true" /> {t('analytics.newSqlQuery')}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={curatable.length === 0}
-                onSelect={() => {
-                  setDashboardName('');
-                  setDashboardDescription('');
-                  setDashboardCollectionId(createParent?.id ?? curatable[0]?.id ?? '');
-                  setDashboardDialogOpen(true);
+      <PageBar
+        actions={
+          <>
+            {searchable ? (
+              <SearchField
+                className="w-full sm:w-72"
+                aria-label={t('analytics.searchLibrary')}
+                placeholder={t('analytics.searchLibrary')}
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setPage(1);
                 }}
-              >
-                <LayoutDashboardIcon aria-hidden="true" /> {t('analytics.newDashboard')}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                disabled={!createParent}
-                onSelect={() => {
-                  setName('');
-                  setDialog({ mode: 'CREATE' });
+                onClear={() => {
+                  setQuery('');
+                  setPage(1);
                 }}
-              >
-                <FolderPlusIcon aria-hidden="true" /> {t('analytics.newCollection')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+                clearLabel={t('analytics.clearSearch')}
+              />
+            ) : null}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" className="gap-1.5">
+                  <PlusIcon aria-hidden="true" /> {t('analytics.new')}{' '}
+                  <ChevronDownIcon aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/analytics/charts/new${newChartQuery}${newChartQuery ? '&' : '?'}entry=question`}
+                  >
+                    <BarChart3Icon aria-hidden="true" /> {t('analytics.newQuestion')}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/analytics/charts/new${newChartQuery}${newChartQuery ? '&' : '?'}entry=sql`}
+                  >
+                    <Code2Icon aria-hidden="true" /> {t('analytics.newSqlQuery')}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={curatable.length === 0}
+                  onSelect={() => {
+                    setDashboardName('');
+                    setDashboardDescription('');
+                    setDashboardCollectionId(createParent?.id ?? curatable[0]?.id ?? '');
+                    setDashboardDialogOpen(true);
+                  }}
+                >
+                  <LayoutDashboardIcon aria-hidden="true" /> {t('analytics.newDashboard')}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={!createParent}
+                  onSelect={() => {
+                    setName('');
+                    setDialog({ mode: 'CREATE' });
+                  }}
+                >
+                  <FolderPlusIcon aria-hidden="true" /> {t('analytics.newCollection')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        }
+        eyebrow={
+          <>
+            {t('nav.group.data')} · {t('nav.analytics')}
+          </>
+        }
+        title={t('nav.analytics')}
+      />
 
-      {error ? (
-        <PageAlert tone="error" className="mb-5">
-          {error}
-        </PageAlert>
-      ) : null}
+      {error ? <PageAlert tone="error">{error}</PageAlert> : null}
 
       <div className="grid gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
         {/* A scope filter, not a tree of destinations. Counts come from

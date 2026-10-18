@@ -2631,4 +2631,39 @@ export const vi: Dictionary = {
   'plantRepairs.guided.yourTime': 'Thời gian của bạn',
   'plantRepairs.guided.doneBody':
     'Thời gian, kết quả và những gì bạn làm khác sẽ được tính vào bản sửa đổi tiếp theo của hướng dẫn.',
+
+  // Reskin: home page and the rail inside a plant.
+  'plantRail.allPlants': 'Tất cả nhà máy',
+  'plantRail.switch': 'Đổi nhà máy',
+  'plantRail.group.plant': 'Nhà máy',
+  'plantRail.group.operations': 'Vận hành',
+  'plantRail.overview': 'Tổng quan',
+  'plantRail.model': 'Mô hình',
+  'plantRail.dashboards': 'Dashboard',
+  'plantRail.repairs': 'Sửa máy',
+  'plantRail.configure': 'Cấu hình',
+  'plantRail.ask': 'Hỏi Minder về nhà máy này',
+
+  // Plant model landing: the two ways to start, plants and recent guides.
+  'plantHub.counts': '{plants} nhà máy · {guides} hướng dẫn sửa máy · {runs} lần sửa có hướng dẫn',
+  'plantHub.featuresLabel': 'Bạn có thể làm gì',
+  'plantHub.twin.eyebrow': 'Walk-in Twin',
+  'plantHub.twin.title': 'Đi một vòng xưởng',
+  'plantHub.twin.body':
+    'Quay một vòng xưởng hai phút. Gemini dựng line, máy và luồng vật liệu thành bản sao số để bạn kiểm tra rồi tạo nhà máy.',
+  'plantHub.twin.cta': 'Tải video đi xưởng',
+  'plantHub.repair.eyebrow': 'Kinh nghiệm sửa máy',
+  'plantHub.repair.title': 'Ghi lại một lần sửa',
+  'plantHub.repair.body':
+    'Quay thợ giỏi vừa sửa máy vừa nói. Thợ tiếp theo sửa từng bước, bằng giọng nói, kèm clip của thợ giỏi.',
+  'plantHub.repair.firstTimeFix': 'Sửa đúng lần đầu {percent}%',
+  'plantHub.repair.noRuns': 'Chưa có lần sửa có hướng dẫn',
+  'plantHub.repair.openWhy': '{count} câu hỏi vì sao chờ trả lời',
+  'plantHub.repair.capture': 'Ghi lại một lần sửa',
+  'plantHub.repair.guide': 'Sửa theo hướng dẫn',
+  'plantHub.plants': 'Nhà máy',
+  'plantHub.published': 'Đã xuất bản v{version}',
+  'plantHub.draft': 'Bản nháp',
+  'plantHub.guides': 'Hướng dẫn sửa máy gần đây',
+  'plantHub.noGuides': 'Chưa có hướng dẫn sửa máy.',
 };

@@ -412,7 +412,10 @@ export function DatabaseServicesScreen({
        * has to survive, or there is no way to add a source at all. */}
       {embedded ? (
         <div className="flex justify-end">
-          <Button data-tutorial-target="new-database-source" onClick={embedded ? openAddDialog : openCreateEditor}>
+          <Button
+            data-tutorial-target="new-database-source"
+            onClick={embedded ? openAddDialog : openCreateEditor}
+          >
             {embedded ? t('databaseServices.addDatasource') : t('databaseServices.newConnection')}
           </Button>
         </div>
@@ -424,6 +427,11 @@ export function DatabaseServicesScreen({
             </Button>
           }
           description={t('page.databaseServices.description')}
+          eyebrow={
+            <>
+              {t('nav.group.data')} · {t('nav.databases')}
+            </>
+          }
           title={t('page.databaseServices.title')}
         />
       )}
@@ -484,7 +492,10 @@ export function DatabaseServicesScreen({
                * shows a filtered page, and copy that claimed workspace scope
                * read as a failure to anyone who had just added a connection. */}
               <p className={stateCopyClass}>{t('databaseServices.emptyHint')}</p>
-              <Button data-tutorial-target="new-database-source" onClick={embedded ? openAddDialog : openCreateEditor}>
+              <Button
+                data-tutorial-target="new-database-source"
+                onClick={embedded ? openAddDialog : openCreateEditor}
+              >
                 {embedded ? t('databaseServices.addDatasource') : t('databaseServices.addFirst')}
               </Button>
             </div>

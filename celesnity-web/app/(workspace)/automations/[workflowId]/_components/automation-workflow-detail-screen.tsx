@@ -515,6 +515,11 @@ export function AutomationWorkflowDetailScreen({
             backTo={{ href: '/automations', label: t('automationWorkflow.back') }}
             meta={<AutomationWorkflowStatusBadge status={workflow.status} t={t} />}
             description={describeTrigger(workflow, t)}
+            eyebrow={
+              <>
+                {t('nav.group.tools')} · {t('nav.automations')}
+              </>
+            }
             actions={
               <Button onClick={() => setTestFireOpen(true)} disabled={busy}>
                 {t('automationWorkflow.testFire')}

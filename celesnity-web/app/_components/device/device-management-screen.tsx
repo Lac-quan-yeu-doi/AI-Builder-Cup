@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/_components/ui/select';
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { Spinner } from '@/app/_components/ui/spinner';
 import { Textarea } from '@/app/_components/ui/textarea';
 import { Tabs as TabsRoot, TabsContent, TabsList, TabsTrigger } from '@/app/_components/ui/tabs';
@@ -904,25 +905,30 @@ export function DeviceManagementScreen({
   return (
     <main className={cn('grid gap-5', embedded ? 'p-0' : 'p-5')}>
       {embedded ? null : (
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="m-0 text-2xl font-semibold text-ink">{t('devices.title')}</h1>
-            <p className="mt-2 text-sm text-ink-muted">{t('devices.subtitle')}</p>
-          </div>
-          <Select
-            className="min-w-64"
-            label={t('devices.adapter')}
-            data={[
-              { value: '', label: t('devices.selectAdapter') },
-              ...activeAdapters.map((adapter) => ({ value: adapter.id, label: adapter.name })),
-            ]}
-            onChange={(value) => {
-              setAdapterId(value);
-              void loadDevices(value);
-            }}
-            value={adapterId}
-          />
-        </header>
+        <PageBar
+          actions={
+            <Select
+              className="min-w-64"
+              label={t('devices.adapter')}
+              data={[
+                { value: '', label: t('devices.selectAdapter') },
+                ...activeAdapters.map((adapter) => ({ value: adapter.id, label: adapter.name })),
+              ]}
+              onChange={(value) => {
+                setAdapterId(value);
+                void loadDevices(value);
+              }}
+              value={adapterId}
+            />
+          }
+          description={t('devices.subtitle')}
+          eyebrow={
+            <>
+              {t('nav.group.data')} · {t('nav.streaming')}
+            </>
+          }
+          title={t('devices.title')}
+        />
       )}
       {error ? <PageAlert>{error}</PageAlert> : null}
       {!adapters ? (

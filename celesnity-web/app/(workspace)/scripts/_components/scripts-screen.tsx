@@ -513,6 +513,11 @@ export function ScriptsScreen({ controllers }: ScriptsScreenProps) {
           </Button>
         }
         description={t('page.scripts.description')}
+        eyebrow={
+          <>
+            {t('nav.group.tools')} · {t('nav.scripts')}
+          </>
+        }
         title={t('page.scripts.title')}
       />
 

@@ -1,14 +1,14 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeftIcon, FileVideoIcon, SparklesIcon, UploadIcon, XIcon } from 'lucide-react';
+import { FileVideoIcon, SparklesIcon, UploadIcon, XIcon } from 'lucide-react';
 
 import { useTranslation } from '@/app/_i18n/use-translation';
 import type { TranslationKey } from '@/app/_i18n/en';
 import { Alert, AlertDescription, AlertTitle } from '@/app/_components/ui/alert';
 import { Button } from '@/app/_components/ui/button';
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { Input } from '@/app/_components/ui/input';
 import { Label } from '@/app/_components/ui/label';
 import { NativeSelect, NativeSelectOption } from '@/app/_components/ui/native-select';
@@ -97,18 +97,19 @@ export function RepairCaptureScreen({
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 p-6">
-      <header className="space-y-2">
-        <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href={`/plant-model/${encodeURIComponent(siteId)}/repairs`}>
-            <ArrowLeftIcon />
-            {t('plantRepairs.title')}
-          </Link>
-        </Button>
-        <h1 className="text-heading-2">{t('plantRepairs.captureTitle')}</h1>
-        <p className="max-w-3xl text-body-md text-muted-foreground">
-          {t('plantRepairs.captureSubtitle')}
-        </p>
-      </header>
+      <PageBar
+        backTo={{
+          href: `/plant-model/${encodeURIComponent(siteId)}/repairs`,
+          label: t('plantRepairs.title'),
+        }}
+        eyebrow={
+          <>
+            {t('plantRail.group.operations')} · {t('plantRepairs.title')}
+          </>
+        }
+        title={t('plantRepairs.captureTitle')}
+        description={t('plantRepairs.captureSubtitle')}
+      />
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <section className="flex flex-col gap-4">

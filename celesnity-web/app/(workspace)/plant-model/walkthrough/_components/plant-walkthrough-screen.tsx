@@ -1,21 +1,14 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ArrowLeftIcon,
-  FileVideoIcon,
-  PlusIcon,
-  SparklesIcon,
-  UploadIcon,
-  XIcon,
-} from 'lucide-react';
+import { FileVideoIcon, PlusIcon, SparklesIcon, UploadIcon, XIcon } from 'lucide-react';
 
 import { useTranslation } from '@/app/_i18n/use-translation';
 import type { TranslationKey } from '@/app/_i18n/en';
 import { Alert, AlertDescription, AlertTitle } from '@/app/_components/ui/alert';
 import { Button } from '@/app/_components/ui/button';
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { Input } from '@/app/_components/ui/input';
 import { Label } from '@/app/_components/ui/label';
 import { ShimmerText } from '@/app/_components/ui/shimmer-text';
@@ -124,18 +117,16 @@ export function PlantWalkthroughScreen({
 
   return (
     <main className="space-y-8">
-      <header className="space-y-2">
-        <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/plant-model">
-            <ArrowLeftIcon />
-            {t('plantWalkthrough.back')}
-          </Link>
-        </Button>
-        <h1 className="text-heading-1">{t('plantWalkthrough.title')}</h1>
-        <p className="max-w-3xl text-body-md text-muted-foreground">
-          {t('plantWalkthrough.subtitle')}
-        </p>
-      </header>
+      <PageBar
+        backTo={{ href: '/plant-model', label: t('plantWalkthrough.back') }}
+        eyebrow={
+          <>
+            {t('nav.group.data')} · {t('nav.plantModel')}
+          </>
+        }
+        title={t('plantWalkthrough.title')}
+        description={t('plantWalkthrough.subtitle')}
+      />
 
       <div className="grid gap-10 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)] xl:items-start">
         <div className="flex flex-col gap-4 xl:sticky xl:top-8">

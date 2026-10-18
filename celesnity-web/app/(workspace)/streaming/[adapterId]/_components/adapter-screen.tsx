@@ -58,6 +58,11 @@ export function AdapterScreen({ adapterId, controller }: AdapterScreenProps) {
     <section className="grid gap-5">
       <PageBar
         backTo={{ href: '/streaming', label: t('streaming.back') }}
+        eyebrow={
+          <>
+            {t('nav.group.data')} · {t('nav.streaming')}
+          </>
+        }
         meta={
           adapter ? (
             <Badge variant={adapter.desiredState === 'ACTIVE' ? 'success' : 'warning'}>

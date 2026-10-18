@@ -2,6 +2,26 @@
   "month": "2026-10",
   "entries": [
     {
+      "id": "2026-10-18-plant-landing-and-rail",
+      "date": "2026-10-18",
+      "areas": [
+        "web"
+      ],
+      "kind": "improvement",
+      "version": "0.5.0",
+      "authors": [
+        "Hung"
+      ],
+      "title": {
+        "en": "A plant model landing, a rail that follows the plant, one header everywhere",
+        "vi": "Trang Mô hình nhà máy mới, thanh điều hướng theo nhà máy, một kiểu tiêu đề cho mọi màn"
+      },
+      "summary": {
+        "en": "Plant model now opens on the two ways to start, walking the floor or capturing a repair, then every plant and the latest repair guides; creating a plant by hand moved to a dialog. Inside a plant the left rail becomes the plant's navigation, with a plant switcher, its pages and Ask Minder about this plant, so the page gets the full width. Every screen opens with the same header: where you are, the title, and its actions.",
+        "vi": "Mô hình nhà máy giờ mở đầu bằng hai cách bắt đầu là đi một vòng xưởng hoặc ghi lại một lần sửa, rồi đến danh sách nhà máy và các hướng dẫn sửa máy gần đây; tạo nhà máy thủ công chuyển vào một hộp thoại. Khi mở một nhà máy, thanh bên trái trở thành điều hướng của nhà máy đó, có bộ chuyển nhà máy, các trang của nhà máy và Hỏi Minder về nhà máy này, nên nội dung được dùng hết chiều rộng. Mọi màn mở đầu bằng cùng một kiểu tiêu đề: bạn đang ở đâu, tên màn và các thao tác."
+      }
+    },
+    {
       "id": "2026-10-17-repair-know-how",
       "date": "2026-10-17",
       "areas": [

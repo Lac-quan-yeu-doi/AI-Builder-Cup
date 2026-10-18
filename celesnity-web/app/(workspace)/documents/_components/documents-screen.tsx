@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { useTranslation } from '@/app/_i18n/use-translation';
 import { DocumentBody } from '@/app/_components/documents/document-body';
 import { DocumentFileViewer } from '@/app/_components/documents/document-file-viewer';
@@ -127,23 +128,29 @@ export function DocumentsScreen({ controllers, renderer }: DocumentsScreenProps)
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">{t('documents.title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t('documents.subtitle')}</p>
-        </div>
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          disabled={uploading}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <span className="text-muted-foreground">⬆</span>
-          {uploading ? t('documents.uploading') : t('documents.upload')}
-        </button>
-        <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileInput} />
-      </div>
+      <PageBar
+        actions={
+          <>
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              disabled={uploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <span className="text-muted-foreground">⬆</span>
+              {uploading ? t('documents.uploading') : t('documents.upload')}
+            </button>
+            <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileInput} />
+          </>
+        }
+        description={t('documents.subtitle')}
+        eyebrow={
+          <>
+            {t('nav.group.resources')} · {t('nav.documents')}
+          </>
+        }
+        title={t('documents.title')}
+      />
 
       {uploadError && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">

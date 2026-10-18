@@ -7,9 +7,11 @@ import { MicIcon, PlayIcon, VideoIcon, WrenchIcon } from 'lucide-react';
 import { useTranslation } from '@/app/_i18n/use-translation';
 import { Badge } from '@/app/_components/ui/badge';
 import { Button } from '@/app/_components/ui/button';
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { transferMetrics, type RepairGuide } from '@/src/entities/models/repair-guide';
 import type { RepairGuideController } from '@/src/interface-adapters/controllers/plant-model/repair-guide.controller';
 
+import { usePlantWorkspace } from '../../_components/plant-workspace-context';
 import { formatDuration, formatPercent } from './repair-format';
 
 export function RepairGuidesScreen({
@@ -20,6 +22,7 @@ export function RepairGuidesScreen({
   readonly siteId: string;
 }) {
   const { t } = useTranslation();
+  const { site } = usePlantWorkspace();
   const [guides, setGuides] = useState<readonly RepairGuide[]>();
   const [error, setError] = useState('');
   const base = `/plant-model/${encodeURIComponent(siteId)}/repairs`;
@@ -41,18 +44,23 @@ export function RepairGuidesScreen({
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 p-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-3xl space-y-2">
-          <h1 className="text-heading-2">{t('plantRepairs.title')}</h1>
-          <p className="text-body-md text-muted-foreground">{t('plantRepairs.subtitle')}</p>
-        </div>
-        <Button asChild>
-          <Link href={`${base}/capture`}>
-            <VideoIcon />
-            {t('plantRepairs.capture')}
-          </Link>
-        </Button>
-      </header>
+      <PageBar
+        eyebrow={
+          <>
+            {t('plantRail.group.operations')} · {site?.name ?? ''}
+          </>
+        }
+        title={t('plantRepairs.title')}
+        description={t('plantRepairs.subtitle')}
+        actions={
+          <Button asChild>
+            <Link href={`${base}/capture`}>
+              <VideoIcon />
+              {t('plantRepairs.capture')}
+            </Link>
+          </Button>
+        }
+      />
 
       <ol className="grid gap-3 md:grid-cols-5">
         {(

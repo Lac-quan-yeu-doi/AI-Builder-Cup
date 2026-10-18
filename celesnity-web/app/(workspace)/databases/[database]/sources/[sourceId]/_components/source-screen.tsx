@@ -252,6 +252,11 @@ export function SourceScreen({ controllers, databaseName, sourceId }: SourceScre
           href: databaseTabHref(databaseName, 'sources'),
           label: databaseName,
         }}
+        eyebrow={
+          <>
+            {t('nav.group.data')} · {t('nav.databases')}
+          </>
+        }
         meta={service ? <Badge variant="outline">{service.connectorType}</Badge> : null}
         title={service?.name ?? t('source.loading')}
       />

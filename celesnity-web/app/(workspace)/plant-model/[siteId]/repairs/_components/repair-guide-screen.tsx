@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeftIcon, BadgeCheckIcon, PlayIcon, Trash2Icon } from 'lucide-react';
+import { BadgeCheckIcon, PlayIcon, Trash2Icon } from 'lucide-react';
 
 import { useTranslation } from '@/app/_i18n/use-translation';
 import { Badge } from '@/app/_components/ui/badge';
 import { Button } from '@/app/_components/ui/button';
+import { PageBar } from '@/app/_components/ui/page-bar';
 import { Checkbox } from '@/app/_components/ui/checkbox';
 import { Spinner } from '@/app/_components/ui/spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/_components/ui/tabs';
@@ -99,55 +100,57 @@ export function RepairGuideScreen({
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6">
-      <header className="flex flex-col gap-3">
-        <Button asChild variant="ghost" size="sm" className="-ml-3 self-start">
-          <Link href={base}>
-            <ArrowLeftIcon />
-            {t('plantRepairs.title')}
-          </Link>
-        </Button>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0 max-w-3xl space-y-1">
-            <h1 className="text-heading-2">{guide.procedure.title}</h1>
-            <p className="text-body-md text-muted-foreground">
+      <section className="flex flex-col gap-3">
+        <PageBar
+          backTo={{ href: base, label: t('plantRepairs.title') }}
+          eyebrow={
+            <>
               {t('plantRepairs.machineFault', {
                 machine: guide.machineName,
                 fault: guide.faultName,
               })}
               {' · '}
               {t('plantRepairs.recordedBy', { expert: guide.expert })}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={guide.status === 'approved' ? 'success' : 'warning'}>
+            </>
+          }
+          title={guide.procedure.title}
+          meta={
+            <Badge
+              variant={guide.status === 'approved' ? 'success' : 'warning'}
+              className="font-mono"
+            >
               {guide.status === 'approved'
                 ? t('plantRepairs.status.approved', { revision: guide.revision })
                 : t('plantRepairs.status.draft', { revision: guide.revision })}
             </Badge>
-            {guide.status === 'approved' ? (
-              <Button asChild>
-                <Link href={`${base}/${encodeURIComponent(guide.id)}/guide`}>
-                  <PlayIcon />
-                  {t('plantRepairs.startGuided')}
-                </Link>
+          }
+          description={guide.procedure.summary}
+          actions={
+            <>
+              {guide.status === 'approved' ? (
+                <Button asChild>
+                  <Link href={`${base}/${encodeURIComponent(guide.id)}/guide`}>
+                    <PlayIcon />
+                    {t('plantRepairs.startGuided')}
+                  </Link>
+                </Button>
+              ) : (
+                <Button disabled={issues.length > 0 || approving} onClick={() => void approve()}>
+                  {approving ? <Spinner /> : <BadgeCheckIcon />}
+                  {t('plantRepairs.approve')}
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t('plantRepairs.delete')}
+                onClick={() => void remove()}
+              >
+                <Trash2Icon />
               </Button>
-            ) : (
-              <Button disabled={issues.length > 0 || approving} onClick={() => void approve()}>
-                {approving ? <Spinner /> : <BadgeCheckIcon />}
-                {t('plantRepairs.approve')}
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={t('plantRepairs.delete')}
-              onClick={() => void remove()}
-            >
-              <Trash2Icon />
-            </Button>
-          </div>
-        </div>
-        <p className="max-w-3xl text-body-md">{guide.procedure.summary}</p>
+            </>
+          }
+        />
         {guide.status === 'draft' ? (
           <p className="text-body-sm text-muted-foreground">
             {issues.length > 0
@@ -167,7 +170,7 @@ export function RepairGuideScreen({
             {error}
           </p>
         ) : null}
-      </header>
+      </section>
 
       <Tabs defaultValue="procedure" className="gap-4">
         <TabsList>

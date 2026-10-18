@@ -195,6 +195,11 @@ export function DataWorkflowScreen({ controller }: Props) {
         <PageBar
           title={t('dataWorkflow.title')}
           description={t('dataWorkflow.description')}
+          eyebrow={
+            <>
+              {t('nav.group.tools')} · {t('nav.dataWorkflows')}
+            </>
+          }
           actions={
             <div className="flex items-center gap-2">
               <Button asChild>

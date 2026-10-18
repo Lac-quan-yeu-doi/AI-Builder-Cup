@@ -2657,6 +2657,41 @@ export const en = {
   'plantRepairs.guided.yourTime': 'Your time',
   'plantRepairs.guided.doneBody':
     "Your time, result and anything you did differently now count toward this guide's next revision.",
+
+  // Reskin: home page and the rail inside a plant.
+  'plantRail.allPlants': 'All plants',
+  'plantRail.switch': 'Switch plant',
+  'plantRail.group.plant': 'Plant',
+  'plantRail.group.operations': 'Operations',
+  'plantRail.overview': 'Overview',
+  'plantRail.model': 'Model',
+  'plantRail.dashboards': 'Dashboards',
+  'plantRail.repairs': 'Repairs',
+  'plantRail.configure': 'Configure',
+  'plantRail.ask': 'Ask Minder about this plant',
+
+  // Plant model landing: the two ways to start, plants and recent guides.
+  'plantHub.counts': '{plants} plants · {guides} repair guides · {runs} guided repairs',
+  'plantHub.featuresLabel': 'What you can do',
+  'plantHub.twin.eyebrow': 'Walk-in Twin',
+  'plantHub.twin.title': 'Walk the floor',
+  'plantHub.twin.body':
+    'Film a two-minute walk. Gemini maps lines, machines and material flow into a twin you check and turn into a plant.',
+  'plantHub.twin.cta': 'Upload a walkthrough',
+  'plantHub.repair.eyebrow': 'Repair know-how',
+  'plantHub.repair.title': 'Capture a repair',
+  'plantHub.repair.body':
+    "Film an expert fixing a machine while they talk. The next technician repairs step by step, by voice, with the expert's clips.",
+  'plantHub.repair.firstTimeFix': 'Guided first-time fix {percent}%',
+  'plantHub.repair.noRuns': 'No guided repairs yet',
+  'plantHub.repair.openWhy': '{count} why questions open',
+  'plantHub.repair.capture': 'Capture a repair',
+  'plantHub.repair.guide': 'Guide a repair',
+  'plantHub.plants': 'Plants',
+  'plantHub.published': 'Published v{version}',
+  'plantHub.draft': 'Draft',
+  'plantHub.guides': 'Recent repair guides',
+  'plantHub.noGuides': 'No repair guides yet.',
 } as const;
 
 export type TranslationKey = keyof typeof en;
