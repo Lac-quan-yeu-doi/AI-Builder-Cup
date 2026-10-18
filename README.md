@@ -8,7 +8,7 @@ This directory contains release/0.5.0 snapshots of the Web, Core, Agent, and Inf
 - `celesnity-core/` — Core API and worker; see [README.core.md](README.core.md).
 - `minder-agent/` — Agent runtime; see [README.agent.md](README.agent.md).
 - `celesnity-infra/` — Shared service config (Trino, Spark, Redpanda, EMQX) and a standalone local data stack; see [README.infra.md](README.infra.md).
-- `mock-data/` — Demo Data 1 (home appliance) and Demo Data 2 (coffee capsules), loaded into the `sample-postgres` service; see [mock-data/README.md](mock-data/README.md).
+- `mock-data/` — Demo Data 1 (home appliance) and Demo Data 2 (coffee capsules), loaded into the `sample-postgres` service, with their curated Iceberg warehouses loaded by `trino-seed`; see [mock-data/README.md](mock-data/README.md).
 
 ## Run with Docker Compose
 
@@ -24,7 +24,7 @@ The app is served by nginx on port 80 (http://localhost locally). Only nginx is 
 3. `docker compose up -d --build`. One-shot jobs (`*-init`, `*-migrate`, `trino-seed`) exit 0; `--wait` reports those as failures, so check with `docker compose ps -a` instead.
 4. Open `http://<VPS_IP>` and pick a persona. Auth is `local-development`: anyone with the URL can sign in.
 
-Bootstrap jobs: `celesnity-migrate` runs migrations → `seed/core-local-personas.sql` → Core's organization bootstrap; `minder-manifest-migrate` seeds the built-in agents (`seed/agent-manifest-migrations.mjs`).
+Bootstrap jobs: `celesnity-migrate` runs migrations → `seed/core-local-personas.sql` → Core's organization bootstrap; `minder-manifest-migrate` seeds the built-in agents (`seed/agent-manifest-migrations.mjs`); `trino-seed` loads the read-only sample warehouses in `trino/seed/` (`iceberg.demo` and the Demo Data 1 and 2 warehouses, which take a few minutes on the first run and are skipped after that).
 
 ### Resources (2 vCPU / 5 GB host, one user)
 

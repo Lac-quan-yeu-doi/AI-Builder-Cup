@@ -50,4 +50,34 @@ describe('bypassesForDemoNamespace', () => {
   it('does not allow an empty hierarchy', () => {
     expect(bypassesForDemoNamespace('SELECT', [])).toBe(false);
   });
+
+  it.each(['demo1_home_appliance', 'demo2_coffee_capsules'])(
+    'allows SELECT on a column of the %s demo warehouse',
+    (schema) => {
+      const hierarchy: CatalogResourceRef[] = [
+        { type: 'CATALOG', id: 'iceberg' },
+        { type: 'SCHEMA', id: `iceberg.${schema}` },
+        { type: 'TABLE', id: `iceberg.${schema}.fact_oee_shift` },
+        { type: 'COLUMN', id: `iceberg.${schema}.fact_oee_shift.oee` },
+      ];
+      expect(bypassesForDemoNamespace('SELECT', hierarchy)).toBe(true);
+    },
+  );
+
+  it('does not allow a write permission on a Demo Data warehouse', () => {
+    const hierarchy: CatalogResourceRef[] = [
+      { type: 'CATALOG', id: 'iceberg' },
+      { type: 'SCHEMA', id: 'iceberg.demo1_home_appliance' },
+      { type: 'TABLE', id: 'iceberg.demo1_home_appliance.fact_oee_shift' },
+    ];
+    expect(bypassesForDemoNamespace('INSERT', hierarchy)).toBe(false);
+  });
+
+  it('does not treat a schema that only shares the demo prefix as a demo schema', () => {
+    const hierarchy: CatalogResourceRef[] = [
+      { type: 'CATALOG', id: 'iceberg' },
+      { type: 'SCHEMA', id: 'iceberg.demo1_home_appliance_private' },
+    ];
+    expect(bypassesForDemoNamespace('SELECT', hierarchy)).toBe(false);
+  });
 });

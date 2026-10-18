@@ -595,14 +595,23 @@ services:
   # --------------------------------------------------------------------------
   # Trino: demo warehouse seed (one-shot)
   #
-  # Loads the committed iceberg.demo fixture (customers + orders) into the
-  # managed Iceberg catalog so the platform's shared read-only demo namespace
-  # (iceberg.demo bypass in AdministrationUseCases.authorizeCatalog) has data
-  # to browse and query out of the box. Runs the trino CLI bundled in the
-  # trino image as the write-capable 'celesnity' identity (the only principal
-  # the file access-control policy lets create/populate iceberg schemas).
-  # Idempotent: the fixture DROPs then CREATEs its tables before INSERT, so
-  # re-running on every `up` converges to the same 300 customers / 2000 orders.
+  # Loads the committed fixtures in trino/seed/ into the managed Iceberg catalog
+  # so the platform's shared read-only demo namespaces (the demo bypass in
+  # AdministrationUseCases.authorizeCatalog) have data to browse and query out
+  # of the box:
+  #   - iceberg.demo (customers + orders), reloaded on every `up`: the fixture
+  #     DROPs then CREATEs its tables, converging to 300 customers / 2000 orders.
+  #   - iceberg.demo1_home_appliance and iceberg.demo2_coffee_capsules, the
+  #     curated warehouses of Demo Data 1 and 2 (mock-data/README.md). Each is
+  #     loaded only while the table on its fixture's "-- check:" line (the last
+  #     one it fills) is missing or short of rows, so the first `up` of a fresh
+  #     stack takes a few minutes and later ones skip it; a stack that built
+  #     them with the mock-data pipelines keeps its own. Zipped because the
+  #     trino image has no gzip (the JDK's `jar` unpacks them), and split into
+  #     files of at most 2 MB because the CLI holds a whole file in memory.
+  # Runs the trino CLI bundled in the trino image as the write-capable
+  # 'celesnity' identity (the only principal the file access-control policy lets
+  # create/populate these iceberg schemas).
   # --------------------------------------------------------------------------
   trino-seed:
     image: trinodb/trino:483
@@ -616,12 +625,35 @@ services:
       trino-coordinator:
         condition: service_healthy
     volumes:
-      - ./trino/seed/demo-tabular.sql:/seed/demo-tabular.sql:ro
+      - ./trino/seed:/seed:ro
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        /usr/bin/trino --server http://trino-coordinator:8080 \
-          --catalog iceberg --user celesnity -f /seed/demo-tabular.sql
+        set -e
+        trino() {
+          /usr/bin/trino --server http://trino-coordinator:8080 \
+            --catalog iceberg --user celesnity "$$@"
+        }
+        trino -f /seed/demo-tabular.sql
+        for archive in /seed/*.sql.zip; do
+          rm -rf /tmp/fixture && mkdir /tmp/fixture && cd /tmp/fixture
+          jar xf "$$archive"
+          schema=$$(ls)
+          check=$$(sed -n 's/^-- check: //p' "$$schema/000-schema.sql")
+          table=$${check% *}
+          rows=$${check#* }
+          present=$$(trino --output-format TSV \
+            --execute "SELECT count(*) FROM iceberg.$$schema.$$table" 2>/dev/null || echo 0)
+          if [ "$$present" -ge "$$rows" ]; then
+            echo "iceberg.$$schema is already loaded; skipping."
+            continue
+          fi
+          echo "Loading iceberg.$$schema from $$(basename "$$archive") ..."
+          for file in "$$schema"/*.sql; do
+            trino -f "$$file" > /dev/null
+          done
+          echo "Loaded iceberg.$$schema."
+        done
     networks:
       - infra
 

@@ -2,6 +2,26 @@
   "month": "2026-10",
   "entries": [
     {
+      "id": "2026-10-18-demo-data-warehouses-built-in",
+      "date": "2026-10-18",
+      "areas": [
+        "core"
+      ],
+      "kind": "feature",
+      "version": "0.5.0",
+      "authors": [
+        "icjayson"
+      ],
+      "title": {
+        "en": "Demo Data 1 and 2 are ready to query in every workspace",
+        "vi": "Demo Data 1 và 2 có sẵn để truy vấn ở mọi không gian làm việc"
+      },
+      "summary": {
+        "en": "The curated warehouses of Demo Data 1 (a chest-freezer plant) and Demo Data 2 (a coffee-capsule plant) now come with every new installation, next to the existing sample data. Every organization can browse and query them read-only, and the assistant can answer questions about them, without connecting a source or running a pipeline first. All of it is mock data.",
+        "vi": "Kho dữ liệu đã xử lý của Demo Data 1 (nhà máy tủ đông) và Demo Data 2 (nhà máy viên nén cà phê) nay có sẵn trong mọi bản cài đặt mới, bên cạnh dữ liệu mẫu đã có. Mọi tổ chức đều duyệt và truy vấn được ở chế độ chỉ đọc, và trợ lý trả lời được câu hỏi về chúng mà không cần kết nối nguồn hay chạy pipeline trước. Tất cả đều là dữ liệu giả lập."
+      }
+    },
+    {
       "id": "2026-10-18-plant-3d-twin",
       "date": "2026-10-18",
       "areas": [

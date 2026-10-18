@@ -25,7 +25,7 @@
     {
       "user": "celesnity",
       "catalog": "iceberg",
-      "schema": "demo",
+      "schema": "demo|demo1_home_appliance|demo2_coffee_capsules",
       "table": ".*",
       "privileges": [
         "SELECT",

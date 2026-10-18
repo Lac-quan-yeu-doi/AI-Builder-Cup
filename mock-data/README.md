@@ -3,7 +3,9 @@
 Two deterministic mock datasets, each standing in for a plant's MES/ERP source
 systems. They are committed as Postgres dumps and loaded automatically by the
 `sample-postgres` service in `docker-compose.yaml`, so no external database is
-needed. All data is mock data.
+needed. The curated Iceberg warehouses built from them are committed too, and
+loaded by `trino-seed` (see [Built in](#built-in-the-curated-warehouses)). All
+data is mock data.
 
 | Dataset | Postgres schema | Plant | Window |
 |---|---|---|---|
@@ -26,6 +28,24 @@ created, which takes about a minute. To connect:
 
 `sample-postgres` is already in Core's `CONNECTION_ALLOWED_HOSTS`, so you can add
 it as a database connection in the web app and crawl either schema.
+
+## Built in: the curated warehouses
+
+The tables the data-platform seeds build — `iceberg.demo1_home_appliance` and
+`iceberg.demo2_coffee_capsules` — are committed as
+`trino/seed/demo1-home-appliance.sql.zip` and
+`trino/seed/demo2-coffee-capsules.sql.zip`. The compose `trino-seed` job loads
+them next to the generic `iceberg.demo` sample, and Core lets every
+organization read all three without a grant. So on a fresh stack (a new
+server, or after `docker compose down -v`) both warehouses can be browsed,
+queried and asked about right after `docker compose up`, with no crawler,
+pipeline or Spark run.
+
+- The first `up` of a fresh stack spends a few minutes loading them; later runs
+  see they are loaded and skip them. A stack that built them with the seed
+  scripts keeps its own tables.
+- They hold data only. The plant sites, charts, dashboards, agent prompts and
+  automations still come from the seed scripts below.
 
 ## Build the full demos in the app
 
@@ -73,8 +93,8 @@ Defaults target the local stack (`lib/http.mjs`); set `CELESNITY_CORE_URL`
 and `CELESNITY_ACCESS_TOKEN` to seed another environment.
 
 Verified so far on a local stack: Demo Data 1 steps 01, 03, 04, 05 and 06, and
-Demo Data 2 step 01. The other steps passed their offline checks but have not
-been run end to end yet.
+Demo Data 2 steps 01 and 03. The other steps passed their offline checks but
+have not been run end to end yet.
 
 ## Tables
 
@@ -130,11 +150,29 @@ This needs Node 20+ and `python3`, and no npm packages. The end date is pinned
 are tuned against that date. If you move it, the build fails when a story drops
 out; try a nearby date.
 
+## Rebuild the Trino fixtures
+
+After the source data or a pipeline changes, rebuild the warehouses on a local
+stack with the data-platform seeds (Demo Data 1 step 05, Demo Data 2 step 03),
+then export them. Trino is not published on the host, so the export runs on the
+compose network:
+
+```bash
+docker compose run --rm --no-deps -v "$PWD":/work -w /work --entrypoint node celesnity-api mock-data/build-trino-seed.mjs
+```
+
+`--only demo1` or `--only demo2` exports one. Each zip holds SQL files of at
+most 2 MB, because the Trino CLI in `trino-seed` holds a whole file in memory.
+A stack that already has the tables skips the load, so to reload a changed
+fixture there, drop the schema's tables first or start from
+`docker compose down -v`.
+
 ## Layout
 
 ```
 mock-data/
   build-dumps.mjs            generator → schema + COPY → init/*.sql.gz
+  build-trino-seed.mjs       built Iceberg tables → ../trino/seed/*.sql.zip
   init/                      committed dumps, mounted into sample-postgres
   lib/                       shared HTTP helpers and the combined agent prompt
   bootstrap-local-org.sh     creates the local organization (once per volume)

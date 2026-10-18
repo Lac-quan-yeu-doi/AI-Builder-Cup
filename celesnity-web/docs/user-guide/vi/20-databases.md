@@ -6,6 +6,8 @@ Module **Databases** (nhóm *Data*) là nơi bạn tạo database trong catalog 
 
 Vào **Databases**. Trang liệt kê các database đã có với mô tả; dùng ô **Filter databases** để tìm nhanh.
 
+Mọi tổ chức đều thấy sẵn ba database mẫu chỉ đọc: `demo` (khách hàng và đơn hàng), `demo1_home_appliance` (Demo Data 1, nhà máy tủ đông) và `demo2_coffee_capsules` (Demo Data 2, nhà máy viên nén cà phê). Bạn mở, xem trước dữ liệu và truy vấn được ngay mà không cần kết nối nguồn hay chạy pipeline. Tất cả đều là dữ liệu giả lập.
+
 **Tạo database mới**
 1. Bấm **Create database**.
 2. Chọn **Catalog** (nơi database sẽ nằm).

@@ -6,6 +6,8 @@ The **Databases** module (under *Data*) is where you create databases in the pla
 
 Open **Databases**. The page lists existing databases with their descriptions; **Filter databases** narrows the list.
 
+Every organization also sees three read-only sample databases: `demo` (customers and orders), `demo1_home_appliance` (Demo Data 1, a chest-freezer plant) and `demo2_coffee_capsules` (Demo Data 2, a coffee-capsule plant). You can open, preview and query them straight away, without connecting a source or running a pipeline. All of them are mock data.
+
 **Creating a database**
 1. Click **Create database**.
 2. Choose the **Catalog** the database belongs to.
