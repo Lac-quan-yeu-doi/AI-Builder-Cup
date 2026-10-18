@@ -29,7 +29,7 @@ export type LiveDemoColumnKind = 'percentage' | 'counter' | 'ratio' | 'quantity'
 
 /*
  * Matched against the column names the Demo Data 1 / Demo Data 2 charts return
- * (mock-data/*/charts.mjs). Percent hints are checked first, then ratios, then
+ * (mock-data/<pack>/charts.mjs). Percent hints are checked first, then ratios, then
  * running counts.
  */
 const PERCENT_HINTS = [
