@@ -838,7 +838,9 @@ services:
           cpus: "0.25"
           memory: 32M
     ports:
-      - "80:80"
+      # Host port; behind a reverse proxy (e.g. Dokploy/Traefik owns :80) set
+      # NGINX_PORT=127.0.0.1:18088 and route the domain to nginx:80 instead.
+      - "${NGINX_PORT:-80}:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
