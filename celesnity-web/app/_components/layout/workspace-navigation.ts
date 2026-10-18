@@ -1,14 +1,9 @@
 import {
   BlocksIcon,
-  BookOpenIcon,
   DatabaseIcon,
-  FileCodeIcon,
   FileTextIcon,
   MessageSquareIcon,
   RadioTowerIcon,
-  ShieldIcon,
-  SparklesIcon,
-  TerminalIcon,
   ChartNoAxesCombinedIcon,
   ZapIcon,
   FactoryIcon,
@@ -52,16 +47,9 @@ export interface WorkspaceNavigationSection {
  *   /pipelines, /executions, /catalog/tables   ->  the database
  *   /devices                                   ->  the streaming adapter
  *
- * Nothing was removed — every screen is still mounted, still routed, and still
- * guarded by its own feature (`route-features.ts`). What changed is that they
- * are stages of something rather than peers of everything.
- *
- * What stays top-level, and why it has to: streaming adapters belong to a tenant
- * and write Bronze objects rather than Iceberg tables; a script's only link is
- * to a source, with no target database to derive; automations are keyed by event
- * topic; analytics is its own collection hierarchy. None of them has a field
- * naming a database, so filing them under one would be a claim the data does not
- * make.
+ * The six-capability workspace keeps setup routes for its data, workflow, and
+ * analytics features. Unrelated screens remain in source but are paused in
+ * `route-features.ts` and excluded from this navigation.
  */
 export const workspaceNavigationGroups: readonly WorkspaceNavigationGroup[] = [
   {
@@ -94,21 +82,12 @@ export const workspaceNavigationGroups: readonly WorkspaceNavigationGroup[] = [
   {
     labelKey: 'nav.group.tools',
     items: [
-      { href: '/sql', labelKey: 'nav.query', icon: TerminalIcon, feature: 'QUERY' },
-      /*
-       * A script reads one source and has its own workbench, so no container
-       * holds it as a tab — which is why it belongs here rather than under a
-       * database. It lost this entry while the rest of the rail was being
-       * rewritten and spent that time reachable only by typing the URL.
-       */
-      { href: '/scripts', labelKey: 'nav.scripts', icon: FileCodeIcon, feature: 'PIPELINES' },
       {
         href: '/data-workflows',
         labelKey: 'nav.dataWorkflows',
         icon: WorkflowIcon,
         feature: 'PIPELINES',
       },
-      { href: '/skills', labelKey: 'nav.skills', icon: SparklesIcon, feature: 'HOME' },
       { href: '/plugins', labelKey: 'nav.plugins', icon: BlocksIcon, feature: 'HOME' },
       { href: '/automations', labelKey: 'nav.automations', icon: ZapIcon, feature: 'AUTOMATIONS' },
     ],
@@ -117,20 +96,12 @@ export const workspaceNavigationGroups: readonly WorkspaceNavigationGroup[] = [
     labelKey: 'nav.group.resources',
     items: [
       { href: '/documents', labelKey: 'nav.documents', icon: FileTextIcon, feature: 'DOCUMENTS' },
-      { href: '/guide', labelKey: 'nav.guide', icon: BookOpenIcon, feature: 'GUIDE' },
     ],
   },
 ];
 
-/** Administration sits in the footer: it is workspace setup, not daily work. */
-export const workspaceFooterNavigation: readonly WorkspaceNavigationItem[] = [
-  {
-    href: '/administration',
-    labelKey: 'nav.administration',
-    icon: ShieldIcon,
-    feature: 'ADMINISTRATION',
-  },
-];
+// The administration screen is paused for the six-capability workspace.
+export const workspaceFooterNavigation: readonly WorkspaceNavigationItem[] = [];
 
 /** Every destination, flattened — the order the groups render in. */
 export const workspaceNavigation: readonly WorkspaceNavigationItem[] = [

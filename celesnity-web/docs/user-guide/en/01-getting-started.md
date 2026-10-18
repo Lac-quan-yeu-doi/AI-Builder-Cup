@@ -11,8 +11,6 @@ Celesnity is a data workspace: you connect data sources, build pipelines, ask an
 
 > If the link you opened required a sign-in, you are returned to that exact page once you are in.
 
-On a first visit the app may invite you to **learn the workspace as you go**. You can start right away or come back later through the **Tutorials** button in the bottom-right corner.
-
 ## 2. The layout
 
 | Area | Where | What it is for |
@@ -21,23 +19,22 @@ On a first visit the app may invite you to **learn the workspace as you go**. Yo
 | Main area | Centre | The module you have open. |
 | Account menu | Bottom left (the initial of your name) | **Change password**, **Sign out**. |
 | Language toggle | Next to the account menu: **EN / VI** | Switches the interface language instantly, no reload. |
-| **Tutorials** button | Bottom right | Opens the list of guided tutorials. |
 
 The sidebar has four groups:
 
 - **Home**: ask the AI assistant (see *Asking the assistant*).
 - **Data**: Databases, Streaming, Plant model, Analytics.
-- **Tools**: Query, Scripts, Skills, Plugins, Automations.
-- **Resources**: Documents, Guide.
-- **Administration** sits at the bottom of the sidebar and matters only to administrators.
+- **Tools**: Data workflows, Plugins (for Google Drive data), Automations.
+- **Resources**: Documents.
+
+The standalone Query, Scripts, Skills, Guide, and Administration screens are paused. Direct links to them are also unavailable.
 
 ## 3. Where to start
 
 It depends on your role:
 
 - **Business users and analysts**: go to **Home**, pick the data scope in the "Asking about" box, then ask in plain language. The assistant looks up tables, runs queries and draws charts for you.
-- **Data engineers**: go to **Databases** to create a database, connect a source, scan its metadata and build a pipeline. Then use **Query** to check the data.
-- **Administrators**: go to **Administration** to invite members, create groups and decide which group sees which module.
+- **Data engineers**: go to **Databases** to create a database, connect a source, scan its metadata and build a pipeline. Use **Data workflows** to schedule the work.
 
 ## 4. Changing your password and signing out
 
