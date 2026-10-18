@@ -9,14 +9,14 @@
 #   - Celesnity Core: api + worker (NestJS)
 #   - Celesnity Web: Next.js frontend
 #   - Minder Agent: runtime only (Rust minder-serve)
+#   - nginx: public entrypoint, load-balances celesnity-web
 #
 # Prerequisites:
 #   - Copy .env.example to .env and fill in required values
 #   - Docker Desktop running
 #
-# Port map:
-#   3000  celesnity-web
-#   3001  celesnity-core API
+# Port map (only nginx is public; everything else binds 127.0.0.1):
+#   80    nginx -> celesnity-web replicas (see nginx/default.conf)
 #   5433  minder-agent postgres
 #   7077  spark master
 #   8080  trino coordinator
@@ -86,7 +86,7 @@ x-core-env: &core-env
   AGENT_WRITE_RATE_WINDOW_MS: ${AGENT_WRITE_RATE_WINDOW_MS:-60000}
   AGENT_WRITE_RATE_LIMIT: ${AGENT_WRITE_RATE_LIMIT:-120}
   PENDING_ACTION_TTL_MS: ${PENDING_ACTION_TTL_MS:-86400000}
-  DATABASE_URL: postgresql://celesnity:celesnity_dev_password@postgres:5432/celesnity?schema=celesnity_app
+  DATABASE_URL: postgresql://${POSTGRES_USER:-celesnity}:${POSTGRES_PASSWORD:-celesnity_dev_password}@postgres:5432/${POSTGRES_DB:-celesnity}?schema=celesnity_app
   MINIO_ENDPOINT: http://minio:9000
   MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-celesnity}
   MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
@@ -577,7 +577,23 @@ services:
     environment:
       <<: *core-env
       NODE_ENV: development
-    command: ["/app/node_modules/.bin/prisma", "migrate", "deploy"]
+      # Migrate, then the local-development org + login personas, then Core's
+      # organization bootstrap (verifies them, adds service identities). Tenant 'local' is fixed by
+      # the local-development token verifier.
+      BOOTSTRAP_ORGANIZATION_ID: 00000000-0000-4000-8000-000000000002
+      BOOTSTRAP_ORGANIZATION_SLUG: local-development
+      BOOTSTRAP_ORGANIZATION_NAME: Local Development
+      BOOTSTRAP_HOME_REGION: local
+      BOOTSTRAP_IDENTITY_TENANT_ID: local
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        /app/node_modules/.bin/prisma migrate deploy
+        /app/node_modules/.bin/prisma db execute --file /seed/core-local-personas.sql
+        node dist/bootstrap/organization-bootstrap-main.js
+    volumes:
+      - ./seed/core-local-personas.sql:/seed/core-local-personas.sql:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -598,10 +614,11 @@ services:
       PORT: "3001"
       API_BIND_ADDRESS: 0.0.0.0
       API_AUTH_ENABLED: "false"
-      WEB_ORIGIN: http://localhost:3000,https://dev.celesnity.com
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost}
       SPARK_MASTER_URL: spark://spark-master:7077
-    ports:
-      - "127.0.0.1:3001:3001"
+    # GKE HPA minReplicas; web reaches it via Docker DNS round-robin.
+    deploy:
+      replicas: 2
     depends_on:
       postgres:
         condition: service_healthy
@@ -639,7 +656,7 @@ services:
       <<: *core-env
       SPARK_EXECUTION_BACKEND: docker
       SPARK_SUBMIT_MASTER_URL: spark://spark-master:7077
-      SPARK_CONTAINER: minder-sys-spark-master-1
+      SPARK_CONTAINER: ${COMPOSE_PROJECT_NAME:-minder-sys}-spark-master-1
       # Pin the Iceberg catalog Spark writes to. A pipeline execution injects its
       # *source* connection as POSTGRES_URL/USER/PASSWORD, and without these the
       # generated job registers its output tables in the source database, where
@@ -694,7 +711,7 @@ services:
       IDENTITY_PLATFORM_AUTH_DOMAIN: ${IDENTITY_PLATFORM_AUTH_DOMAIN:-}
       IDENTITY_BOOTSTRAP_ADMIN_SUBJECTS: ${IDENTITY_BOOTSTRAP_ADMIN_SUBJECTS:-}
       GOOGLE_APPLICATION_CREDENTIALS: /gcloud/application_default_credentials.json
-      WEB_ORIGIN: http://localhost:3000
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost}
       CORE_API_URL: http://celesnity-api:3001/api/v1
       AGENT_API_URL: http://minder-runtime:8080/api/v2
       AGENT_AUTH_MODE: core-assertion
@@ -705,11 +722,43 @@ services:
       - ${HOME}/.config/gcloud:/gcloud:ro
     tmpfs:
       - /app/.next/cache:mode=1777
-    ports:
-      - "127.0.0.1:3000:3000"
+    # GKE HPA minReplicas; nginx load-balances them.
+    deploy:
+      replicas: 2
     depends_on:
       celesnity-api:
         condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # nginx: public entrypoint
+  # --------------------------------------------------------------------------
+  nginx:
+    image: nginx:1.29-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      celesnity-web:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/nginx-health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     networks:
       - infra
 
@@ -763,7 +812,7 @@ services:
         AGENT_BASE_IMAGE: minder/runtime-base:dev
     image: minder/runtime:dev
     restart: unless-stopped
-    environment:
+    environment: &minder-runtime-env
       NODE_ENV: development
       LLM_BASE_URL: ${LLM_BASE_URL:?set LLM_BASE_URL in .env}
       LLM_API_KEY: ${LLM_API_KEY:?set LLM_API_KEY in .env}
@@ -813,6 +862,8 @@ services:
         condition: service_healthy
       minder-sandbox-runner:
         condition: service_healthy
+      minder-manifest-migrate:
+        condition: service_completed_successfully
     healthcheck:
       test:
         - CMD
@@ -824,6 +875,31 @@ services:
       timeout: 3s
       start_period: 15s
       retries: 5
+    networks:
+      - infra
+
+  # --------------------------------------------------------------------------
+  # Minder Agent: built-in agent manifests per Core organization (one-shot)
+  # Runs minder-agent's manifest-workspace-migrations entrypoint; the
+  # seed script swaps GCP workload identity for the MCP shared secret.
+  # --------------------------------------------------------------------------
+  minder-manifest-migrate:
+    image: minder/runtime:dev
+    restart: "no"
+    environment: *minder-runtime-env
+    command: ["/seed/agent-manifest-migrations.mjs"]
+    volumes:
+      - ./seed/agent-manifest-migrations.mjs:/seed/agent-manifest-migrations.mjs:ro
+      # Runtime trusts its (persistent) local workspace cache once marked ready;
+      # write through it so a rerun is visible without wiping the volume.
+      - minder_workspace_cache:/tmp/minder-workspaces
+    depends_on:
+      minder-migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      celesnity-api:
+        condition: service_healthy
     networks:
       - infra
 
@@ -865,7 +941,7 @@ services:
   # Dev base images (build-only, `base` profile)
   #
   # Pre-built dependency layers for the minder-runtime and minder-sandbox-runner
-  # builds above, from the same docker/*-base.Dockerfile files GKE uses. Build
+  # builds above, from minder-agent/docker/*-base.Dockerfile. Build
   # them once before the first `docker compose build`, and again after changing:
   #   - minder-agent package.json / package-lock.json (runtime base; the runtime
   #     build falls back to `npm ci` if they differ, so a stale base is only slow)
@@ -894,7 +970,6 @@ services:
 # ============================================================================
 networks:
   infra:
-    name: minder-sys
 
 # ============================================================================
 # Volumes
