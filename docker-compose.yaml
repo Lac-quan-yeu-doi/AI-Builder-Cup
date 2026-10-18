@@ -4,7 +4,8 @@
 #   docker compose up -d --build --wait
 #
 # Services:
-#   - Infrastructure: postgres, minio, spark-master, spark-worker, trino-coordinator, trino-worker
+#   - Infrastructure: postgres, minio, redpanda, spark-master, trino-coordinator
+#     (spark-worker / trino-worker default to 0 replicas, see Resources below)
 #   - Mock source data: sample-postgres (Demo Data 1 + 2, see mock-data/README.md)
 #   - Celesnity Core: api + worker (NestJS)
 #   - Celesnity Web: Next.js frontend
@@ -14,6 +15,11 @@
 # Prerequisites:
 #   - Copy .env.example to .env and fill in required values
 #   - Docker Desktop running
+#
+# Resources: sized for a 2 vCPU / 5 GB host serving one user. Memory limits
+# sum to ~4.4 GiB (steady services); CPU limits are per-container ceilings so no
+# single service can take both cores. JVMs (Trino, Spark) and Node heaps are
+# capped explicitly to stay inside their container limit.
 #
 # Port map (only nginx is public; everything else binds 127.0.0.1):
 #   80    nginx -> celesnity-web replicas (see nginx/default.conf)
@@ -56,6 +62,7 @@ x-spark-env: &spark-env
   CELESNITY_CATALOG_JDBC_PASSWORD: ${POSTGRES_PASSWORD:-celesnity_dev_password}
   SPARK_MASTER_HOST: spark-master
   SPARK_MASTER_INTERNAL_PORT: "7077"
+  SPARK_DAEMON_MEMORY: 128m
 
 x-trino-env: &trino-env
   POSTGRES_DB: ${POSTGRES_DB:-celesnity}
@@ -65,8 +72,8 @@ x-trino-env: &trino-env
   MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
   MINIO_BUCKET: ${MINIO_BUCKET:-warehouse}
   MINIO_REGION: ${MINIO_REGION:-ap-southeast-1}
-  TRINO_QUERY_MAX_MEMORY: ${TRINO_QUERY_MAX_MEMORY:-600MB}
-  TRINO_QUERY_MAX_MEMORY_PER_NODE: ${TRINO_QUERY_MAX_MEMORY_PER_NODE:-600MB}
+  TRINO_QUERY_MAX_MEMORY: ${TRINO_QUERY_MAX_MEMORY:-256MB}
+  TRINO_QUERY_MAX_MEMORY_PER_NODE: ${TRINO_QUERY_MAX_MEMORY_PER_NODE:-256MB}
 
 x-core-env: &core-env
   NODE_ENV: development
@@ -86,6 +93,12 @@ x-core-env: &core-env
   AGENT_WRITE_RATE_WINDOW_MS: ${AGENT_WRITE_RATE_WINDOW_MS:-60000}
   AGENT_WRITE_RATE_LIMIT: ${AGENT_WRITE_RATE_LIMIT:-120}
   PENDING_ACTION_TTL_MS: ${PENDING_ACTION_TTL_MS:-86400000}
+  # Spark job size (local mode, one JVM in spark-master). Spark rejects driver
+  # heaps under ~450m; a 5M-row groupBy peaked at ~500 MiB of the 768M limit.
+  SPARK_DRIVER_MEMORY: 512m
+  SPARK_EXECUTOR_MEMORY: 512m
+  SPARK_EXECUTOR_CORES: "1"
+  SPARK_MAX_CORES: "1"
   DATABASE_URL: postgresql://${POSTGRES_USER:-celesnity}:${POSTGRES_PASSWORD:-celesnity_dev_password}@postgres:5432/${POSTGRES_DB:-celesnity}?schema=celesnity_app
   MINIO_ENDPOINT: http://minio:9000
   MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-celesnity}
@@ -127,6 +140,11 @@ services:
   postgres:
     image: postgres:17.6-alpine
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 192M
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-celesnity}
       POSTGRES_USER: ${POSTGRES_USER:-celesnity}
@@ -157,6 +175,11 @@ services:
   sample-postgres:
     image: postgres:17.6-alpine
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 96M
     environment:
       POSTGRES_DB: ${SAMPLE_POSTGRES_DB:-sample}
       POSTGRES_USER: ${SAMPLE_POSTGRES_USER:-sample}
@@ -181,10 +204,16 @@ services:
   minio:
     image: minio/minio:RELEASE.2025-04-22T22-12-26Z
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 320M
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-celesnity}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-celesnity_minio_password}
+      GOMEMLIMIT: 256MiB
     ports:
       - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
       - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
@@ -202,6 +231,11 @@ services:
   minio-init:
     image: minio/mc:RELEASE.2025-04-16T18-13-26Z
     restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 64M
     depends_on:
       minio:
         condition: service_healthy
@@ -230,6 +264,11 @@ services:
   redpanda:
     image: docker.redpanda.com/redpandadata/redpanda:v26.1.14
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
     command:
       - redpanda
       - start
@@ -240,7 +279,7 @@ services:
       - --advertise-rpc-addr=redpanda:33145
       - --mode=dev-container
       - --smp=1
-      - --memory=1G
+      - --memory=448M
       - --reserve-memory=0M
       - --default-log-level=warn
     environment:
@@ -266,6 +305,11 @@ services:
   redpanda-init:
     image: docker.redpanda.com/redpandadata/redpanda:v26.1.14
     restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
     depends_on:
       redpanda:
         condition: service_healthy
@@ -424,6 +468,11 @@ services:
   spark-master:
     <<: *spark-image
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
     command: ["/bin/bash", "/opt/celesnity/start-master.sh"]
     environment: *spark-env
     depends_on:
@@ -449,6 +498,12 @@ services:
   spark-worker:
     <<: *spark-image
     restart: unless-stopped
+    deploy:
+      replicas: ${SPARK_WORKER_REPLICAS:-0}
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
     command: ["/bin/bash", "/opt/celesnity/start-worker.sh"]
     environment:
       <<: *spark-env
@@ -457,8 +512,6 @@ services:
     depends_on:
       spark-master:
         condition: service_healthy
-    deploy:
-      replicas: ${SPARK_WORKER_REPLICAS:-1}
     volumes:
       - ./celesnity-infra/images/spark/start-worker.sh:/opt/celesnity/start-worker.sh:ro
     healthcheck:
@@ -476,6 +529,11 @@ services:
   trino-coordinator:
     image: trinodb/trino:483
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: ${TRINO_COORDINATOR_MEMORY:-896M}
     environment: *trino-env
     depends_on:
       postgres:
@@ -486,15 +544,14 @@ services:
       - "127.0.0.1:${TRINO_PORT:-8080}:8080"
     volumes:
       - ./celesnity-infra/config/trino/coordinator.properties:/etc/trino/config.properties:ro
+      # Heap = 65% of the container limit (image default 80% leaves too little
+      # non-heap room under a small limit and gets OOM-killed).
+      - ./trino/jvm.config:/etc/trino/jvm.config:ro
       - ./celesnity-infra/config/trino/node.properties:/etc/trino/node.properties:ro
       - ./celesnity-infra/config/trino/access-control.properties:/etc/trino/access-control.properties:ro
       - ./celesnity-infra/config/trino/access-control-rules.json:/etc/trino/access-control-rules.json:ro
       - ./celesnity-infra/local/catalog:/etc/trino/catalog:ro
       - trino_data:/data/trino
-    deploy:
-      resources:
-        limits:
-          memory: ${TRINO_COORDINATOR_MEMORY:-1536m}
     healthcheck:
       test: ["CMD", "/usr/lib/trino/bin/health-check"]
       interval: 10s
@@ -507,6 +564,12 @@ services:
   trino-worker:
     image: trinodb/trino:483
     restart: unless-stopped
+    deploy:
+      replicas: ${TRINO_WORKER_REPLICAS:-0}
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: ${TRINO_WORKER_MEMORY:-896M}
     environment: *trino-env
     depends_on:
       trino-coordinator:
@@ -517,13 +580,9 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./celesnity-infra/config/trino/worker.properties:/etc/trino/config.properties:ro
+      - ./trino/jvm.config:/etc/trino/jvm.config:ro
       - ./celesnity-infra/config/trino/node.properties:/etc/trino/node.properties:ro
       - ./celesnity-infra/local/catalog:/etc/trino/catalog:ro
-    deploy:
-      replicas: ${TRINO_WORKER_REPLICAS:-1}
-      resources:
-        limits:
-          memory: ${TRINO_WORKER_MEMORY:-1536m}
     healthcheck:
       test: ["CMD", "/usr/lib/trino/bin/health-check"]
       interval: 10s
@@ -548,6 +607,11 @@ services:
   trino-seed:
     image: trinodb/trino:483
     restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
     depends_on:
       trino-coordinator:
         condition: service_healthy
@@ -574,6 +638,11 @@ services:
       target: migrator
     image: celesnity/core-migrate:dev
     restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 320M
     environment:
       <<: *core-env
       NODE_ENV: development
@@ -608,17 +677,21 @@ services:
       context: ./celesnity-core
     image: celesnity/core:dev
     restart: unless-stopped
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 352M
     command: ["node", "dist/bootstrap/api-main.js"]
     environment:
       <<: *core-env
       PORT: "3001"
       API_BIND_ADDRESS: 0.0.0.0
       API_AUTH_ENABLED: "false"
+      NODE_OPTIONS: --max-old-space-size=224
       WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost}
       SPARK_MASTER_URL: spark://spark-master:7077
-    # GKE HPA minReplicas; web reaches it via Docker DNS round-robin.
-    deploy:
-      replicas: 2
     depends_on:
       postgres:
         condition: service_healthy
@@ -651,11 +724,19 @@ services:
       context: ./celesnity-core
     image: celesnity/core:dev
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 352M
     command: ["node", "dist/bootstrap/worker-main.js"]
     environment:
       <<: *core-env
       SPARK_EXECUTION_BACKEND: docker
-      SPARK_SUBMIT_MASTER_URL: spark://spark-master:7077
+      # Local mode: driver + executor in one JVM inside spark-master, so no
+      # spark-worker is needed (Core skips the standalone capacity probe).
+      SPARK_SUBMIT_MASTER_URL: local[1]
+      NODE_OPTIONS: --max-old-space-size=224
       SPARK_CONTAINER: ${COMPOSE_PROJECT_NAME:-minder-sys}-spark-master-1
       # Pin the Iceberg catalog Spark writes to. A pipeline execution injects its
       # *source* connection as POSTGRES_URL/USER/PASSWORD, and without these the
@@ -695,8 +776,15 @@ services:
         NEXT_PUBLIC_PLANT_MODEL_CHAT_AGENT_NAME: plant-model-assistant
     image: celesnity/web:dev
     restart: unless-stopped
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 224M
     environment:
       NODE_ENV: development
+      NODE_OPTIONS: --max-old-space-size=144
       NEXT_PUBLIC_CORE_API_URL: http://localhost:3001/api/v1
       NEXT_PUBLIC_AGENT_API_URL: /api/agent
       NEXT_PUBLIC_CHAT_AGENT_NAME: chat-assistant
@@ -722,9 +810,6 @@ services:
       - ${HOME}/.config/gcloud:/gcloud:ro
     tmpfs:
       - /app/.next/cache:mode=1777
-    # GKE HPA minReplicas; nginx load-balances them.
-    deploy:
-      replicas: 2
     depends_on:
       celesnity-api:
         condition: service_healthy
@@ -747,6 +832,11 @@ services:
   nginx:
     image: nginx:1.29-alpine
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 32M
     ports:
       - "80:80"
     volumes:
@@ -768,6 +858,11 @@ services:
   minder-db:
     image: postgres:16-alpine
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 96M
     environment:
       POSTGRES_USER: minder
       POSTGRES_PASSWORD: minder
@@ -787,6 +882,11 @@ services:
   minder-migrate:
     image: minder/runtime:dev
     restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
     environment:
       DATABASE_URL: postgres://minder:minder@minder-db:5432/minder_platform?schema=minder_agent
       MINDER_DATABASE_SCHEMA: minder_agent
@@ -812,8 +912,14 @@ services:
         AGENT_BASE_IMAGE: minder/runtime-base:dev
     image: minder/runtime:dev
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 320M
     environment: &minder-runtime-env
       NODE_ENV: development
+      NODE_OPTIONS: --max-old-space-size=192
       LLM_BASE_URL: ${LLM_BASE_URL:?set LLM_BASE_URL in .env}
       LLM_API_KEY: ${LLM_API_KEY:?set LLM_API_KEY in .env}
       LLM_MODEL: ${LLM_MODEL:-gpt-5-mini}
@@ -886,6 +992,11 @@ services:
   minder-manifest-migrate:
     image: minder/runtime:dev
     restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
     environment: *minder-runtime-env
     command: ["/seed/agent-manifest-migrations.mjs"]
     volumes:
@@ -911,6 +1022,11 @@ services:
       dockerfile: sandbox-runner/Dockerfile
     image: minder/sandbox-runner:dev
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 384M
     environment:
       MINDER_SANDBOX_SOCKET: /run/minder-sandbox/runner.sock
       MINDER_WORKSPACE_CACHE: /tmp/minder-workspaces
