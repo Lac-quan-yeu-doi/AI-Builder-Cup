@@ -101,9 +101,7 @@ describe('internationalization dictionaries', () => {
       },
       {
         labelKey: 'nav.group.resources',
-        items: [
-          ['nav.documents', '/documents'],
-        ],
+        items: [['nav.documents', '/documents']],
       },
     ]);
 

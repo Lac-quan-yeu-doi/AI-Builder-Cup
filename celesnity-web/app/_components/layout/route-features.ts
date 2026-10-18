@@ -77,7 +77,13 @@ export const guardedRoutePrefixes: readonly string[] = ROUTE_FEATURES.map(([pref
 
 // Keep the routes in the tree for easy reactivation, but pause screens outside
 // the six capabilities. Backend services that support retained screens stay live.
-const PAUSED_WORKSPACE_ROUTES = ['/sql', '/scripts', '/skills', '/guide', '/administration'] as const;
+const PAUSED_WORKSPACE_ROUTES = [
+  '/sql',
+  '/scripts',
+  '/skills',
+  '/guide',
+  '/administration',
+] as const;
 
 export function isPausedWorkspaceRoute(pathname: string): boolean {
   return PAUSED_WORKSPACE_ROUTES.some(

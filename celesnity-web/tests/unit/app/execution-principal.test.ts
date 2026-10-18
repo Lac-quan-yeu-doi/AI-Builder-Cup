@@ -5,7 +5,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { ExecutionDetail } from '@/app/_components/execution/execution-detail';
 import { renderUi } from '@/tests/support/render-ui';
 afterEach(cleanup);
-it('identifies the executor and directs source access failures to catalog settings', () => {
+it('identifies the executor without linking source access failures to paused administration', () => {
   renderUi(
     createElement(ExecutionDetail, {
       getLogs: vi.fn(),
@@ -29,9 +29,9 @@ it('identifies the executor and directs source access failures to catalog settin
   );
   expect(screen.getByText('Runs as')).toBeTruthy();
   expect(screen.getByText('Background executor')).toBeTruthy();
+  // Administration is paused for the six-capability workspace, so the failure
+  // no longer links to its catalog-access tab.
   expect(
-    screen
-      .getByRole('link', { name: 'Manage catalog access (organization admins)' })
-      .getAttribute('href'),
-  ).toBe('/administration?tab=catalog-access');
+    screen.queryByRole('link', { name: 'Manage catalog access (organization admins)' }),
+  ).toBeNull();
 });

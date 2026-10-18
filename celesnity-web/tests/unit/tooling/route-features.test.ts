@@ -3,7 +3,10 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-import { isPausedWorkspaceRoute, workspaceFeatureForPath } from '@/app/_components/layout/route-features';
+import {
+  isPausedWorkspaceRoute,
+  workspaceFeatureForPath,
+} from '@/app/_components/layout/route-features';
 
 const projectRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const workspaceRoot = join(projectRoot, 'app', '(workspace)');

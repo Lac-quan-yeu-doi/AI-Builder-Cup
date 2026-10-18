@@ -159,12 +159,16 @@ describe('workspace shell localization', () => {
     expect(screen.getByRole('link', { name: /^Plant model$/ })).toBeTruthy();
     expect(screen.getByRole('link', { name: /^Analytics$/ })).toBeTruthy();
     expect(screen.getByText('Tools')).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^Query$/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^Skills$/ }).getAttribute('href')).toBe('/skills');
-    expect(screen.getByRole('link', { name: /^Automations$/ })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /^Data Workflows$/ })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /^Automations$/ }).getAttribute('href')).toBe(
+      '/automations',
+    );
     expect(screen.getByText('Resources')).toBeTruthy();
     expect(screen.getByRole('link', { name: /^Documents$/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^Guide$/ })).toBeTruthy();
+    // Query, Skills and Guide sit outside the six capabilities and are paused.
+    expect(screen.queryByRole('link', { name: /^Query$/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /^Skills$/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /^Guide$/ })).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: 'Tiếng Việt' }));
 
@@ -172,8 +176,10 @@ describe('workspace shell localization', () => {
     expect(screen.getByText('Dữ liệu')).toBeTruthy();
     expect(screen.getByRole('link', { name: /^Cơ sở dữ liệu$/ })).toBeTruthy();
     expect(screen.getByRole('link', { name: /^Streaming$/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^Truy vấn$/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^Kỹ năng$/ }).getAttribute('href')).toBe('/skills');
+    expect(screen.getByRole('link', { name: /^Luồng dữ liệu$/ })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /^Tự động hóa$/ }).getAttribute('href')).toBe(
+      '/automations',
+    );
     expect(screen.getByText('Tài nguyên')).toBeTruthy();
     expect(screen.getByRole('navigation').getAttribute('aria-label')).toBe(
       'Điều hướng không gian làm việc',
@@ -318,7 +324,7 @@ describe('workspace shell header navigation', () => {
     // The same nav element serves both widths, so every label stays reachable
     // and no link is duplicated into a second menu.
     expect(screen.getAllByRole('navigation').length).toBe(1);
-    expect(screen.getAllByRole('link', { name: /Query/ }).length).toBe(1);
+    expect(screen.getAllByRole('link', { name: /Automations/ }).length).toBe(1);
 
     fireEvent.click(close);
     expect(screen.getByRole('button', { name: 'Open navigation' })).toBeTruthy();
@@ -331,7 +337,7 @@ describe('workspace shell header navigation', () => {
     expect(screen.getByRole('button', { name: 'Close navigation' })).toBeTruthy();
 
     // Navigating does not unmount the shell, so the link closes the menu itself.
-    fireEvent.click(screen.getByRole('link', { name: /Query/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Automations/ }));
 
     expect(screen.getByRole('button', { name: 'Open navigation' })).toBeTruthy();
   });
@@ -380,14 +386,14 @@ describe('workspace sidebar collapse', () => {
     expect(navigation.textContent).toContain('Resources');
   });
 
-  it('offers twelve destinations including plugins and Data Workflows', () => {
+  it('offers nine destinations including plugins and Data Workflows', () => {
     render(createElement(WorkspaceShell, { children: createElement('p', null, 'page') }));
 
-    // The rail used to carry seventeen and no longer fit its own viewport. Every
-    // screen still exists; container stages are no longer direct destinations.
+    // The rail is narrowed to the six-capability workspace: Query, Scripts,
+    // Skills, Guide and Administration are paused in `route-features.ts`.
     // Plugins and Data Workflows remain independent tools with direct routes.
     const links = screen.getByRole('navigation').querySelectorAll('a');
-    expect(links.length).toBe(13);
+    expect(links.length).toBe(9);
     expect(screen.getByRole('link', { name: /^Plugins$/ }).getAttribute('href')).toBe('/plugins');
     expect(screen.getByRole('link', { name: /^Data Workflows$/ }).getAttribute('href')).toBe(
       '/data-workflows',

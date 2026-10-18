@@ -4,8 +4,8 @@
  * Tests are plain .ts files, so elements are built with createElement. Passing
  * children through props keeps the required `children` prop type-checked. */
 
-import { createElement, useState, type ChangeEvent } from 'react';
-import { cleanup, fireEvent, screen } from '@testing-library/react';
+import { createElement } from 'react';
+import { cleanup, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { WorkspaceShell } from '@/app/_components/layout/workspace-shell';
@@ -57,26 +57,6 @@ vi.mock('@/app/_components/tutorials/tutorial-overlay-host', () => ({
   TutorialOverlayHost: () => null,
 }));
 
-function StatefulDestination() {
-  const [draft, setDraft] = useState('');
-
-  return createElement(
-    'section',
-    { 'aria-label': 'Current destination' },
-    createElement('label', { htmlFor: 'destination-draft' }, 'Destination draft'),
-    createElement('input', {
-      id: 'destination-draft',
-      onChange: (event: ChangeEvent<HTMLInputElement>) => setDraft(event.currentTarget.value),
-      value: draft,
-    }),
-    createElement(
-      'div',
-      { 'data-testid': 'destination-scroll', style: { height: 20, overflow: 'auto' } },
-      createElement('div', { style: { height: 400 } }, 'Scrollable destination content'),
-    ),
-  );
-}
-
 function resetTutorialSession(): void {
   useTutorialSessionStore.setState({
     openSurface: 'none',
@@ -99,14 +79,16 @@ afterEach(() => {
 });
 
 describe('workspace tutorial entry', () => {
-  it('keeps the tutorial entry available across workspace destinations', () => {
+  // Guided tutorials are paused for the six-capability workspace: the shell no
+  // longer mounts the entry button or the overlay host.
+  it('offers no tutorial entry on any workspace destination', () => {
     const view = render(
       createElement(WorkspaceShell, {
         children: createElement('p', null, 'Database destination'),
       }),
     );
 
-    expect(screen.getByRole('button', { name: 'Open guided tutorials' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Open guided tutorials' })).toBeNull();
 
     pathname.current = '/streaming';
     view.rerender(
@@ -115,31 +97,8 @@ describe('workspace tutorial entry', () => {
       }),
     );
 
-    expect(screen.getByRole('button', { name: 'Open guided tutorials' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Open guided tutorials' })).toBeNull();
   });
-
-  it('opens the catalog without replacing or resetting visible destination state', () => {
-    render(createElement(WorkspaceShell, { children: createElement(StatefulDestination) }));
-
-    const destination = screen.getByRole('region', { name: 'Current destination' });
-    const draft = screen.getByRole('textbox', { name: 'Destination draft' });
-    const scrollRegion = screen.getByTestId('destination-scroll');
-
-    fireEvent.change(draft, { target: { value: 'unsaved destination work' } });
-    scrollRegion.scrollTop = 180;
-    fireEvent.click(screen.getByRole('button', { name: 'Open guided tutorials' }));
-
-    expect(useTutorialSessionStore.getState().openSurface).toBe('catalog');
-    expect(screen.getByRole('region', { name: 'Current destination' })).toBe(destination);
-    const preservedDraft = screen.getByRole('textbox', {
-      name: 'Destination draft',
-    }) as HTMLInputElement;
-    expect(preservedDraft.value).toBe('unsaved destination work');
-    expect(screen.getByTestId('destination-scroll').scrollTop).toBe(180);
-    expect(router.push).not.toHaveBeenCalled();
-    expect(router.replace).not.toHaveBeenCalled();
-  });
-
   it.each(['catalog', 'detail', 'walkthrough'] as const)(
     'reserves the same desktop workspace width while the %s is open',
     (openSurface) => {
