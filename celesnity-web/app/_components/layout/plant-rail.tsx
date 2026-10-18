@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   ArrowLeftIcon,
+  BoxIcon,
   ChevronsUpDownIcon,
   FactoryIcon,
   LayoutDashboardIcon,
@@ -39,10 +40,13 @@ import type { PlantSiteSummary } from '@/src/entities/models/plant-model';
 
 const plantModel = getInjection('PlantModelController');
 
-/** `/plant-model/<siteId>/...` → the site id, except for the walkthrough screen. */
+/** Screens under `/plant-model/` that belong to no single plant. */
+const PLANT_HUB_SCREENS: ReadonlySet<string> = new Set(['walkthrough', 'twin']);
+
+/** `/plant-model/<siteId>/...` → the site id, except for the hub's own screens. */
 export function plantSiteFromPath(pathname: string): string | undefined {
   const match = /^\/plant-model\/([^/]+)/u.exec(pathname);
-  if (match?.[1] === undefined || match[1] === 'walkthrough') return undefined;
+  if (match?.[1] === undefined || PLANT_HUB_SCREENS.has(match[1])) return undefined;
   return decodeURIComponent(match[1]);
 }
 
@@ -61,6 +65,7 @@ const PLANT_GROUPS: readonly {
     pages: [
       { segment: 'overview', labelKey: 'plantRail.overview', icon: LayoutGridIcon },
       { segment: 'model', labelKey: 'plantRail.model', icon: NetworkIcon },
+      { segment: 'twin', labelKey: 'plantRail.twin', icon: BoxIcon },
       { segment: 'dashboards', labelKey: 'plantRail.dashboards', icon: LayoutDashboardIcon },
     ],
   },

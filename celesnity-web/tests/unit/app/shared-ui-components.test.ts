@@ -300,6 +300,18 @@ describe('workspace shell header navigation', () => {
     expect(screen.getByRole('link', { name: /Streaming/ }).getAttribute('aria-current')).toBeNull();
   });
 
+  it('marks Digital twin, not Plant model, on the twin page', () => {
+    pathname.current = '/plant-model/twin';
+    render(createElement(WorkspaceShell, { children: createElement('p', null, 'page') }));
+
+    expect(screen.getByRole('link', { name: /^Digital twin$/ }).getAttribute('aria-current')).toBe(
+      'page',
+    );
+    expect(
+      screen.getByRole('link', { name: /^Plant model$/ }).getAttribute('aria-current'),
+    ).toBeNull();
+  });
+
   it('leaves every destination unmarked inside a container the rail does not list', () => {
     // `/databases/[name]` is where a database's own tabs live. It is reached
     // through the Databases destination but is not one itself, so nothing in the
@@ -386,14 +398,17 @@ describe('workspace sidebar collapse', () => {
     expect(navigation.textContent).toContain('Resources');
   });
 
-  it('offers nine destinations including plugins and Data Workflows', () => {
+  it('offers ten destinations including Digital twin, plugins and Data Workflows', () => {
     render(createElement(WorkspaceShell, { children: createElement('p', null, 'page') }));
 
     // The rail is narrowed to the six-capability workspace: Query, Scripts,
     // Skills, Guide and Administration are paused in `route-features.ts`.
     // Plugins and Data Workflows remain independent tools with direct routes.
     const links = screen.getByRole('navigation').querySelectorAll('a');
-    expect(links.length).toBe(9);
+    expect(links.length).toBe(10);
+    expect(screen.getByRole('link', { name: /^Digital twin$/ }).getAttribute('href')).toBe(
+      '/plant-model/twin',
+    );
     expect(screen.getByRole('link', { name: /^Plugins$/ }).getAttribute('href')).toBe('/plugins');
     expect(screen.getByRole('link', { name: /^Data Workflows$/ }).getAttribute('href')).toBe(
       '/data-workflows',

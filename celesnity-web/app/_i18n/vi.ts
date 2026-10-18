@@ -46,6 +46,7 @@ export const vi: Dictionary = {
   'nav.query': 'Truy vấn',
   'nav.scripts': 'Script',
   'nav.plantModel': 'Mô hình nhà máy',
+  'nav.digitalTwin': 'Bản sao số',
   'nav.streaming': 'Streaming',
   'nav.devices': 'Thiết bị',
   'nav.databases': 'Cơ sở dữ liệu',
@@ -2649,10 +2650,25 @@ export const vi: Dictionary = {
   'plantRail.group.operations': 'Vận hành',
   'plantRail.overview': 'Tổng quan',
   'plantRail.model': 'Mô hình',
+  'plantRail.twin': 'Bản sao 3D',
   'plantRail.dashboards': 'Dashboard',
   'plantRail.repairs': 'Sửa máy',
   'plantRail.configure': 'Cấu hình',
   'plantRail.ask': 'Hỏi Minder về nhà máy này',
+  'plantTwin.title': 'Bản sao 3D',
+  'plantTwin.description':
+    'Các khu vực, trạm làm việc và máy của nhà máy được đặt trên mặt sàn, cùng các luồng vật liệu đã ghi trong mô hình.',
+  'plantTwin.loading': 'Đang tải nhà máy…',
+  'plantTwin.empty':
+    'Nhà máy này chưa có máy nào. Thêm thiết bị ở trang Mô hình và chúng sẽ hiện ở đây.',
+  'plantTwin.openModel': 'Mở mô hình',
+  'plantTwin.legend.flow': 'Luồng đã ghi',
+  'plantTwin.panel.in': 'Thuộc {name}',
+  'plantTwin.pick.title': 'Bản sao số',
+  'plantTwin.pick.description': 'Đang mở bản sao 3D của nhà máy đầu tiên…',
+  'plantTwin.pick.empty':
+    'Chưa có nhà máy nào. Đi một vòng xưởng bằng điện thoại để tạo, hoặc tạo nhà máy thủ công.',
+  'plantTwin.pick.walk': 'Đi một vòng xưởng',
 
   // Plant model landing: the two ways to start, plants and recent guides.
   'plantHub.counts': '{plants} nhà máy · {guides} hướng dẫn sửa máy · {runs} lần sửa có hướng dẫn',

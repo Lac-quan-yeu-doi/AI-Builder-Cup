@@ -20,7 +20,10 @@ import { formatTimestamp, splitTimestamps } from '@/src/entities/models/video-ti
 
 import { TwinView } from './twin-view';
 import { useEvidenceFrames } from './use-evidence-frames';
-import { STATE_LABEL, STATE_TONE } from './walkthrough-labels';
+import {
+  STATE_LABEL,
+  STATE_TONE,
+} from '@/app/(workspace)/plant-model/_components/twin/twin-labels';
 
 interface Group {
   readonly id: string;

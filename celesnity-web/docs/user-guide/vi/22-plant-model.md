@@ -39,6 +39,14 @@ Bạn cũng có thể bắt đầu từ **Templates** (mẫu dựng sẵn) nếu
 
 Mẹo: đặt tên đúng như cách mọi người gọi ngoài xưởng; trợ lý và dashboard sẽ dùng đúng tên đó.
 
+### Xem nhà máy dạng 3D
+
+Mở **Bản sao 3D** ở thanh bên trái của một nhà máy, hoặc **Bản sao số** ở thanh điều hướng chính (mở nhà máy đầu tiên của bạn). Mỗi khu vực của nhà máy thành một vùng trên mặt sàn, mỗi trạm làm việc thành một hàng máy, và các tuyến trong mô hình thành luồng vật liệu giữa chúng.
+
+- Kéo để xoay nhà máy, cuộn để phóng to, bấm vào một máy để xem loại máy, vị trí và luồng vào ra của nó.
+- Nhà máy tạo từ video đi xưởng giữ nguyên mặt bằng mà Gemini đã vẽ.
+- Nhà máy chưa có thiết bị sẽ hiện mặt sàn trống kèm đường dẫn tới trang **Mô hình**.
+
 ### Ghi lại kinh nghiệm sửa máy
 
 Tab **Sửa máy** biến một lần sửa của thợ giỏi thành hướng dẫn cho thợ tiếp theo.

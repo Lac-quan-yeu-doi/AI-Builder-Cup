@@ -88,6 +88,7 @@ describe('internationalization dictionaries', () => {
           ['nav.databases', '/catalog/databases'],
           ['nav.streaming', '/streaming'],
           ['nav.plantModel', '/plant-model'],
+          ['nav.digitalTwin', '/plant-model/twin'],
           ['nav.analytics', '/analytics'],
         ],
       },

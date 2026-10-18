@@ -1,5 +1,6 @@
 import {
   BlocksIcon,
+  BoxIcon,
   DatabaseIcon,
   FileTextIcon,
   MessageSquareIcon,
@@ -69,6 +70,12 @@ export const workspaceNavigationGroups: readonly WorkspaceNavigationGroup[] = [
         href: '/plant-model',
         labelKey: 'nav.plantModel',
         icon: FactoryIcon,
+        feature: 'PLANT_MODEL',
+      },
+      {
+        href: '/plant-model/twin',
+        labelKey: 'nav.digitalTwin',
+        icon: BoxIcon,
         feature: 'PLANT_MODEL',
       },
       {

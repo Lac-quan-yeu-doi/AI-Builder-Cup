@@ -33,6 +33,7 @@ import { AccountPasswordDialog } from './account-password-dialog';
 import { isFullscreenWorkspaceRoute } from './workspace-shell-route';
 import {
   workspaceFooterNavigation,
+  workspaceNavigation,
   canAccessWorkspaceFeature,
   firstVisibleWorkspaceDestination,
   visibleWorkspaceNavigationGroups,
@@ -50,7 +51,14 @@ interface WorkspaceShellProps {
 const navigationId = 'workspace-navigation';
 
 function isCurrent(pathname: string, href: string): boolean {
-  return pathname === href || pathname.startsWith(`${href}/`);
+  if (pathname !== href && !pathname.startsWith(`${href}/`)) return false;
+  // A deeper destination wins: /plant-model/twin is Digital twin, not Plant model.
+  return !workspaceNavigation.some(
+    (item) =>
+      item.href.length > href.length &&
+      item.href.startsWith(`${href}/`) &&
+      (pathname === item.href || pathname.startsWith(`${item.href}/`)),
+  );
 }
 
 /**

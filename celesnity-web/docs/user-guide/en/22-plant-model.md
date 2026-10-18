@@ -39,6 +39,14 @@ You can also start from **Templates** if your organization has prepared any.
 
 Tip: name objects the way people name them on the shop floor; the assistant and dashboards will use those exact names.
 
+### Seeing the plant in 3D
+
+Open **3D twin** in a plant's left rail, or **Digital twin** in the main sidebar (it opens your first plant). Each area of the plant becomes a zone on the floor, each work center a row of its machines, and the routes in the model become the material flows between them.
+
+- Drag to turn the plant, scroll to zoom, and click a machine to see its type, where it sits and what flows in and out of it.
+- A plant created from a walkthrough video keeps the floor plan Gemini drew.
+- A plant with no equipment yet shows an empty floor with a link to the **Model** page.
+
 ### Capturing repair know-how
 
 The **Repairs** tab turns an expert's repair into a guide the next technician can follow.

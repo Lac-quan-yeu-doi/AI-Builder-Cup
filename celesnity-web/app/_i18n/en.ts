@@ -57,6 +57,7 @@ export const en = {
   'nav.query': 'Query',
   'nav.scripts': 'Scripts',
   'nav.plantModel': 'Plant model',
+  'nav.digitalTwin': 'Digital twin',
   'nav.streaming': 'Streaming',
   'nav.devices': 'Devices',
   'nav.databases': 'Databases',
@@ -2675,10 +2676,25 @@ export const en = {
   'plantRail.group.operations': 'Operations',
   'plantRail.overview': 'Overview',
   'plantRail.model': 'Model',
+  'plantRail.twin': '3D twin',
   'plantRail.dashboards': 'Dashboards',
   'plantRail.repairs': 'Repairs',
   'plantRail.configure': 'Configure',
   'plantRail.ask': 'Ask Minder about this plant',
+  'plantTwin.title': '3D twin',
+  'plantTwin.description':
+    "The plant's areas, work centers and machines laid out on a floor, with the material flows recorded in its model.",
+  'plantTwin.loading': 'Loading the plant…',
+  'plantTwin.empty':
+    'This plant has no machines yet. Add equipment on the Model page and it appears here.',
+  'plantTwin.openModel': 'Open the model',
+  'plantTwin.legend.flow': 'Recorded flow',
+  'plantTwin.panel.in': 'In {name}',
+  'plantTwin.pick.title': 'Digital twin',
+  'plantTwin.pick.description': 'Opening the 3D twin of your first plant…',
+  'plantTwin.pick.empty':
+    'No plants yet. Walk the floor with a phone to create one, or create a plant by hand.',
+  'plantTwin.pick.walk': 'Walk the floor',
 
   // Plant model landing: the two ways to start, plants and recent guides.
   'plantHub.counts': '{plants} plants · {guides} repair guides · {runs} guided repairs',

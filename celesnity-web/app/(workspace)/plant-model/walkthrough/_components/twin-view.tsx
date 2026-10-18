@@ -1,24 +1,21 @@
 'use client';
 
 import { ArrowDownLeftIcon, ArrowUpRightIcon, PlayIcon, XIcon } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useTranslation } from '@/app/_i18n/use-translation';
 import { Badge } from '@/app/_components/ui/badge';
 import { Button } from '@/app/_components/ui/button';
-import { Skeleton } from '@/app/_components/ui/skeleton';
 import { buildTwinScene, type TwinMachine } from '@/src/entities/models/plant-twin-scene';
 import type { ExtractedTwin } from '@/src/entities/models/plant-walkthrough';
 import { formatTimestamp } from '@/src/entities/models/video-timestamp';
 
-import { KIND_LABEL, STATE_DOT, STATE_LABEL, STATE_TONE } from './walkthrough-labels';
-
-// WebGL needs a browser; the server renders a placeholder of the same size.
-const TwinCanvas = dynamic(() => import('./twin-canvas').then((module) => module.TwinCanvas), {
-  ssr: false,
-  loading: () => <Skeleton className="size-full rounded-none" />,
-});
+import {
+  KIND_LABEL,
+  STATE_LABEL,
+  STATE_TONE,
+} from '@/app/(workspace)/plant-model/_components/twin/twin-labels';
+import { TwinStage } from '@/app/(workspace)/plant-model/_components/twin/twin-stage';
 
 interface TwinViewProps {
   readonly twin: ExtractedTwin;
@@ -27,7 +24,6 @@ interface TwinViewProps {
 }
 
 export function TwinView({ twin, frames, onSeek }: TwinViewProps) {
-  const { t } = useTranslation();
   const scene = useMemo(() => buildTwinScene(twin), [twin]);
   const [selectedId, setSelectedId] = useState<string>();
   const selected = scene.machines.find((machine) => machine.id === selectedId);
@@ -35,81 +31,9 @@ export function TwinView({ twin, frames, onSeek }: TwinViewProps) {
     () => new Map(scene.machines.map((machine) => [machine.id, machine.name])),
     [scene.machines],
   );
-  const labels = useRef(new Map<string, HTMLElement>());
-  const label = useCallback(
-    (id: string) => (element: HTMLElement | null) => {
-      if (element === null) labels.current.delete(id);
-      else labels.current.set(id, element);
-    },
-    [],
-  );
 
   return (
-    <div className="relative h-[560px] overflow-hidden rounded-xl border bg-muted/40">
-      <TwinCanvas scene={scene} selectedId={selectedId} onSelect={setSelectedId} labels={labels} />
-
-      {/* Positioned by the canvas every frame; hidden until the first frame places them. */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        {scene.machines.map((machine) => (
-          <span
-            key={machine.id}
-            ref={label(machine.id)}
-            style={{ visibility: 'hidden' }}
-            className="absolute top-0 left-0 will-change-transform"
-          >
-            <span
-              className={
-                machine.id === selectedId
-                  ? 'block max-w-32 -translate-x-1/2 -translate-y-full truncate rounded-md border border-transparent bg-status-info px-1.5 py-0.5 text-micro font-medium whitespace-nowrap text-primary-foreground shadow-sm'
-                  : `block max-w-32 -translate-x-1/2 -translate-y-full truncate rounded-md border bg-card px-1.5 py-0.5 text-micro font-medium whitespace-nowrap shadow-sm transition-opacity ${
-                      selectedId === undefined ? '' : 'opacity-40'
-                    }`
-              }
-            >
-              {machine.name}
-            </span>
-          </span>
-        ))}
-        {scene.zones
-          .filter((zone) => zone.kind === 'area')
-          .map((zone) => (
-            <span
-              key={zone.id}
-              ref={label(zone.id)}
-              style={{ visibility: 'hidden' }}
-              className="absolute top-0 left-0 will-change-transform"
-            >
-              <span className="block -translate-x-[calc(100%+10px)] translate-y-1 rounded bg-background/90 px-1.5 py-0.5 text-micro font-semibold tracking-wide whitespace-nowrap text-muted-foreground uppercase">
-                {zone.name}
-              </span>
-            </span>
-          ))}
-      </div>
-
-      <div className="pointer-events-none absolute bottom-3 left-3 flex flex-col gap-1 rounded-lg bg-card/90 px-3 py-2 text-micro text-muted-foreground shadow-sm">
-        <div className="flex gap-3">
-          {(['running', 'idle', 'stopped', 'unknown'] as const).map((state) => (
-            <span key={state} className="flex items-center gap-1">
-              <span className={`size-2 rounded-full ${STATE_DOT[state]}`} aria-hidden />
-              {t(STATE_LABEL[state])}
-            </span>
-          ))}
-        </div>
-        <div className="flex gap-3">
-          <span className="flex items-center gap-1.5">
-            <span className="h-0.5 w-5 bg-foreground/60" aria-hidden />
-            {t('plantWalkthrough.legend.seen')}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-0 w-5 border-t-2 border-dashed border-foreground/60" aria-hidden />
-            {t('plantWalkthrough.legend.assumed')}
-          </span>
-        </div>
-      </div>
-      <p className="pointer-events-none absolute right-3 bottom-3 text-micro text-muted-foreground">
-        {t('plantWalkthrough.hint')}
-      </p>
-
+    <TwinStage scene={scene} selectedId={selectedId} onSelect={setSelectedId} showsAssumedFlows>
       {selected !== undefined && (
         <MachinePanel
           key={selected.id}
@@ -122,7 +46,7 @@ export function TwinView({ twin, frames, onSeek }: TwinViewProps) {
           onSelect={setSelectedId}
         />
       )}
-    </div>
+    </TwinStage>
   );
 }
 

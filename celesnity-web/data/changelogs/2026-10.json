@@ -2,6 +2,26 @@
   "month": "2026-10",
   "entries": [
     {
+      "id": "2026-10-18-plant-3d-twin",
+      "date": "2026-10-18",
+      "areas": [
+        "web"
+      ],
+      "kind": "feature",
+      "version": "0.5.0",
+      "authors": [
+        "icjayson"
+      ],
+      "title": {
+        "en": "Every plant in 3D",
+        "vi": "Mọi nhà máy đều xem được dạng 3D"
+      },
+      "summary": {
+        "en": "Each plant has a new 3D twin page, and the main sidebar has a Digital twin entry that opens your first plant's. Areas become zones on the floor, work centers become rows of machines, and the routes in the model become the material flows between them. Drag to turn, scroll to zoom, and click a machine to see where it sits and what flows in and out of it. Plants created from a walkthrough video keep the floor plan Gemini drew.",
+        "vi": "Mỗi nhà máy có thêm trang Bản sao 3D, và thanh điều hướng chính có mục Bản sao số mở bản sao của nhà máy đầu tiên. Khu vực thành vùng trên mặt sàn, trạm làm việc thành hàng máy, và các tuyến trong mô hình thành luồng vật liệu giữa chúng. Kéo để xoay, cuộn để phóng to, bấm vào một máy để xem vị trí và luồng vào ra của nó. Nhà máy tạo từ video đi xưởng giữ nguyên mặt bằng mà Gemini đã vẽ."
+      }
+    },
+    {
       "id": "2026-10-18-local-sign-in-skipped",
       "date": "2026-10-18",
       "areas": [
