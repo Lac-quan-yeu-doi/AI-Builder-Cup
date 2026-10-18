@@ -1,3 +1,0 @@
-- op: replace
-  path: /spec/template/spec/containers/0/env/5/value
-  value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?schema=celesnity_app&uselibpqcompat=true&sslmode=require"

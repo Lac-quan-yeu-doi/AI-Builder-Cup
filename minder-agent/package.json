@@ -24,9 +24,7 @@
     "db:reset:minder": "tsx src/bootstrap/reset-cli.ts",
     "db:compact:v2": "tsx src/bootstrap/compact-v2-cli.ts",
     "dev": "node --env-file-if-exists=.env --import tsx --watch src/bootstrap/http-main.ts",
-    "openapi:export": "tsx src/bootstrap/openapi-cli.ts",
-    "k8s:render:dev": "kubectl kustomize k8s/overlays/gcp-dev",
-    "k8s:render:prod": "kubectl kustomize k8s/overlays/gcp-prod"
+    "openapi:export": "tsx src/bootstrap/openapi-cli.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
