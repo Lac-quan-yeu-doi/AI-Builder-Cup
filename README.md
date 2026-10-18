@@ -1,34 +1,47 @@
-# Celesnity Mono Repo (release/0.5.0)
+# Minder
 
-This directory contains release/0.5.0 snapshots of the Web, Core, Agent, and Infrastructure repositories, plus the workspace Docker Compose configuration.
+Minder is a Physical Intelligence Operating System for industry. It first centralizes a plant's data: machine sensors (MQTT), MES and ERP records and files flow into one governed store. A data ontology maps every area, line, station and machine and binds each to live values. On top of it, a digital twin shows the plant in 2D and 3D, and can be built from a 1–3 minute phone walkthrough in about 20–40 seconds. Minder AI reads the ontology and live data, explains what changed, projects what comes next and cites every source. Automated and predictive workflows turn this into action: an expert's repair video becomes a voice-led, photo-checked guide, and automations run on events, with a person approving every step. Advanced analytics tracks OEE, yield, energy and demand on live dashboards.
 
-## Components
+## Repository
 
-- `celesnity-web/` — Web application; see [README.web.md](README.web.md).
-- `celesnity-core/` — Core API and worker; see [README.core.md](README.core.md).
-- `minder-agent/` — Agent runtime; see [README.agent.md](README.agent.md).
-- `celesnity-infra/` — Shared service config (Trino, Spark, Redpanda, EMQX) and a standalone local data stack; see [README.infra.md](README.infra.md).
-- `mock-data/` — Demo Data 1 (home appliance) and Demo Data 2 (coffee capsules), loaded into the `sample-postgres` service, with their curated Iceberg warehouses loaded by `trino-seed`; see [mock-data/README.md](mock-data/README.md).
+| Folder | Contents |
+|---|---|
+| `celesnity-web/` | Web app — [README.web.md](README.web.md) |
+| `celesnity-core/` | Core API and worker — [README.core.md](README.core.md) |
+| `minder-agent/` | Minder AI agent runtime — [README.agent.md](README.agent.md) |
+| `celesnity-infra/` | Trino, Spark, Redpanda and EMQX config — [README.infra.md](README.infra.md) |
+| `mock-data/` | Demo Data 1 (home appliance) and 2 (coffee capsules) — [mock-data/README.md](mock-data/README.md) |
 
-## Run with Docker Compose
+Release 0.5.0 snapshots, run together by `docker-compose.yaml`.
 
-1. Copy `.env.example` to `.env` and fill in the required values.
-2. Run `docker compose up -d --build` from this directory.
+## Run
 
-The app is served by nginx on port 80 (http://localhost locally). Only nginx is public; Postgres, MinIO, Trino, Spark and the agent bind to `127.0.0.1` (reach them over an SSH tunnel).
+```bash
+cp .env.example .env
+```
+
+Set `LLM_API_KEY` in `.env`, then:
+
+```bash
+docker compose up -d --build
+```
+
+Open http://localhost. Only nginx is public (port 80, or `NGINX_PORT`); Postgres, MinIO, Trino, Spark and the agent bind to `127.0.0.1`. One-shot jobs (`*-init`, `*-migrate`, `trino-seed`) exit 0, which `--wait` reports as a failure, so check them with `docker compose ps -a`.
+
+Every organization can read three sample warehouses out of the box: `demo`, `demo1_home_appliance` and `demo2_coffee_capsules`. The first start on empty volumes takes a few extra minutes while `trino-seed` loads them.
 
 ## Deploy on a VPS
 
-1. Install Docker Engine + Compose v2, open port 80, clone this repo.
-2. `cp .env.example .env`, then set `LLM_API_KEY`, `WEB_ORIGIN=http://<VPS_IP>` (exact browser origin, used for Origin/CSRF checks) and replace the default passwords.
-3. `docker compose up -d --build`. One-shot jobs (`*-init`, `*-migrate`, `trino-seed`) exit 0; `--wait` reports those as failures, so check with `docker compose ps -a` instead.
-4. Open `http://<VPS_IP>` and pick a persona. Auth is `local-development`: anyone with the URL can sign in.
+1. Install Docker Engine and Compose v2, open port 80, clone this repo.
+2. `cp .env.example .env`, set `LLM_API_KEY`, `WEB_ORIGIN=http://<VPS_IP>` (the exact browser origin, used for Origin/CSRF checks) and replace the default passwords.
+3. `docker compose up -d --build`, then open `http://<VPS_IP>`. Auth is `local-development`: anyone with the URL is signed in as the organization owner.
 
-Bootstrap jobs: `celesnity-migrate` runs migrations → `seed/core-local-personas.sql` → Core's organization bootstrap; `minder-manifest-migrate` seeds the built-in agents (`seed/agent-manifest-migrations.mjs`); `trino-seed` loads the read-only sample warehouses in `trino/seed/` (`iceberg.demo` and the Demo Data 1 and 2 warehouses, which take a few minutes on the first run and are skipped after that).
+To update: `git pull` and `docker compose up -d --build`. When `celesnity-infra/config/trino/` changed, also run `docker compose restart trino-coordinator` and then `docker compose up -d trino-seed`.
 
-### Resources (2 vCPU / 5 GB host, one user)
+<details>
+<summary>Resources: sized for a 2 vCPU / 5 GB host, one user</summary>
 
-Every service has a `deploy.resources.limits` in `docker-compose.yaml`. Long-running services sum to ~4.4 GiB of memory limits (measured ~2.4 GiB in use after a chat, a 12M-row Trino query and a Spark job); CPU limits are per-container ceilings.
+Every service has `deploy.resources.limits` in `docker-compose.yaml`. Long-running services sum to ~4.4 GiB of memory limits (measured ~2.4 GiB in use after a chat, a 12M-row Trino query and a Spark job); CPU limits are per-container ceilings.
 
 | Service | Memory | CPU | Notes |
 |---|---|---|---|
@@ -46,4 +59,15 @@ Every service has a `deploy.resources.limits` in `docker-compose.yaml`. Long-run
 
 With more RAM: `--scale celesnity-web=2` (nginx picks up replicas), `TRINO_WORKER_REPLICAS`, or `SPARK_WORKER_REPLICAS` (required for the `streaming` profile).
 
-Compose dependencies from `trino/seed/` are included. Component-specific environment examples are available at the root as `.env.web.example`, `.env.core.example`, and `.env.infra.local.example`.
+</details>
+
+<details>
+<summary>Bootstrap jobs</summary>
+
+- `celesnity-migrate`: migrations → `seed/core-local-personas.sql` → Core's organization bootstrap.
+- `minder-manifest-migrate`: the built-in agents (`seed/agent-manifest-migrations.mjs`).
+- `trino-seed`: the read-only sample warehouses in `trino/seed/`; the Demo Data ones load once and are skipped after that.
+
+Component-specific environment examples: `.env.web.example`, `.env.core.example`, `.env.infra.local.example`.
+
+</details>
