@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ChartView } from '@/app/_components/shared/chart-view';
-import { DocumentBody } from '@/app/_components/documents/document-body';
-import { DocumentFileViewer } from '@/app/_components/documents/document-file-viewer';
 import { readChartView, readTableContent } from '@/app/_components/chat/artifact-reading';
 import { ArtifactSourceBar } from '@/app/_components/chat/artifact-source-bar';
 import { ArtifactKeep, type KeptChart } from '@/app/_components/chat/artifact-keep';
@@ -21,13 +19,10 @@ import { useTranslation } from '@/app/_i18n/use-translation';
 import type { ChartRenderer } from '@/src/entities/models/chart-renderer';
 import type { ListChartCollectionsController } from '@/src/interface-adapters/controllers/chart-collections/list-chart-collections.controller';
 import type { SaveChatChartPreviewController } from '@/src/interface-adapters/controllers/canonical-charts/save-chat-chart-preview.controller';
-import type { GetDocumentContentController } from '@/src/interface-adapters/controllers/documents/get-document-content.controller';
-import type { DocumentContent } from '@/src/entities/models/document';
 
 export interface BlockPaneProps {
   readonly block: MessageBlock;
   readonly renderer?: ChartRenderer;
-  readonly getDocumentContent?: GetDocumentContentController;
   /** The question this artifact answers, carried onto a kept chart. */
   readonly question?: string | null;
   /** Present once this artifact has been kept in Our analytics. */
@@ -48,104 +43,13 @@ export interface BlockPaneProps {
  * nobody checks.
  */
 export function BlockPane(props: BlockPaneProps) {
-  if (props.block.blockType === 'document') return <DocumentBlockPane {...props} />;
+  if (props.block.blockType === 'document') return <PaneNotice text={props.block.fallbackText} />;
 
   return props.block.blockType === 'chart' ? (
     <ChartBlockPane {...props} />
   ) : (
     <TableBlockPane block={props.block} />
   );
-}
-
-function DocumentBlockPane({ block, getDocumentContent, renderer }: BlockPaneProps) {
-  const { t } = useTranslation();
-  const documentId = stringPayload(block, 'document_id');
-  const filename = stringPayload(block, 'filename') ?? block.fallbackText;
-  const mimeType = stringPayload(block, 'mime_type');
-  const [state, setState] = useState<
-    | { readonly status: 'loading' }
-    | { readonly status: 'loaded'; readonly content: DocumentContent }
-    | { readonly status: 'error' }
-  >({ status: 'loading' });
-  const hasInlineText =
-    mimeType?.startsWith('text/') || mimeType === 'application/json' || mimeType?.endsWith('+json');
-  const needsFileViewer = !hasInlineText;
-  const documentUnavailable = getDocumentContent === undefined || documentId === null;
-
-  useEffect(() => {
-    let cancelled = false;
-    if (documentUnavailable) {
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    void getDocumentContent({ documentId, mimeType: mimeType ?? 'application/octet-stream' })
-      .then((content) => {
-        if (!cancelled) setState({ status: 'loaded', content });
-      })
-      .catch(() => {
-        if (!cancelled) setState({ status: 'error' });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [documentId, documentUnavailable, getDocumentContent, mimeType]);
-
-  const visibleState = documentUnavailable ? { status: 'error' as const } : state;
-
-  return (
-    <div className="flex h-full min-h-0 min-w-0 flex-col">
-      <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
-        {visibleState.status === 'loaded' && visibleState.content.kind === 'file' ? (
-          <DocumentFileViewer
-            filename={filename}
-            mimeType={mimeType ?? 'application/octet-stream'}
-            blob={visibleState.content.blob}
-          />
-        ) : visibleState.status === 'error' && needsFileViewer ? (
-          <p className="m-0 text-caption text-destructive">{t('documents.textLoadError')}</p>
-        ) : (
-          <>
-            {visibleState.status === 'loading' && (
-              <p className="m-0 text-caption text-muted-foreground">{t('documents.loadingText')}</p>
-            )}
-            {visibleState.status === 'error' && (
-              <p className="m-0 text-caption text-destructive">{t('documents.textLoadError')}</p>
-            )}
-            {visibleState.status === 'loaded' &&
-              visibleState.content.kind === 'text' &&
-              visibleState.content.content.extractionStatus === 'no_text_found' && (
-                <p className="m-0 text-caption text-muted-foreground">
-                  {t('documents.noTextContent')}
-                </p>
-              )}
-            {visibleState.status === 'loaded' &&
-              visibleState.content.kind === 'text' &&
-              visibleState.content.content.extractionStatus === 'extracted' &&
-              (mimeType === 'text/markdown' || filename.toLowerCase().endsWith('.md') ? (
-                <DocumentBody
-                  content={visibleState.content.content.text}
-                  chartPreviews={visibleState.content.content.chartPreviews}
-                  renderer={renderer}
-                  pdfFilename={filename}
-                />
-              ) : (
-                <pre className="m-0 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                  {visibleState.content.content.text}
-                </pre>
-              ))}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function stringPayload(block: MessageBlock, key: string): string | null {
-  const value = block.payload[key];
-  return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
 function ChartBlockPane({

@@ -101,7 +101,6 @@ describe('presentAutomationWorkflowRun', () => {
         },
         { stepId: 'step-2', status: 'failed' },
       ],
-      documents: [],
     };
     expect(presentAutomationWorkflowRun(run)).toEqual(run);
   });

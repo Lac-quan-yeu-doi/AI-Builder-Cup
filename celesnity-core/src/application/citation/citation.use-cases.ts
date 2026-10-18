@@ -1,5 +1,4 @@
 import type { ChartUseCases } from '@application/chart/chart.use-cases';
-import type { DocumentUseCases } from '@application/document/document.use-cases';
 
 export type CitationType = 'chart' | 'document';
 
@@ -14,46 +13,40 @@ export interface ResolvedCitation {
   readonly type: CitationType;
   readonly id: string;
   readonly found: boolean;
-  /** The chart's title, or the document's filename. `null` when not found. */
+  /** The chart's title. `null` when not found or for a retired citation type. */
   readonly title: string | null;
   readonly page?: number;
 }
 
 /**
- * Resolves the `<citation>` tags an agent emits in a chat response (see
- * `chat-assistant.yaml`'s "Citing charts and documents" instructions) back
- * into something displayable — mirroring AIP Chatbot Studio's citation
- * bubbles, which resolve a cited object/document reference to a title a
- * user can click through.
+ * Resolves chart citations emitted by an agent. Document references are kept
+ * as a tolerated legacy input so old conversations remain readable after the
+ * document feature is removed.
  *
  * Deliberately tolerant of a stale or invalid reference: one bad citation
  * in a batch shouldn't prevent the rest from resolving, so a lookup
  * failure becomes `found: false` rather than rejecting the whole call.
  */
 export class CitationUseCases {
-  public constructor(
-    private readonly chartUseCases: ChartUseCases,
-    private readonly documentUseCases: DocumentUseCases,
-  ) {}
+  public constructor(private readonly chartUseCases: ChartUseCases) {}
 
   public async resolve(refs: readonly CitationRef[]): Promise<readonly ResolvedCitation[]> {
     return Promise.all(refs.map((ref) => this.resolveOne(ref)));
   }
 
   private async resolveOne(ref: CitationRef): Promise<ResolvedCitation> {
-    try {
-      if (ref.type === 'chart') {
-        const chart = await this.chartUseCases.findById(ref.id);
-        return { type: ref.type, id: ref.id, found: true, title: chart.title };
-      }
-      const document = await this.documentUseCases.findById(ref.id);
+    if (ref.type === 'document') {
       return {
         type: ref.type,
         id: ref.id,
-        found: true,
-        title: document.filename,
+        found: false,
+        title: null,
         ...(ref.page === undefined ? {} : { page: ref.page }),
       };
+    }
+    try {
+      const chart = await this.chartUseCases.findById(ref.id);
+      return { type: ref.type, id: ref.id, found: true, title: chart.title };
     } catch {
       return { type: ref.type, id: ref.id, found: false, title: null };
     }

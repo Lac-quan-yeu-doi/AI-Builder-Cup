@@ -722,6 +722,23 @@ export function useChatConversation(
               },
             ];
           }
+          if (state.pendingPlan) {
+            const alreadyPresent = messages.some(
+              (message) => Boolean(message.runAwaitingPlan),
+            );
+            if (alreadyPresent) return messages;
+            return [
+              ...messages,
+              {
+                id: `${roomKey}-pending-plan`,
+                role: 'assistant',
+                content: '',
+                timestamp: new Date().toISOString(),
+                runAwaitingPlan: true,
+                awaitingPlan: state.pendingPlan,
+              },
+            ];
+          }
           if (state.pendingQuestion === null) return messages;
           const alreadyPresent = messages.some(
             (message) =>
@@ -742,7 +759,11 @@ export function useChatConversation(
           ];
         });
         return Boolean(
-          running || state.pendingApproval || state.pendingQuestion || activeRunIdRef.current,
+          running ||
+            state.pendingApproval ||
+            state.pendingQuestion ||
+            state.pendingPlan ||
+            activeRunIdRef.current,
         );
       });
     },

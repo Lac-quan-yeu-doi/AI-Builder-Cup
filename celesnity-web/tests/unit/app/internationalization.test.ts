@@ -70,11 +70,7 @@ describe('internationalization dictionaries', () => {
   });
 
   it('lists containers rather than their parts', () => {
-    // A destination a container already holds as a tab must not also be offered
-    // here. Seven came out on that rule; each is reached inside the object that
-    // owns it, and each keeps its own feature in `route-features.ts`. The rule
-    // cuts both ways: what no container holds has to stay, or it becomes
-    // reachable only by typing the URL, which is what happened to Scripts.
+    // Retired authoring and management surfaces are not offered as navigation.
     expect(
       workspaceNavigationGroups.map((group) => ({
         labelKey: group.labelKey,
@@ -91,18 +87,6 @@ describe('internationalization dictionaries', () => {
           ['nav.digitalTwin', '/plant-model/twin'],
           ['nav.analytics', '/analytics'],
         ],
-      },
-      {
-        labelKey: 'nav.group.tools',
-        items: [
-          ['nav.dataWorkflows', '/data-workflows'],
-          ['nav.plugins', '/plugins'],
-          ['nav.automations', '/automations'],
-        ],
-      },
-      {
-        labelKey: 'nav.group.resources',
-        items: [['nav.documents', '/documents']],
       },
     ]);
 

@@ -56,39 +56,22 @@ system_prompt: |
   - CRITICAL: each visualization field binding MUST exactly match a column name produced by the query. Use display settings for user-facing labels.
   - Choose the right chart type: bar for comparisons, line for trends, pie for proportions, scatter for correlations.
 
-  ## Working with documents (Minder's internal document store)
-  - IMPORTANT: The document tools (list_documents, get_document_text, create_document) are Minder's OWN internal document store — files uploaded directly to the platform. They are completely separate from Google Drive. Do NOT use these tools for Google Drive files, and do NOT describe their capabilities when the user asks about Google Drive.
-  - Use list_documents to find a previously uploaded document by filename, then get_document_text to read its content.
-  - You cannot upload a file yourself (PDFs still require a human to upload) — if asked about a document that isn't listed, say it hasn't been uploaded yet.
-  - For a large document, request a page range (start_page/end_page) instead of the whole thing, so you don't fill your context with pages you don't need.
-  - A document uploaded as a scanned image (no embedded text) will come back with extraction_status "no_text_found" — say so plainly rather than guessing at its content.
-  - When asked to create, write, or generate a report as an artifact—including simply "create a report"—invoke `pdf-report` and publish the actual PDF with `create_document` using its workspace path. Do not create Markdown by default; use text or Markdown only when the user explicitly requests that format. For a quick answer without a report artifact request, answer in chat without saving a file.
-  - For report charts, follow `pdf-report` to render the figures into the PDF. Use `chart_previews` and a `<chart-preview>` marker only when the user explicitly requests a Markdown report.
-  - A PDF report is complete only after Bash confirms a nonempty compiled PDF and `create_document` returns `mime_type: application/pdf`. If Bash is unavailable, explain that PDF generation is blocked; do not create a Markdown substitute or claim the PDF was created.
-
-  ## Working with third-party services
-  - The "Connected third-party services" section (appended below) lists every service the user has access to. Do NOT guess capabilities beyond what is listed there.
-  - Before performing work with any listed service, call InvokeSkill("{service-name}") to load its full instructions, scope boundaries, and best practices.
-
   ## Working with reusable skills
   - When a request may benefit from a reusable workflow, call ListSkills to inspect the available skill names and descriptions.
   - If a relevant skill exists, call InvokeSkill with its exact name before doing the work and follow the returned instructions.
   - Do not load unrelated skills, and do not claim to have used a skill unless InvokeSkill returned its instructions.
 
-  ## Citing saved artifacts and documents
+  ## Citing saved charts
   - A transient chart preview has no citation. Only cite a chart when a tool has returned a real saved chart ID after the user explicitly saved it.
-  - Whenever you reference a saved chart or a document you read, output a citation in the format below so the user can see exactly what backs your answer:
+  - Whenever you reference a saved chart, output a citation in the format below so the user can see exactly what backs your answer:
 
     "<citation><type>chart</type><id>...</id></citation>"
-    "<citation><type>document</type><id>...</id><page>...</page></citation>"
 
-    The document citation's page is optional — include it when your answer draws from a specific page, omit it when citing the document as a whole.
+  - For example, if I wanted to cite a chart with ID chart-8f2a, I would output:
 
-  - For example, if I wanted to cite a chart with ID chart-8f2a and a document with ID doc-3c91 (page 4), I would output:
+    "Revenue grew 12% quarter over quarter <citation><type>chart</type><id>chart-8f2a</id></citation>."
 
-    "Revenue grew 12% quarter over quarter <citation><type>chart</type><id>chart-8f2a</id></citation>, consistent with the guidance in the board deck <citation><type>document</type><id>doc-3c91</id><page>4</page></citation>."
-
-  - Never invent a chart_id or document_id for a citation — only cite IDs a tool actually returned to you this conversation.
+  - Never invent a chart_id for a citation — only cite IDs a tool actually returned to you this conversation.
 
   ## Response style
   - Lead with the key finding, then provide detail.
@@ -112,16 +95,8 @@ tools:
     - mcp__trino__profile_table
     - mcp__trino__run_query
     - mcp__chart__preview_chart
-    - mcp__document__list_documents
-    - mcp__document__get_document_text
-    - mcp__document__create_document
     - ListSkills
     - InvokeSkill
-    - mcp__google_drive__search_files
-    - mcp__google_drive__get_file
-    - mcp__google_drive__get_spreadsheet_overview
-    - mcp__google_drive__read_spreadsheet_range
-    - mcp__google_drive__create_spreadsheet
     - mcp__plant_model__list_plant_model_nodes
     - mcp__plant_model__get_plant_model_node
     - mcp__plant_model__traverse_plant_model_routes
@@ -156,8 +131,8 @@ tags:
   - general
 
 mcp_servers:
-  # trino/chart/document are all celesnity-core's own in-process MCP-over-HTTP
-  # endpoints (see celesnity-core/src/presentation/{trino,chart,document}/*-mcp.*)
+  # trino/chart are celesnity-core's own in-process MCP-over-HTTP endpoints
+  # (see celesnity-core/src/presentation/{trino,chart}/*-mcp.*)
   # — no local binary to spawn, no Trino credentials on the agent side.
   # Catalog/table access is authorized by celesnity-core's own
   # CatalogAccessAuthorizer (per-resource grants), not a manifest-level
@@ -174,10 +149,6 @@ mcp_servers:
     url: "${CHART_MCP_URL}"
     headers:
       X-Mcp-Shared-Secret: "${MCP_SHARED_SECRET}"
-  document:
-    url: "${DOCUMENT_MCP_URL}"
-    headers:
-      X-Mcp-Shared-Secret: "${MCP_SHARED_SECRET}"
   plant_model:
     url: "${PLANT_MODEL_MCP_URL}"
     headers:
@@ -188,12 +159,6 @@ mcp_servers:
       X-Mcp-Shared-Secret: "${MCP_SHARED_SECRET}"
   skill:
     url: "${SKILL_MCP_URL}"
-    headers:
-      X-Mcp-Shared-Secret: "${MCP_SHARED_SECRET}"
-  # The user's connected cloud storage (Google Drive). Read and create-only:
-  # celesnity-core exposes no tool that edits or deletes an existing file.
-  google_drive:
-    url: "${CLOUD_FILE_MCP_URL}"
     headers:
       X-Mcp-Shared-Secret: "${MCP_SHARED_SECRET}"
 

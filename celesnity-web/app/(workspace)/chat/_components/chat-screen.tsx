@@ -45,10 +45,7 @@ import type { PlantSiteSummary } from '@/src/entities/models/plant-model';
 import {
   ChatComposer,
   type ComposerTool,
-  type MentionSource,
 } from '@/app/_components/chat/chat-composer';
-import { PLUGINS } from '@/app/(workspace)/plugins/_components/plugin-registry';
-import { GoogleDriveIcon } from '@/app/(workspace)/plugins/_components/google-drive-icon';
 import { ChatDatabasePicker } from './chat-database-picker';
 import {
   ChatLanding,
@@ -101,8 +98,6 @@ import {
   formatMessageWithAttachments,
   type ChatAttachment,
 } from '@/src/entities/models/chat-attachment';
-import type { UploadDocumentController } from '@/src/interface-adapters/controllers/documents/upload-document.controller';
-import type { GetDocumentContentController } from '@/src/interface-adapters/controllers/documents/get-document-content.controller';
 import type { AutomationWorkflowController } from '@/src/interface-adapters/controllers/automation-workflow/automation-workflow.controller';
 import type { ListCanonicalChartsController } from '@/src/interface-adapters/controllers/canonical-charts/list-canonical-charts.controller';
 import type { ListChartCollectionsController } from '@/src/interface-adapters/controllers/chart-collections/list-chart-collections.controller';
@@ -144,8 +139,6 @@ interface ChatScreenProps {
   readonly resolveCitations: ResolveCitationsController;
   readonly listWorkspaceTree?: ListWorkspaceTreeController;
   readonly getWorkspaceFileContent?: GetWorkspaceFileContentController;
-  readonly uploadDocument?: UploadDocumentController;
-  readonly getDocumentContent?: GetDocumentContentController;
   readonly automationWorkflow?: AutomationWorkflowController;
   readonly listCanonicalCharts?: ListCanonicalChartsController;
   readonly listChartCollections?: ListChartCollectionsController;
@@ -208,8 +201,6 @@ export function ChatScreen({
   resolveCitations,
   listWorkspaceTree,
   getWorkspaceFileContent,
-  uploadDocument,
-  getDocumentContent,
   automationWorkflow,
   listCanonicalCharts,
   listChartCollections,
@@ -325,30 +316,6 @@ export function ChatScreen({
     [firstPlantId, listPlantSites, t],
   );
 
-  const PLUGIN_ICON_MAP: Record<string, React.ReactNode> = useMemo(
-    () => ({
-      'google-drive': <GoogleDriveIcon size={16} />,
-    }),
-    [],
-  );
-
-  const mentionSources: readonly MentionSource[] = useMemo(
-    () =>
-      PLUGINS.map((p) => ({
-        id: p.id,
-        label: p.iconLabel === 'GD' ? 'Google Drive' : p.id,
-        icon: PLUGIN_ICON_MAP[p.id] ?? null,
-        color: p.iconColor,
-      })),
-    [PLUGIN_ICON_MAP],
-  );
-
-  const handleMentionAdd = useCallback((source: MentionSource) => {
-    setAttachments((prev) => {
-      if (prev.some((a) => a.type === 'mention' && a.id === source.id)) return prev;
-      return [...prev, { type: 'mention' as const, id: source.id, title: source.label }];
-    });
-  }, []);
   const [openedRestoredBlocks, setOpenedRestoredBlocks] = useState<
     ReadonlyMap<string, MessageBlock>
   >(() => new Map());
@@ -590,7 +557,6 @@ export function ChatScreen({
             kept={keptCharts[artifact.id]}
             question={entry.question}
             renderer={chartRenderer}
-            getDocumentContent={getDocumentContent}
             onKept={(kept) => setKeptCharts((prev) => ({ ...prev, [artifact.id]: kept }))}
             {...(listChartCollections ? { listCollections: listChartCollections } : {})}
             {...(saveChatPreview ? { saveChatPreview } : {})}
@@ -733,7 +699,6 @@ export function ChatScreen({
       createChart,
       deleteChart,
       getCanonicalChart,
-      getDocumentContent,
       getWorkspaceFileContent,
       automationWorkflow,
       listCanonicalCharts,
@@ -1038,8 +1003,6 @@ export function ChatScreen({
             }}
             toolbar={chatToolbar}
             tools={composerTools}
-            mentionSources={mentionSources}
-            onMentionAdd={handleMentionAdd}
             attachments={attachments}
             onRemoveAttachment={(id) => setAttachments((prev) => prev.filter((a) => a.id !== id))}
             recent={recentConversations}
@@ -1235,8 +1198,6 @@ export function ChatScreen({
                   compact
                   disabled={isStreaming || pendingQuestion?.allowOther === false || pendingApproval}
                   tools={composerTools}
-                  mentionSources={mentionSources}
-                  onMentionAdd={handleMentionAdd}
                   placeholder={
                     messages[messages.length - 1]?.runAwaitingInput
                       ? t('chat.composer.answerToCarryOn')
@@ -1249,21 +1210,6 @@ export function ChatScreen({
                   attachments={attachments}
                   onRemoveAttachment={(id) =>
                     setAttachments((prev) => prev.filter((attachment) => attachment.id !== id))
-                  }
-                  onFileAttach={
-                    uploadDocument
-                      ? async (file) => {
-                          try {
-                            const doc = await uploadDocument(file);
-                            setAttachments((prev) => [
-                              ...prev,
-                              { type: 'document' as const, id: doc.id, title: doc.filename },
-                            ]);
-                          } catch (error) {
-                            console.error('[chat] file attach failed:', error);
-                          }
-                        }
-                      : undefined
                   }
                 />
                 <p className="m-0 mt-2 hidden text-center font-mono text-micro text-muted-foreground sm:block">

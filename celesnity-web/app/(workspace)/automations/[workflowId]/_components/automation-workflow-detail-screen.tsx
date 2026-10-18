@@ -14,19 +14,11 @@ import { TextField, SelectField } from '@/app/_components/ui/fields';
 import { useTranslation } from '@/app/_i18n/use-translation';
 import type { Translator } from '@/app/_i18n/translate';
 import { ChatMarkdown } from '@/app/_components/chat/chat-markdown';
-import { ArtifactCard } from '@/app/_components/chat/artifact-card';
-import { DocumentBody } from '@/app/_components/documents/document-body';
-import { DocumentFileViewer } from '@/app/_components/documents/document-file-viewer';
-import { ReportPdfExportButton } from '@/app/_components/documents/report-pdf-export-button';
 import { RunFilesTab } from '@/app/_components/chat/run-files-tab';
 import { RunFileViewer } from '@/app/_components/chat/run-file-viewer';
 import type { TabState } from '@/app/_components/chat/tab-state';
 import { stripSuggestionTags } from '@/src/entities/models/suggestion';
 import type { RunFileContent, RunFileEntry } from '@/src/entities/models/chat';
-import type { ChartRenderer } from '@/src/entities/models/chart-renderer';
-import type { Document } from '@/src/entities/models/document';
-import type { DocumentContent } from '@/src/entities/models/document';
-import type { GetDocumentContentController } from '@/src/interface-adapters/controllers/documents/get-document-content.controller';
 import type {
   AutomationWorkflowTriggerField,
   AutomationWorkflowTriggerFieldType,
@@ -44,7 +36,6 @@ import {
 } from '@/app/_components/automation-workflow/automation-workflow-status-badge';
 import { AutomationWorkflowChain } from './automation-workflow-chain';
 import { AutomationWorkflowDock } from './automation-workflow-dock';
-import { XIcon } from 'lucide-react';
 
 interface Props {
   readonly controller: AutomationWorkflowController;
@@ -53,8 +44,6 @@ interface Props {
   readonly listRunFiles: (runId: string) => Promise<readonly RunFileEntry[]>;
   /** Streams one file's content for a step's agent run. */
   readonly getRunFileContent: (runId: string, path: string) => Promise<RunFileContent>;
-  readonly getDocumentContent: GetDocumentContentController;
-  readonly documentRenderer?: ChartRenderer;
 }
 
 const RUN_POLL_INTERVAL_MS = 1500;
@@ -181,8 +170,6 @@ export function AutomationWorkflowDetailScreen({
   workflowId,
   listRunFiles,
   getRunFileContent,
-  getDocumentContent,
-  documentRenderer,
 }: Props) {
   const { t } = useTranslation();
   const [workflow, setWorkflow] = useState<AutomationWorkflowViewModel>();
@@ -201,42 +188,15 @@ export function AutomationWorkflowDetailScreen({
   const [activeAgentRunId, setActiveAgentRunId] = useState<string | null>(null);
   const [fileState, setFileState] = useState<TabState<readonly RunFileEntry[]>>({ status: 'idle' });
   const [selectedFile, setSelectedFile] = useState<RunFileEntry | null>(null);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [documentContent, setDocumentContent] = useState<DocumentContent | null>(null);
-  const [documentLoading, setDocumentLoading] = useState(false);
-  const selectedDocumentReportRef = useRef<HTMLDivElement>(null);
-  const documentRequestRef = useRef(0);
   const fileRequestRef = useRef(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const detailPollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   function resetFilePanel() {
     fileRequestRef.current += 1;
-    documentRequestRef.current += 1;
     setActiveAgentRunId(null);
     setSelectedFile(null);
     setFileState({ status: 'idle' });
-    setSelectedDocument(null);
-    setDocumentContent(null);
-    setDocumentLoading(false);
-  }
-
-  async function openDocument(document: Document) {
-    resetFilePanel();
-    const requestId = ++documentRequestRef.current;
-    setSelectedDocument(document);
-    setDocumentLoading(true);
-    try {
-      const content = await getDocumentContent({
-        documentId: document.id,
-        mimeType: document.mimeType,
-      });
-      if (documentRequestRef.current === requestId) setDocumentContent(content);
-    } catch {
-      if (documentRequestRef.current === requestId) setDocumentContent(null);
-    } finally {
-      if (documentRequestRef.current === requestId) setDocumentLoading(false);
-    }
   }
 
   const load = useCallback(async () => {
@@ -712,90 +672,19 @@ export function AutomationWorkflowDetailScreen({
                         </div>
                       </div>
                     ))}
-                    {runDetail.documents && runDetail.documents.length > 0 ? (
-                      <div className="grid gap-2 pt-2">
-                        <p className="m-0 text-xs font-medium text-muted-foreground">
-                          {t('automationWorkflow.documentsTitle')}
-                        </p>
-                        {runDetail.documents.map((document) => (
-                          <ArtifactCard
-                            key={document.id}
-                            kind="document"
-                            title={document.filename}
-                            kindLabel={t('automationWorkflow.documentKind')}
-                            open={selectedDocument?.id === document.id}
-                            onOpen={() => void openDocument(document)}
-                          />
-                        ))}
-                      </div>
-                    ) : null}
                   </div>
-                  {selectedDocument ? (
-                    <aside className="min-w-0 overflow-auto rounded-lg border border-border p-4">
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        <span className="min-w-0 truncate text-sm font-medium">
-                          {selectedDocument.filename}
-                        </span>
-                        <div className="flex shrink-0 items-center gap-1">
-                          {selectedDocument.mimeType === 'text/markdown' ? (
-                            <ReportPdfExportButton
-                              contentRef={selectedDocumentReportRef}
-                              filename={selectedDocument.filename}
-                            />
-                          ) : null}
-                          <Button
-                            size="icon-xs"
-                            variant="ghost"
-                            onClick={resetFilePanel}
-                            aria-label={t('automationWorkflow.closeDocument')}
-                            title={t('automationWorkflow.closeDocument')}
-                          >
-                            <XIcon aria-hidden="true" />
-                          </Button>
-                        </div>
-                      </div>
-                      {documentContent?.kind === 'file' ? (
-                        <DocumentFileViewer
-                          filename={selectedDocument.filename}
-                          mimeType={selectedDocument.mimeType}
-                          blob={documentContent.blob}
-                        />
-                      ) : documentLoading ? (
-                        <Spinner className="size-6 text-primary" />
-                      ) : documentContent?.kind === 'text' &&
-                        documentContent.content.extractionStatus === 'extracted' ? (
-                        selectedDocument.mimeType === 'text/markdown' ? (
-                          <DocumentBody
-                            content={documentContent.content.text}
-                            chartPreviews={documentContent.content.chartPreviews}
-                            renderer={documentRenderer}
-                            contentRef={selectedDocumentReportRef}
-                          />
-                        ) : (
-                          <pre className="break-words whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                            {documentContent.content.text}
-                          </pre>
-                        )
-                      ) : (
-                        <p className="text-sm text-destructive">
-                          {t('automationWorkflow.documentLoadError')}
-                        </p>
-                      )}
-                    </aside>
-                  ) : (
-                    <RunFilesPanel
-                      agentRunId={activeAgentRunId}
-                      state={fileState}
-                      selectedFile={selectedFile}
-                      onRefresh={() => {
-                        if (activeAgentRunId) loadRunFiles(activeAgentRunId);
-                      }}
-                      onSelectFile={setSelectedFile}
-                      onBack={() => setSelectedFile(null)}
-                      getRunFileContent={getRunFileContent}
-                      t={t}
-                    />
-                  )}
+                  <RunFilesPanel
+                    agentRunId={activeAgentRunId}
+                    state={fileState}
+                    selectedFile={selectedFile}
+                    onRefresh={() => {
+                      if (activeAgentRunId) loadRunFiles(activeAgentRunId);
+                    }}
+                    onSelectFile={setSelectedFile}
+                    onBack={() => setSelectedFile(null)}
+                    getRunFileContent={getRunFileContent}
+                    t={t}
+                  />
                 </div>
               ) : (
                 <Spinner className="size-6 text-primary" />

@@ -1,10 +1,7 @@
 import type { ChartUseCases } from '@application/chart/chart.use-cases';
 import { ChartError } from '@domain/chart/errors/chart.errors';
 import { CitationUseCases } from '@application/citation/citation.use-cases';
-import { DocumentError } from '@domain/document/errors/document.errors';
-import type { DocumentUseCases } from '@application/document/document.use-cases';
 import type { Chart } from '@domain/chart/models/chart';
-import type { Document } from '@domain/document/models/document';
 
 function buildUseCases(): CitationUseCases {
   const chart: Chart = {
@@ -23,18 +20,6 @@ function buildUseCases(): CitationUseCases {
     createdAt: '2026-08-25T00:00:00.000Z',
     updatedAt: '2026-08-25T00:00:00.000Z',
   };
-  const document: Document = {
-    id: 'doc-1',
-    filename: 'report.pdf',
-    mimeType: 'application/pdf',
-    storageKey: 'documents/doc-1.pdf',
-    pages: ['One.'],
-    pageCount: 1,
-    extractionStatus: 'extracted',
-    chartPreviews: [],
-    createdAt: '2026-08-25T00:00:00.000Z',
-  };
-
   const chartUseCases = {
     findById: async (id: string): Promise<Chart> => {
       if (id !== chart.id) throw ChartError.notFound(id);
@@ -42,14 +27,7 @@ function buildUseCases(): CitationUseCases {
     },
   } as unknown as ChartUseCases;
 
-  const documentUseCases = {
-    findById: async (id: string): Promise<Document> => {
-      if (id !== document.id) throw DocumentError.notFound(id);
-      return document;
-    },
-  } as unknown as DocumentUseCases;
-
-  return new CitationUseCases(chartUseCases, documentUseCases);
+  return new CitationUseCases(chartUseCases);
 }
 
 describe('CitationUseCases', () => {
@@ -66,7 +44,7 @@ describe('CitationUseCases', () => {
     });
   });
 
-  it('resolves a document citation to its filename, carrying the page through', async () => {
+  it('tolerates a legacy document citation without resolving retired content', async () => {
     const useCases = buildUseCases();
 
     const [result] = await useCases.resolve([{ type: 'document', id: 'doc-1', page: 3 }]);
@@ -74,8 +52,8 @@ describe('CitationUseCases', () => {
     expect(result).toEqual({
       type: 'document',
       id: 'doc-1',
-      found: true,
-      title: 'report.pdf',
+      found: false,
+      title: null,
       page: 3,
     });
   });
@@ -88,7 +66,7 @@ describe('CitationUseCases', () => {
     expect(result).toEqual({ type: 'chart', id: 'missing', found: false, title: null });
   });
 
-  it('resolves a mixed batch independently, one failure does not affect the rest', async () => {
+  it('resolves chart references independently from legacy document references', async () => {
     const useCases = buildUseCases();
 
     const results = await useCases.resolve([
@@ -97,6 +75,6 @@ describe('CitationUseCases', () => {
       { type: 'document', id: 'doc-1' },
     ]);
 
-    expect(results.map((r) => r.found)).toEqual([true, false, true]);
+    expect(results.map((r) => r.found)).toEqual([true, false, false]);
   });
 });

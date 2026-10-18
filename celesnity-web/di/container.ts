@@ -12,10 +12,8 @@ import { createAgentManifestsModule } from '@/di/modules/agent-manifests.module'
 import { createSkillsModule } from '@/di/modules/skills.module';
 import { createRepairGuidesModule } from '@/di/modules/repair-guides.module';
 import { createCitationsModule } from '@/di/modules/citations.module';
-import { createDocumentsModule } from '@/di/modules/documents.module';
 import { createWorkspaceTreeModule } from '@/di/modules/workspace-tree.module';
 import { createAutomationWorkflowModule } from '@/di/modules/automation-workflow.module';
-import { createDataWorkflowModule } from '@/di/modules/data-workflow.module';
 import { createPipelinesModule } from '@/di/modules/pipelines.module';
 import { createPlatformModule } from '@/di/modules/platform.module';
 import { createQueriesModule } from '@/di/modules/queries.module';
@@ -76,14 +74,12 @@ applicationContainer.load(
 applicationContainer.load(Symbol.for('celesnity.SkillsModule'), createSkillsModule());
 applicationContainer.load(Symbol.for('celesnity.RepairGuidesModule'), createRepairGuidesModule());
 applicationContainer.load(Symbol.for('celesnity.CitationsModule'), createCitationsModule());
-applicationContainer.load(Symbol.for('celesnity.DocumentsModule'), createDocumentsModule());
 applicationContainer.load(Symbol.for('celesnity.TutorialsModule'), createTutorialsModule());
 applicationContainer.load(Symbol.for('celesnity.WorkspaceTreeModule'), createWorkspaceTreeModule());
 applicationContainer.load(
   Symbol.for('celesnity.AutomationWorkflowModule'),
   createAutomationWorkflowModule(),
 );
-applicationContainer.load(Symbol.for('celesnity.DataWorkflowModule'), createDataWorkflowModule());
 
 export function getInjection<K extends keyof typeof DI_SYMBOLS>(key: K): DI_RETURN_TYPES[K] {
   return resolveTypedInjection(applicationContainer, key, DI_SYMBOLS);

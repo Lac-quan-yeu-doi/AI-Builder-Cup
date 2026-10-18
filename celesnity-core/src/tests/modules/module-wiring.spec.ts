@@ -492,7 +492,7 @@ describe('CitationModule', () => {
     await moduleRef.close();
   });
 
-  it('resolves the use case, wired to both ChartModule and DocumentModule', () => {
+  it('resolves the chart-only citation use case', () => {
     expect(moduleRef.get(CitationUseCases, { strict: false })).toBeInstanceOf(CitationUseCases);
   });
 });
@@ -615,17 +615,18 @@ describe('ActionsModule', () => {
  * which is the cheap, specific check that bug needed.
  */
 describe('ApiAppModule composition', () => {
-  it('registers every module this file has its own wiring suite for', () => {
+  it('registers retained modules and excludes retired public capabilities', () => {
     const imports = Reflect.getMetadata('imports', ApiAppModule) as readonly unknown[];
 
     expect(imports).toContain(ChartModule);
-    expect(imports).toContain(DocumentModule);
+    expect(imports).not.toContain(DocumentModule);
     expect(imports).toContain(CitationModule);
     expect(imports).toContain(SecurityModule);
     expect(imports).toContain(AdministrationModule);
     expect(imports).toContain(RateLimitModule);
     expect(imports).toContain(DashboardModule);
-    expect(imports).toContain(DataWorkflowModule);
+    expect(imports).not.toContain(DataWorkflowModule);
+    expect(imports).not.toContain(GoogleDriveConnectorModule);
   });
 });
 

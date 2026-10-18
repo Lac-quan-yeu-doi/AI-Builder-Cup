@@ -6,7 +6,6 @@ import type {
   AutomationWorkflowStepRun,
   AutomationWorkflowTriggerField,
 } from '@/src/entities/models/automation-workflow';
-import type { Document } from '@/src/entities/models/document';
 
 export interface AutomationWorkflowStepViewModel {
   readonly id: string;
@@ -45,7 +44,6 @@ export interface AutomationWorkflowRunViewModel {
   readonly startedAt: string;
   readonly finishedAt?: string;
   readonly steps: readonly AutomationWorkflowStepRunViewModel[];
-  readonly documents: readonly Document[];
 }
 
 export interface AutomationWorkflowRunSummaryViewModel {
@@ -112,7 +110,6 @@ export function presentAutomationWorkflowRun(
     startedAt: run.startedAt,
     ...(run.finishedAt !== undefined ? { finishedAt: run.finishedAt } : {}),
     steps: run.steps.map(presentStepRun),
-    documents: run.documents ?? [],
   };
 }
 

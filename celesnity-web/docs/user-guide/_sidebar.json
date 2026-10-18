@@ -27,8 +27,8 @@
           "slug": "charts-in-chat",
           "file": "11-charts-in-chat.md",
           "title": {
-            "vi": "Biểu đồ, bảng và tài liệu trong trò chuyện",
-            "en": "Charts, tables and documents in chat"
+            "vi": "Biểu đồ và bảng trong trò chuyện",
+            "en": "Charts and tables in chat"
           }
         }
       ]
@@ -70,19 +70,9 @@
           "title": { "vi": "Truy vấn SQL", "en": "SQL query workbench" }
         },
         {
-          "slug": "scripts",
-          "file": "31-scripts.md",
-          "title": { "vi": "Scripts", "en": "Scripts" }
-        },
-        {
           "slug": "skills",
           "file": "32-skills.md",
           "title": { "vi": "Skills của trợ lý", "en": "Assistant skills" }
-        },
-        {
-          "slug": "plugins",
-          "file": "33-plugins.md",
-          "title": { "vi": "Plugins và Google Drive", "en": "Plugins and Google Drive" }
         },
         {
           "slug": "automations",
@@ -95,27 +85,9 @@
       "title": { "vi": "Tài nguyên", "en": "Resources" },
       "items": [
         {
-          "slug": "documents",
-          "file": "40-documents.md",
-          "title": { "vi": "Tài liệu", "en": "Documents" }
-        },
-        {
           "slug": "tutorials",
           "file": "41-tutorials.md",
           "title": { "vi": "Hướng dẫn từng bước trong ứng dụng", "en": "In-app guided tutorials" }
-        }
-      ]
-    },
-    {
-      "title": { "vi": "Quản trị", "en": "Administration" },
-      "items": [
-        {
-          "slug": "administration",
-          "file": "50-administration.md",
-          "title": {
-            "vi": "Quản trị tổ chức và phân quyền",
-            "en": "Organization and access administration"
-          }
         }
       ]
     }

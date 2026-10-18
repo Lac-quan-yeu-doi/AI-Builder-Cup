@@ -5,7 +5,7 @@ Celesnity is a data workspace: you connect data sources, build pipelines, ask an
 ## 1. Signing in
 
 1. Open the address your administrator gave you. You will see **Sign in to Celesnity**.
-2. Sign in with the work account your administrator invited (see *Organization and access administration* for how invitations work).
+2. Sign in with the work account provided by your organization.
 3. If your organization requires two-factor authentication (MFA), also enter the code from the authenticator app on your phone.
 4. After signing in, the app takes you to the first screen you are allowed to see, usually **Home**.
 
@@ -22,21 +22,19 @@ Celesnity is a data workspace: you connect data sources, build pipelines, ask an
 | Account menu | Bottom left (the initial of your name) | **Change password**, **Sign out**. |
 | Language toggle | Next to the account menu: **EN / VI** | Switches the interface language instantly, no reload. |
 
-The sidebar has four groups:
+The sidebar contains the retained workspace destinations:
 
 - **Home**: ask the AI assistant (see *Asking the assistant*).
 - **Data**: Databases, Streaming, Plant model, Analytics.
-- **Tools**: Data workflows, Plugins (for Google Drive data), Automations.
-- **Resources**: Documents.
 
-The standalone Query, Scripts, Skills, Guide, and Administration screens are paused. Direct links to them are also unavailable.
+Administration, Documents, Guide, Scripts, Data workflows, and Plugins are not part of this workspace. Their old direct links are unavailable. Query and Skills are also paused.
 
 ## 3. Where to start
 
 It depends on your role:
 
 - **Business users and analysts**: go to **Home**, pick the data scope in the "Asking about" box, then ask in plain language. The assistant looks up tables, runs queries and draws charts for you.
-- **Data engineers**: go to **Databases** to create a database, connect a source, scan its metadata and build a pipeline. Use **Data workflows** to schedule the work.
+- **Data engineers**: go to **Databases** to create a database, connect a source, scan its metadata and build a pipeline.
 
 ## 4. Changing your password and signing out
 

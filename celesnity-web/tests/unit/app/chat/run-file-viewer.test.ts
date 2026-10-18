@@ -143,20 +143,20 @@ describe('RunFileViewer', () => {
     expect(URL.createObjectURL).toHaveBeenCalled();
   });
 
-  it('renders a PDF in an iframe via an object URL', async () => {
+  it('renders a video via an object URL', async () => {
     const getRunFileContent = vi
       .fn<(runId: string, path: string) => Promise<RunFileContent>>()
       .mockResolvedValue(
         content({
-          blob: new Blob(['%PDF'], { type: 'application/pdf' }),
-          mimeType: 'application/pdf',
+          blob: new Blob(['video'], { type: 'video/mp4' }),
+          mimeType: 'video/mp4',
         }),
       );
 
     const { container } = render(
       createElement(RunFileViewer, {
         runId: 'run-1',
-        entry: entry({ path: 'report.pdf' }),
+        entry: entry({ path: 'demo.mp4' }),
         getRunFileContent,
         onBack: vi.fn(),
         t,
@@ -164,9 +164,9 @@ describe('RunFileViewer', () => {
     );
 
     await waitFor(() => {
-      const frame = container.querySelector('iframe');
-      expect(frame).not.toBeNull();
-      expect(frame?.getAttribute('src')).toBe('blob:sentinel');
+      const video = container.querySelector('video');
+      expect(video).not.toBeNull();
+      expect(video?.getAttribute('src')).toBe('blob:sentinel');
     });
   });
 

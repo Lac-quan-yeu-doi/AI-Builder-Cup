@@ -81,6 +81,7 @@ export interface ChatSessionState {
   readonly transcript: readonly ChatTranscriptMessage[];
   readonly pendingQuestion: ChatAskUserRequest | null;
   readonly pendingApproval?: ChatPendingApproval | null;
+  readonly pendingPlan?: unknown;
 }
 
 /**

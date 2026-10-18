@@ -84,7 +84,7 @@ describe('workspace route guards', () => {
   });
 
   it('pauses unrelated screens without pausing the six capability flows', () => {
-    for (const path of ['/sql', '/scripts', '/skills', '/guide', '/administration']) {
+    for (const path of ['/sql', '/skills']) {
       expect(isPausedWorkspaceRoute(path), path).toBe(true);
       expect(isPausedWorkspaceRoute(`${path}/nested`), `${path}/nested`).toBe(true);
     }
@@ -93,14 +93,24 @@ describe('workspace route guards', () => {
       '/catalog/databases',
       '/streaming',
       '/plant-model',
-      '/data-workflows',
       '/automations',
       '/analytics',
-      '/documents',
-      '/plugins/google-drive',
     ]) {
       expect(isPausedWorkspaceRoute(path), path).toBe(false);
     }
     expect(isPausedWorkspaceRoute('/sql-archive')).toBe(false);
+  });
+
+  it('does not guard retired feature routes', () => {
+    for (const path of [
+      '/administration',
+      '/documents',
+      '/guide',
+      '/scripts',
+      '/data-workflows',
+      '/plugins',
+    ]) {
+      expect(workspaceFeatureForPath(path), path).toBeUndefined();
+    }
   });
 });

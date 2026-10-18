@@ -148,64 +148,15 @@ describe('BlockPane, chart', () => {
 });
 
 describe('BlockPane, document', () => {
-  it('loads and renders a created Markdown document in the stage', async () => {
-    const getDocumentContent = vi.fn().mockResolvedValue({
-      kind: 'text',
-      content: {
-        documentId: 'doc-1',
-        pageCount: 1,
-        extractionStatus: 'extracted',
-        text: '# Daily report\n\nAll good.',
-        chartPreviews: [],
-      },
-    });
-
+  it('keeps old document blocks readable as fallback text', () => {
     render(
       createElement(BlockPane, {
         block: block({
           blockType: 'document' as MessageBlock['blockType'],
-          payload: {
-            document_id: 'doc-1',
-            filename: 'daily-report.md',
-            mime_type: 'text/markdown',
-          },
+          payload: { document_id: 'doc-1' },
         }),
-        getDocumentContent,
       }),
     );
-
-    expect(await screen.findByText('Daily report')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Download PDF' })).toBeTruthy();
-    expect(getDocumentContent).toHaveBeenCalledWith({
-      documentId: 'doc-1',
-      mimeType: 'text/markdown',
-    });
-  });
-
-  it('renders a document PDF inline through the unified content controller', async () => {
-    vi.stubGlobal('URL', {
-      ...URL,
-      createObjectURL: vi.fn().mockReturnValue('blob:chat-pdf'),
-      revokeObjectURL: vi.fn(),
-    });
-    const getDocumentContent = vi.fn().mockResolvedValue({
-      kind: 'file',
-      blob: new Blob(['%PDF-test'], { type: 'application/pdf' }),
-    });
-    render(
-      createElement(BlockPane, {
-        block: block({
-          blockType: 'document',
-          payload: { document_id: 'doc-pdf', filename: 'report.pdf', mime_type: 'application/pdf' },
-        }),
-        getDocumentContent,
-      }),
-    );
-    expect(await screen.findByTitle('report.pdf')).toBeTruthy();
-    expect(getDocumentContent).toHaveBeenCalledWith({
-      documentId: 'doc-pdf',
-      mimeType: 'application/pdf',
-    });
-    vi.unstubAllGlobals();
+    expect(screen.getByText('fallback')).toBeTruthy();
   });
 });

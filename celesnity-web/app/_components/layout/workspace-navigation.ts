@@ -1,14 +1,10 @@
 import {
-  BlocksIcon,
   BoxIcon,
   DatabaseIcon,
-  FileTextIcon,
   MessageSquareIcon,
   RadioTowerIcon,
   ChartNoAxesCombinedIcon,
-  // ZapIcon,
   FactoryIcon,
-  // WorkflowIcon,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -48,9 +44,8 @@ export interface WorkspaceNavigationSection {
  *   /pipelines, /executions, /catalog/tables   ->  the database
  *   /devices                                   ->  the streaming adapter
  *
- * The six-capability workspace keeps setup routes for its data, workflow, and
- * analytics features. Unrelated screens remain in source but are paused in
- * `route-features.ts` and excluded from this navigation.
+ * The workspace keeps only the retained home, data, plant, and analytics
+ * destinations. Retired management and authoring surfaces are not routable.
  */
 export const workspaceNavigationGroups: readonly WorkspaceNavigationGroup[] = [
   {
@@ -86,34 +81,9 @@ export const workspaceNavigationGroups: readonly WorkspaceNavigationGroup[] = [
       },
     ],
   },
-  // {
-  //   labelKey: 'nav.group.tools',
-  //   items: [
-  //     {
-  //       href: '/data-workflows',
-  //       labelKey: 'nav.dataWorkflows',
-  //       icon: WorkflowIcon,
-  //       feature: 'PIPELINES',
-  //     },
-  //     { href: '/plugins', labelKey: 'nav.plugins', icon: BlocksIcon, feature: 'HOME' },
-  //     { href: '/automations', labelKey: 'nav.automations', icon: ZapIcon, feature: 'AUTOMATIONS' },
-  //   ],
-  // },
-  {
-    labelKey: 'nav.group.tools',
-    items: [
-      { href: '/plugins', labelKey: 'nav.plugins', icon: BlocksIcon, feature: 'HOME' },
-    ],
-  },
-  {
-    labelKey: 'nav.group.resources',
-    items: [
-      { href: '/documents', labelKey: 'nav.documents', icon: FileTextIcon, feature: 'DOCUMENTS' },
-    ],
-  },
 ];
 
-// The administration screen is paused for the six-capability workspace.
+// Administration remains an internal tenancy boundary, not a workspace screen.
 export const workspaceFooterNavigation: readonly WorkspaceNavigationItem[] = [];
 
 /** Every destination, flattened — the order the groups render in. */

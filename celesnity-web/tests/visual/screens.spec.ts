@@ -12,7 +12,6 @@ const screens = [
     path: '/connections',
     settled: 'analytics-primary',
   },
-  { name: 'scripts', path: '/scripts', settled: 'daily-order-rollup' },
   { name: 'pipeline-jobs', path: '/pipelines', settled: 'Daily order load' },
   { name: 'executions', path: '/executions', settled: 'Run executions' },
   {
@@ -35,11 +34,6 @@ const screens = [
   { name: 'sql', path: '/sql', settled: 'History' },
   { name: 'skills', path: '/skills', settled: 'Project skills' },
   { name: 'streaming', path: '/streaming', settled: 'Line A sensors' },
-  {
-    name: 'administration',
-    path: '/administration',
-    settled: 'Organization & session',
-  },
   { name: 'devices', path: '/devices', settled: 'Total devices' },
 ] as const;
 
@@ -232,56 +226,6 @@ test('plant workspace protects unsaved model changes while switching views', asy
   await expect(page).toHaveURL(/\/overview$/u);
 });
 
-test('organization MFA opt-in confirms and sends the administrator to login', async ({ page }) => {
-  await mockCoreApi(page);
-  let enabled = false;
-  await page.route(
-    '**/api/core/administration/organizations/current/mfa-policy/enable',
-    async (route) => {
-      expect(route.request().method()).toBe('POST');
-      enabled = true;
-      await route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({ mfaRequired: true }),
-      });
-    },
-  );
-  await page.route('**/api/auth/config', (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ mode: 'identity-platform' }),
-    }),
-  );
-  await page.goto('/administration');
-  const enable = page.getByRole('button', { name: 'Enable MFA', exact: true });
-  await enable.focus();
-  await enable.press('Enter');
-  await expect(page.getByRole('alertdialog')).toBeVisible();
-  expect(enabled).toBe(false);
-  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await expect(enable).toBeFocused();
-  await enable.press('Enter');
-  await page.getByRole('button', { name: 'Enable MFA and sign in', exact: true }).click();
-  await expect(page).toHaveURL(/\/login$/u);
-  expect(enabled).toBe(true);
-});
-
-for (const section of [
-  { name: 'members', tab: 'Members', heading: 'Organization members' },
-  { name: 'groups', tab: 'Groups', heading: 'Access groups' },
-  { name: 'catalog-access', tab: 'Catalog access', heading: 'Data catalog access' },
-]) {
-  test(`administration ${section.name} section`, async ({ page }) => {
-    await mockCoreApi(page);
-    await page.goto('/administration');
-    await page.getByRole('tab', { name: section.tab, exact: true }).click();
-    await expect(page.getByRole('heading', { name: section.heading, exact: true })).toBeVisible();
-    await expect(page).toHaveScreenshot(`administration-${section.name}.png`, { fullPage: true });
-  });
-}
-
 test('workspace feature denial filters navigation before rendering the destination', async ({
   page,
 }) => {
@@ -319,62 +263,6 @@ test('workspace with no assigned features retains account controls', async ({ pa
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Account menu' })).toBeVisible();
   await expect(page).toHaveScreenshot('workspace-no-features.png', { fullPage: true });
-});
-
-for (const width of [1280, 390]) {
-  test(`administration role picker at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    await mockCoreApi(page);
-    await page.goto('/administration');
-    await page.getByRole('tab', { name: 'Members', exact: true }).click();
-    const role = page.getByRole('combobox', { name: 'Role', exact: true }).first();
-    await role.focus();
-    await role.press('Enter');
-    await expect(
-      page.getByRole('option', { name: 'Organization owner', exact: true }),
-    ).toBeVisible();
-    await expect(page.getByRole('option', { name: 'Viewer', exact: true })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    );
-    await expect(page).toHaveScreenshot(`administration-role-picker-${width}.png`, {
-      fullPage: true,
-    });
-    await page.keyboard.press('Escape');
-    await expect(role).toBeFocused();
-    await role.press('Enter');
-    await expect(page.getByRole('option', { name: 'Viewer', exact: true })).toBeFocused();
-    await page.keyboard.press('Home');
-    await expect(
-      page.getByRole('option', { name: 'Organization owner', exact: true }),
-    ).toBeFocused();
-    await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('option', { name: 'Administrator', exact: true })).toBeFocused();
-    await page.keyboard.press('Enter');
-    await expect(role).toHaveText('Administrator');
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-      width,
-    );
-  });
-}
-
-test('administration narrow layout and keyboard navigation', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await mockCoreApi(page);
-  await page.goto('/administration');
-  const overview = page.getByRole('tab', { name: 'Overview', exact: true });
-  await overview.focus();
-  await overview.press('ArrowRight');
-  await expect(page.getByRole('tab', { name: 'Members', exact: true })).toBeFocused();
-  await expect(page.getByRole('table', { name: 'Organization members' })).toBeVisible();
-  await page.getByRole('tab', { name: 'Overview', exact: true }).click();
-  await expect(page).toHaveScreenshot('administration-narrow.png', { fullPage: true });
-  for (const name of ['Overview', 'Members', 'Groups', 'Catalog access']) {
-    await page.getByRole('tab', { name, exact: true }).click();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-      390,
-    );
-  }
 });
 
 /*
@@ -415,74 +303,6 @@ for (const screen of screens) {
     });
   });
 }
-
-test('data workflow list captures an unapproved desktop artifact', async ({ page }, testInfo) => {
-  await mockCoreApi(page);
-  await page.goto('/data-workflows');
-  await settle(page, 'Data Workflows');
-  await expect(page.getByRole('link', { name: 'Daily plant import', exact: true })).toBeVisible();
-  // This is diagnostic evidence, not a visual assertion. Add a reviewed
-  // `toHaveScreenshot` baseline only after this artifact is inspected in an
-  // isolated harness.
-  await testInfo.attach('data-workflows-desktop-unapproved', {
-    body: await page.screenshot({ fullPage: true }),
-    contentType: 'image/png',
-  });
-});
-
-test('data workflow editor captures an unapproved narrow artifact after keyboard authoring', async ({
-  page,
-}, testInfo) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await mockCoreApi(page);
-  await page.goto('/data-workflows/new');
-  await expect(page.getByRole('application', { name: 'Data workflow canvas' })).toBeVisible();
-
-  const pipelineJob = page.getByRole('button', { name: 'Pipeline job', exact: true });
-  await pipelineJob.focus();
-  await expect(pipelineJob).toBeFocused();
-  await pipelineJob.press('Enter');
-  await expect(page.getByRole('combobox', { name: 'Pipeline', exact: true })).toBeVisible();
-
-  await page.getByRole('button', { name: 'Connection tools', exact: true }).click();
-  const target = page.getByLabel('To node', { exact: true });
-  await target.focus();
-  await page.keyboard.press('ArrowDown');
-  await page.keyboard.press('ArrowDown');
-  await expect(target).toHaveValue(/pipeline/u);
-
-  const connect = page.getByRole('button', { name: 'Connect selected nodes', exact: true });
-  await connect.focus();
-  await page.keyboard.press('Enter');
-  await expect(page.locator('.react-flow__edge-path')).toHaveCount(1);
-
-  await page.locator('.react-flow__node[data-id="trigger"]').click();
-  const workspace = page.getByRole('main', { name: 'Data workflow editor' });
-  await workspace.evaluate((element) => element.scrollTo({ top: 0 }));
-  const scrollBefore = await workspace.evaluate((element) => ({
-    scrollTop: element.scrollTop,
-    scrollY: window.scrollY,
-  }));
-
-  await workspace.evaluate((element) => element.scrollBy({ top: 1_200 }));
-  const scrollAfter = await workspace.evaluate((element) => ({
-    scrollTop: element.scrollTop,
-    scrollY: window.scrollY,
-  }));
-  expect(scrollAfter.scrollTop).toBeGreaterThan(scrollBefore.scrollTop);
-  expect(scrollAfter.scrollY).toBe(scrollBefore.scrollY);
-  await expect(page.getByLabel('Trigger type', { exact: true })).toBeInViewport();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
-    true,
-  );
-  // This is diagnostic evidence, not a visual assertion. Add a reviewed
-  // `toHaveScreenshot` baseline only after this artifact is inspected in an
-  // isolated harness.
-  await testInfo.attach('data-workflow-editor-narrow-unapproved', {
-    body: await page.screenshot({ fullPage: true }),
-    contentType: 'image/png',
-  });
-});
 
 test('device firmware management section matches the visual baseline', async ({ page }) => {
   await mockCoreApi(page);
@@ -1264,66 +1084,3 @@ test('skills at 390px stacks the library above the editor', async ({ page }) => 
   await expect(page).toHaveScreenshot('skills-narrow.png', { fullPage: true });
 });
 
-for (const width of [1440, 390]) {
-  test(`service identity catalog grants at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    await mockCoreApi(page);
-    await page.route('**/administration/authorization/service-identities', (route) =>
-      route.fulfill({
-        json: [
-          {
-            identityId: 'background-worker',
-            purpose: 'BACKGROUND',
-            enabled: true,
-            permissions: ['workspace:read', 'workspace:write'],
-            features: ['EXECUTIONS'],
-            updatedAt: '2026-10-01T00:00:00Z',
-            identity: { status: 'ACTIVE' },
-          },
-        ],
-      }),
-    );
-    let grant: Record<string, unknown> | undefined;
-    await page.route('**/administration/authorization/catalog-grants', async (route) => {
-      if (route.request().method() === 'POST') {
-        grant = {
-          ...route.request().postDataJSON(),
-          id: 'service-grant',
-          createdAt: '2026-10-01T00:00:00Z',
-        };
-        await route.fulfill({ json: grant });
-      } else await route.fulfill({ json: grant ? [grant] : [] });
-    });
-    await page.route(
-      '**/administration/authorization/catalog-grants/service-grant',
-      async (route) => {
-        expect(route.request().method()).toBe('DELETE');
-        grant = undefined;
-        await route.fulfill({ status: 204 });
-      },
-    );
-    await page.goto('/administration?tab=catalog-access');
-    await expect(page.getByRole('heading', { name: 'Data catalog access' })).toBeVisible();
-    await page.getByLabel('Principal type').selectOption('SERVICE_IDENTITY');
-    await page.getByLabel('Principal', { exact: true }).selectOption('background-worker');
-    await page.getByLabel('Resource type').selectOption('SCHEMA');
-    await page.getByLabel('Resource name').fill('iceberg.bronze');
-    await page.getByLabel('DESCRIBE', { exact: true }).check();
-    await page.getByRole('button', { name: 'Create grant', exact: true }).click();
-    await expect(
-      page.getByRole('row', { name: /Background executor.*iceberg.bronze/ }),
-    ).toBeVisible();
-    expect(grant).toMatchObject({ identityId: 'background-worker', permissions: ['DESCRIBE'] });
-    await page.screenshot({
-      path: `tests/visual/.artifacts/service-grants-${width}.png`,
-      fullPage: true,
-    });
-    expect(
-      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
-    ).toBe(true);
-    await page.getByRole('button', { name: 'Delete', exact: true }).click();
-    await expect(
-      page.getByRole('row', { name: /Background executor.*iceberg.bronze/ }),
-    ).toHaveCount(0);
-  });
-}

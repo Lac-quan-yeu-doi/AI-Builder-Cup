@@ -46,9 +46,6 @@ vi.mock('@/app/_components/execution/executions-screen', () => ({
 vi.mock('@/app/(workspace)/sql/_components/query-workbench-screen', () => ({
   QueryWorkbenchScreen: () => null,
 }));
-vi.mock('@/app/(workspace)/scripts/_components/scripts-screen', () => ({
-  ScriptsScreen: () => null,
-}));
 vi.mock('@/app/_components/pipeline/pipelines-screen', () => ({
   PipelinesScreen: () => null,
 }));
@@ -77,7 +74,6 @@ import { DatabaseServiceFeature } from '@/app/_components/database-service/datab
 import { ExecutionMonitoringFeature } from '@/app/_components/execution/execution-monitoring-feature';
 import { QueryWorkbenchFeature } from '@/app/(workspace)/sql/_components/query-workbench-feature';
 import { PipelineListFeature } from '@/app/_components/pipeline/pipeline-list-feature';
-import { ScriptWorkbenchFeature } from '@/app/(workspace)/scripts/_components/script-workbench-feature';
 import { MetadataCrawlerFeature } from '@/app/(workspace)/metadata-crawler/_components/metadata-crawler-feature';
 import { AutomationWorkflowFeature } from '@/app/(workspace)/automations/_components/automation-workflow-feature';
 import { AutomationWorkflowDetailFeature } from '@/app/(workspace)/automations/[workflowId]/_components/automation-workflow-detail-feature';
@@ -128,19 +124,6 @@ describe('injected client feature roots', () => {
         listSnapshots: 'ListTableSnapshotsController',
         preview: 'PreviewTableController',
         monitorPreview: 'MonitorTablePreviewController',
-      },
-    ],
-    [
-      'scripts',
-      ScriptWorkbenchFeature,
-      {
-        listScripts: 'ListScriptsController',
-        getScript: 'GetScriptController',
-        listVersions: 'ListScriptVersionsController',
-        loadVersionSource: 'LoadScriptVersionSourceController',
-        listActiveConnections: 'ListActiveConnectionsController',
-        save: 'SaveScriptController',
-        saveAndRun: 'SaveAndRunScriptController',
       },
     ],
     [

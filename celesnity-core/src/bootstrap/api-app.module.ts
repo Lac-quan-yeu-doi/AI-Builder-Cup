@@ -6,7 +6,6 @@ import { CatalogExplorationModule } from '@modules/catalog-exploration.module';
 import { ChartModule } from '@modules/chart.module';
 import { CitationModule } from '@modules/citation.module';
 import { DatabaseServiceModule } from '@modules/database-service.module';
-import { DocumentModule } from '@modules/document.module';
 import { SecurityModule } from '@modules/security.module';
 import { ExecutionOrchestrationModule } from '@modules/execution-orchestration.module';
 import { MessageBlockModule } from '@modules/message-block.module';
@@ -27,9 +26,7 @@ import { TrinoMcpModule } from '@modules/trino-mcp.module';
 import { AutomationWorkflowModule } from '@modules/automation-workflow.module';
 import { PlantModelModule } from '@modules/plant-model.module';
 import { SkillModule } from '@modules/skill.module';
-import { DataWorkflowModule } from '@modules/data-workflow.module';
 import { TutorialModule } from '@modules/tutorial.module';
-import { GoogleDriveConnectorModule } from '@modules/google-drive-connector.module';
 
 @Module({
   imports: [
@@ -56,16 +53,13 @@ import { GoogleDriveConnectorModule } from '@modules/google-drive-connector.modu
     MessageBlockModule,
     ChartModule,
     DashboardModule,
-    DocumentModule,
     TrinoMcpModule,
     CitationModule,
     AutomationWorkflowModule,
     SkillModule,
     DeviceManagementModule,
     PlantModelModule,
-    DataWorkflowModule,
     TutorialModule,
-    GoogleDriveConnectorModule,
   ],
 })
 export class ApiAppModule {}

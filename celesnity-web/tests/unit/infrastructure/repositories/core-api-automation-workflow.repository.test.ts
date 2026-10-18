@@ -175,7 +175,6 @@ describe('CoreApiAutomationWorkflowRepository', () => {
       triggeredBy: 'test' as const,
       startedAt: '2026-09-05T00:00:00.000Z',
       steps: [],
-      documents: [],
     };
     const transport = makeTransport({ request: vi.fn().mockResolvedValue(runDto) });
     const repository = new CoreApiAutomationWorkflowRepository(transport);

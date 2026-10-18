@@ -11,8 +11,8 @@ import type { WorkspaceFeature } from '@/src/entities/models/workspace-feature';
  * and opened it to everyone, which is the opposite of what taking a destination
  * out of the navigation looks like it should do.
  *
- * Three routes already had to be special-cased for exactly this reason
- * (`/databases/`, `/scripts`, `/charts`) because they are reachable without
+ * Two routes already had to be special-cased for exactly this reason
+ * (`/databases/` and `/charts`) because they are reachable without
  * being destinations. Folding parts into their container turns most of the
  * sidebar into that case, so the mapping is stated in full here instead.
  *
@@ -21,7 +21,6 @@ import type { WorkspaceFeature } from '@/src/entities/models/workspace-feature';
 const ROUTE_FEATURES: readonly (readonly [string, WorkspaceFeature])[] = [
   ['/chat', 'HOME'],
   ['/skills', 'HOME'],
-  ['/plugins', 'HOME'],
 
   // Data Catalog — the database container and everything reached inside it.
   ['/catalog/tables', 'CATALOG_TABLES'],
@@ -36,8 +35,6 @@ const ROUTE_FEATURES: readonly (readonly [string, WorkspaceFeature])[] = [
   ['/source-schema', 'SOURCE_SCHEMA'],
   ['/metadata-crawler', 'CRAWLER'],
   ['/pipelines', 'PIPELINES'],
-  ['/data-workflows', 'PIPELINES'],
-  ['/scripts', 'PIPELINES'],
   ['/executions', 'EXECUTIONS'],
 
   // Streaming container, and the devices filed under one of its adapters.
@@ -49,9 +46,6 @@ const ROUTE_FEATURES: readonly (readonly [string, WorkspaceFeature])[] = [
   ['/analytics', 'ANALYTICS'],
   ['/charts', 'ANALYTICS'],
   ['/automations', 'AUTOMATIONS'],
-  ['/documents', 'DOCUMENTS'],
-  ['/guide', 'GUIDE'],
-  ['/administration', 'ADMINISTRATION'],
 ];
 
 /** Sorted once, longest first, so a more specific prefix always wins. */
@@ -75,14 +69,10 @@ export function workspaceFeatureForPath(pathname: string): WorkspaceFeature | un
 /** Every prefix this table guards — the test walks the route tree against it. */
 export const guardedRoutePrefixes: readonly string[] = ROUTE_FEATURES.map(([prefix]) => prefix);
 
-// Keep the routes in the tree for easy reactivation, but pause screens outside
-// the six capabilities. Backend services that support retained screens stay live.
+// Pause retained routes that are outside the current workspace offering.
 const PAUSED_WORKSPACE_ROUTES = [
   '/sql',
-  '/scripts',
   '/skills',
-  '/guide',
-  '/administration',
 ] as const;
 
 export function isPausedWorkspaceRoute(pathname: string): boolean {

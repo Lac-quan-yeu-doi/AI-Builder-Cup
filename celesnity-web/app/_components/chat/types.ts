@@ -48,6 +48,8 @@ export interface DisplayMessage {
   readonly runAwaitingApproval?: boolean;
   /** The runtime approval request when an agent tool is paused for consent. */
   readonly awaitingApproval?: ChatPendingApproval;
+  readonly runAwaitingPlan?: boolean;
+  readonly awaitingPlan?: unknown;
   readonly runId?: string;
   readonly messageBlocks?: readonly MessageBlock[];
   /** When `true`, the message was queued while offline and has not yet been

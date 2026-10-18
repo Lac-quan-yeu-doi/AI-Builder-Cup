@@ -27,16 +27,14 @@ describe('workspace feature navigation', () => {
   it('filters inaccessible items and removes empty sidebar headings', () => {
     const groups = visibleWorkspaceNavigationGroups(['HOME', 'ANALYTICS']);
     const labels = groups.flatMap((group) => group.items.map((item) => item.labelKey));
-    // `HOME` backs the chat and Google Drive plugin setup, which sit in
-    // different groups, so this also covers a group surviving with some of its items.
-    expect(labels).toEqual(['nav.chat', 'nav.analytics', 'nav.plugins']);
+    expect(labels).toEqual(['nav.chat', 'nav.analytics']);
     expect(groups.every((group) => group.items.length > 0 || group.sections?.length)).toBe(true);
   });
 
   it('resolves direct nested routes to the feature policy checked by the shell', () => {
     expect(workspaceFeatureForPath('/analytics/charts/chart-1/edit')).toBe('ANALYTICS');
     expect(workspaceFeatureForPath('/charts/new')).toBe('ANALYTICS');
-    expect(workspaceFeatureForPath('/scripts')).toBe('PIPELINES');
+    expect(workspaceFeatureForPath('/pipelines')).toBe('PIPELINES');
     expect(workspaceFeatureForPath('/databases/iceberg')).toBe('CATALOG_DATABASES');
   });
 

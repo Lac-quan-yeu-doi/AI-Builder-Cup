@@ -24,11 +24,6 @@ import { type IClock } from '@application/shared/interfaces/i-clock';
 import { type IIdGenerator } from '@application/shared/interfaces/i-id-generator';
 import { type IUnitOfWork } from '@application/shared/interfaces/i-unit-of-work';
 import { CLOCK, ID_GENERATOR, UNIT_OF_WORK } from '@application/shared/tokens';
-import {
-  WORKFLOW_ACCESS,
-  WORKFLOW_NODE_ATTEMPT_EXECUTION_REPOSITORY,
-  WORKFLOW_PIPELINE_EXECUTOR,
-} from '@application/data-workflow/tokens';
 import { DatabaseServiceModule } from '@modules/database-service.module';
 import { ScriptAuthoringModule } from '@modules/script-authoring.module';
 import { PipelineCompilationModule } from '@modules/pipeline-compilation.module';
@@ -40,9 +35,6 @@ import { MinioExecutionLogStore } from '@infrastructure/minio/execution-orchestr
 import { PrismaExecutionReader } from '@infrastructure/prisma/execution-orchestration/prisma-execution.reader';
 import { ExecutionMapper } from '@infrastructure/prisma/execution-orchestration/execution.mapper';
 import { PrismaExecutionRepository } from '@infrastructure/prisma/execution-orchestration/prisma-execution.repository';
-import { PrismaWorkflowNodeAttemptExecutionRepository } from '@infrastructure/prisma/data-workflow/prisma-workflow-node-attempt-execution.repository';
-import { WorkflowAccessAdapter } from '@infrastructure/data-workflow/workflow-access.adapter';
-import { WorkflowPipelineExecutorAdapter } from '@infrastructure/data-workflow/workflow-pipeline-executor.adapter';
 import { RandomUuidGenerator } from '@infrastructure/system/random-uuid-generator';
 import { SystemClock } from '@infrastructure/system/system-clock';
 
@@ -53,9 +45,6 @@ import { SystemClock } from '@infrastructure/system/system-clock';
     ExecutionMapper,
     PrismaExecutionRepository,
     PrismaExecutionReader,
-    PrismaWorkflowNodeAttemptExecutionRepository,
-    WorkflowAccessAdapter,
-    WorkflowPipelineExecutorAdapter,
     MinioClientFactory,
     MinioExecutionLogStore,
     SystemClock,
@@ -63,12 +52,6 @@ import { SystemClock } from '@infrastructure/system/system-clock';
     { provide: EXECUTION_REPOSITORY, useExisting: PrismaExecutionRepository },
     { provide: EXECUTION_READER, useExisting: PrismaExecutionReader },
     { provide: EXECUTION_LOG_STORE, useExisting: MinioExecutionLogStore },
-    { provide: WORKFLOW_ACCESS, useExisting: WorkflowAccessAdapter },
-    {
-      provide: WORKFLOW_NODE_ATTEMPT_EXECUTION_REPOSITORY,
-      useExisting: PrismaWorkflowNodeAttemptExecutionRepository,
-    },
-    { provide: WORKFLOW_PIPELINE_EXECUTOR, useExisting: WorkflowPipelineExecutorAdapter },
     { provide: CLOCK, useExisting: SystemClock },
     { provide: ID_GENERATOR, useExisting: RandomUuidGenerator },
     {
@@ -149,6 +132,6 @@ import { SystemClock } from '@infrastructure/system/system-clock';
         ),
     },
   ],
-  exports: [PreparedExecutionRequestService, WORKFLOW_ACCESS, WORKFLOW_PIPELINE_EXECUTOR],
+  exports: [PreparedExecutionRequestService],
 })
 export class ExecutionOrchestrationModule {}

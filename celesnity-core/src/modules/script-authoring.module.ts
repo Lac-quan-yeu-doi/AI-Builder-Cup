@@ -39,7 +39,6 @@ import { PrismaScriptVersionRepository } from '@infrastructure/prisma/script-aut
 import { ScriptAuthoringPublishedScriptAdapter } from '@infrastructure/providers/script-authoring/script-authoring-published-script.adapter';
 import { RandomUuidGenerator } from '@infrastructure/system/random-uuid-generator';
 import { SystemClock } from '@infrastructure/system/system-clock';
-import { ScriptController } from '@presentation/script-authoring/script.controller';
 
 /**
  * Token for the context's deployment settings, so the two values are resolved
@@ -50,7 +49,6 @@ const SCRIPT_AUTHORING_CONFIG = Symbol('ScriptAuthoringConfig');
 
 @Module({
   imports: [DatabaseServiceModule],
-  controllers: [ScriptController],
   providers: [
     ScriptMapper,
     ScriptViewMapper,

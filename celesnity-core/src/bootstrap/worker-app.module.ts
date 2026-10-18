@@ -10,7 +10,6 @@ import { StreamingWorkerModule } from '@modules/streaming-worker.module';
 import { MetadataCrawlerWorkerModule } from '@modules/metadata-crawler-worker.module';
 import { AutomationWorkerModule } from '@modules/automation-worker.module';
 import { DeviceManagementWorkerModule } from '@modules/device-management-worker.module';
-import { DataWorkflowWorkerModule } from '@modules/data-workflow-worker.module';
 
 @Module({
   imports: [
@@ -27,7 +26,6 @@ import { DataWorkflowWorkerModule } from '@modules/data-workflow-worker.module';
     MetadataCrawlerWorkerModule,
     AutomationWorkerModule,
     DeviceManagementWorkerModule,
-    DataWorkflowWorkerModule,
   ],
 })
 export class WorkerAppModule {}

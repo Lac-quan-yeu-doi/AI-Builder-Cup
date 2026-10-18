@@ -13,8 +13,6 @@ export interface AutomationWorkflowTriggerField {
 export type AutomationWorkflowStepRunStatus = 'queued' | 'running' | 'success' | 'failed';
 export type AutomationWorkflowRunStatus = 'running' | 'success' | 'failed';
 export type AutomationWorkflowRunTrigger = 'schedule' | 'event' | 'test';
-import type { Document } from './document';
-
 export interface AutomationWorkflowStep {
   readonly id: string;
   readonly order: number;
@@ -85,7 +83,6 @@ export interface AutomationWorkflowRun {
   readonly startedAt: string;
   readonly finishedAt?: string;
   readonly steps: readonly AutomationWorkflowStepRun[];
-  readonly documents?: readonly Document[];
 }
 
 /** A run history row — no step detail, unlike AutomationWorkflowRun. */

@@ -169,17 +169,6 @@ describe('automation-workflow-api mapper', () => {
         },
         { stepId: 'step-2', status: 'failed' },
       ],
-      documents: [
-        {
-          id: 'doc-1',
-          filename: 'revenue-report.md',
-          mimeType: 'text/markdown',
-          pageCount: 1,
-          extractionStatus: 'extracted',
-          chartPreviews: [{ title: 'Revenue' }],
-          createdAt: '2026-09-06T07:01:00.000Z',
-        },
-      ],
     });
   });
 

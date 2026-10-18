@@ -27,8 +27,6 @@ const rejectPendingAction = getInjection('RejectPendingActionController');
 const resolveCitations = getInjection('ResolveCitationsController');
 const listWorkspaceTree = getInjection('ListWorkspaceTreeController');
 const getWorkspaceFileContent = getInjection('GetWorkspaceFileContentController');
-const uploadDocument = getInjection('UploadDocumentController');
-const getDocumentContent = getInjection('GetDocumentContentController');
 const automationWorkflow = getInjection('AutomationWorkflowController');
 const listCanonicalCharts = getInjection('ListCanonicalChartsController');
 const listChartCollections = getInjection('ListChartCollectionsController');
@@ -77,8 +75,6 @@ export function ChatFeature() {
       resolveCitations={resolveCitations}
       listWorkspaceTree={listWorkspaceTree}
       getWorkspaceFileContent={getWorkspaceFileContent}
-      uploadDocument={uploadDocument}
-      getDocumentContent={getDocumentContent}
       automationWorkflow={automationWorkflow}
       listCanonicalCharts={listCanonicalCharts}
       listChartCollections={listChartCollections}

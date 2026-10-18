@@ -15,7 +15,6 @@ const featureRoots = [
   '(workspace)/automations/[workflowId]/_components/automation-workflow-detail-feature.tsx',
   '(workspace)/databases/[database]/sources/[sourceId]/_components/source-feature.tsx',
   '(workspace)/sql/_components/query-workbench-feature.tsx',
-  '(workspace)/scripts/_components/script-workbench-feature.tsx',
   '(workspace)/databases/[database]/_components/database-feature.tsx',
   '(workspace)/databases/[database]/pipelines/[pipelineId]/_components/pipeline-canvas-feature.tsx',
   '_components/device/device-management-feature.tsx',
@@ -31,7 +30,6 @@ const appWideComponentRoots = [
   '_components/pipeline',
   '_components/execution',
   '_components/metadata-crawler',
-  '_components/documents',
   '_components/automation-workflow',
   '_components/device',
   '_components/assistant',
@@ -45,12 +43,10 @@ const routeSegmentsWithLocalComponents = [
   '(workspace)/metadata-crawler',
   '(workspace)/automations',
   '(workspace)/automations/[workflowId]',
-  '(workspace)/scripts',
   '(workspace)/sql',
   '(workspace)/databases/[database]',
   '(workspace)/databases/[database]/pipelines/[pipelineId]',
   '(workspace)/databases/[database]/sources/[sourceId]',
-  '(workspace)/documents',
   // Served as `/_internal` through a rewrite in next.config.ts.
   'internal',
 ] as const;

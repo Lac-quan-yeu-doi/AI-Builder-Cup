@@ -148,8 +148,7 @@ describe('workspace shell localization', () => {
   it('renders navigation in the active locale and switches language', () => {
     render(createElement(WorkspaceShell, { children: createElement('p', null, 'page') }));
 
-    // Four groups of containers and workspace-level tools — not a flat list of
-    // every screen the product has.
+    // The workspace exposes only the retained home and data capabilities.
     expect(screen.getByText('Data')).toBeTruthy();
     expect(screen.getByRole('link', { name: /^Home$/ }).getAttribute('href')).toBe('/chat');
     expect(screen.getByRole('link', { name: /^Databases$/ }).getAttribute('href')).toBe(
@@ -158,14 +157,12 @@ describe('workspace shell localization', () => {
     expect(screen.getByRole('link', { name: /^Streaming$/ })).toBeTruthy();
     expect(screen.getByRole('link', { name: /^Plant model$/ })).toBeTruthy();
     expect(screen.getByRole('link', { name: /^Analytics$/ })).toBeTruthy();
-    expect(screen.getByText('Tools')).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^Data Workflows$/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^Automations$/ }).getAttribute('href')).toBe(
-      '/automations',
-    );
-    expect(screen.getByText('Resources')).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^Documents$/ })).toBeTruthy();
-    // Query, Skills and Guide sit outside the six capabilities and are paused.
+    expect(screen.queryByText('Tools')).toBeNull();
+    expect(screen.queryByText('Resources')).toBeNull();
+    // Retired and paused destinations are absent from the workspace navigation.
+    expect(screen.queryByRole('link', { name: /^Data Workflows$/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /^Plugins$/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /^Documents$/ })).toBeNull();
     expect(screen.queryByRole('link', { name: /^Query$/ })).toBeNull();
     expect(screen.queryByRole('link', { name: /^Skills$/ })).toBeNull();
     expect(screen.queryByRole('link', { name: /^Guide$/ })).toBeNull();
@@ -176,11 +173,9 @@ describe('workspace shell localization', () => {
     expect(screen.getByText('Dữ liệu')).toBeTruthy();
     expect(screen.getByRole('link', { name: /^Cơ sở dữ liệu$/ })).toBeTruthy();
     expect(screen.getByRole('link', { name: /^Streaming$/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^Luồng dữ liệu$/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^Tự động hóa$/ }).getAttribute('href')).toBe(
-      '/automations',
-    );
-    expect(screen.getByText('Tài nguyên')).toBeTruthy();
+    expect(screen.getByRole('link', { name: /^Mô hình nhà máy$/ })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: /^Tự động hóa$/ })).toBeNull();
+    expect(screen.queryByText('Tài nguyên')).toBeNull();
     expect(screen.getByRole('navigation').getAttribute('aria-label')).toBe(
       'Điều hướng không gian làm việc',
     );
@@ -336,7 +331,7 @@ describe('workspace shell header navigation', () => {
     // The same nav element serves both widths, so every label stays reachable
     // and no link is duplicated into a second menu.
     expect(screen.getAllByRole('navigation').length).toBe(1);
-    expect(screen.getAllByRole('link', { name: /Automations/ }).length).toBe(1);
+    expect(screen.getAllByRole('link', { name: /Streaming/ }).length).toBe(1);
 
     fireEvent.click(close);
     expect(screen.getByRole('button', { name: 'Open navigation' })).toBeTruthy();
@@ -349,7 +344,7 @@ describe('workspace shell header navigation', () => {
     expect(screen.getByRole('button', { name: 'Close navigation' })).toBeTruthy();
 
     // Navigating does not unmount the shell, so the link closes the menu itself.
-    fireEvent.click(screen.getByRole('link', { name: /Automations/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Streaming/ }));
 
     expect(screen.getByRole('button', { name: 'Open navigation' })).toBeTruthy();
   });
@@ -394,25 +389,20 @@ describe('workspace sidebar collapse', () => {
 
     const navigation = screen.getByRole('navigation');
     expect(navigation.textContent).toContain('Data');
-    expect(navigation.textContent).toContain('Tools');
-    expect(navigation.textContent).toContain('Resources');
+    expect(navigation.textContent).not.toContain('Tools');
+    expect(navigation.textContent).not.toContain('Resources');
   });
 
-  it('offers ten destinations including Digital twin, plugins and Data Workflows', () => {
+  it('offers only the six retained workspace destinations', () => {
     render(createElement(WorkspaceShell, { children: createElement('p', null, 'page') }));
 
-    // The rail is narrowed to the six-capability workspace: Query, Scripts,
-    // Skills, Guide and Administration are paused in `route-features.ts`.
-    // Plugins and Data Workflows remain independent tools with direct routes.
     const links = screen.getByRole('navigation').querySelectorAll('a');
-    expect(links.length).toBe(10);
+    expect(links.length).toBe(6);
     expect(screen.getByRole('link', { name: /^Digital twin$/ }).getAttribute('href')).toBe(
       '/plant-model/twin',
     );
-    expect(screen.getByRole('link', { name: /^Plugins$/ }).getAttribute('href')).toBe('/plugins');
-    expect(screen.getByRole('link', { name: /^Data Workflows$/ }).getAttribute('href')).toBe(
-      '/data-workflows',
-    );
+    expect(screen.queryByRole('link', { name: /^Plugins$/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /^Data Workflows$/ })).toBeNull();
   });
 });
 

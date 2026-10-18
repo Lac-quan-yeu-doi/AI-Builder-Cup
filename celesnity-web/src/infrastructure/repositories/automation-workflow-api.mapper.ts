@@ -9,7 +9,6 @@ import type {
   UpdateAutomationWorkflowInput,
   UpdateWorkflowStepInput,
 } from '@/src/entities/models/automation-workflow';
-import type { Document } from '@/src/entities/models/document';
 import type { components } from '@/src/infrastructure/api/generated/schema';
 
 type GeneratedAutomationWorkflowResponseDto =
@@ -22,18 +21,6 @@ type AutomationWorkflowResponseDto = Omit<
 };
 type AutomationWorkflowStepResponseDto = components['schemas']['AutomationWorkflowStepResponseDto'];
 type AutomationWorkflowRunResponseDto = components['schemas']['AutomationWorkflowRunResponseDto'];
-type AutomationWorkflowDocumentResponseDto = {
-  readonly id: string;
-  readonly filename: string;
-  readonly mime_type: string;
-  readonly page_count: number;
-  readonly extraction_status: 'extracted' | 'no_text_found';
-  readonly chart_previews?: readonly Record<string, unknown>[];
-  readonly created_at: string;
-};
-type AutomationWorkflowRunWithDocumentsResponseDto = AutomationWorkflowRunResponseDto & {
-  readonly documents?: readonly AutomationWorkflowDocumentResponseDto[];
-};
 type AutomationWorkflowRunSummaryResponseDto =
   components['schemas']['AutomationWorkflowRunSummaryResponseDto'];
 type CreateAutomationWorkflowRequestDto =
@@ -80,7 +67,6 @@ export function fromWorkflowResponse(dto: AutomationWorkflowResponseDto): Automa
 export function fromWorkflowRunResponse(
   dto: AutomationWorkflowRunResponseDto,
 ): AutomationWorkflowRun {
-  const documentDtos = (dto as AutomationWorkflowRunWithDocumentsResponseDto).documents ?? [];
   return {
     runId: dto.runId,
     status: dto.status,
@@ -95,19 +81,6 @@ export function fromWorkflowRunResponse(
       ...(step.startedAt !== undefined ? { startedAt: step.startedAt } : {}),
       ...(step.finishedAt !== undefined ? { finishedAt: step.finishedAt } : {}),
     })),
-    documents: documentDtos.map(mapAutomationDocument),
-  };
-}
-
-function mapAutomationDocument(dto: AutomationWorkflowDocumentResponseDto): Document {
-  return {
-    id: dto.id,
-    filename: dto.filename,
-    mimeType: dto.mime_type,
-    pageCount: dto.page_count,
-    extractionStatus: dto.extraction_status,
-    chartPreviews: dto.chart_previews ?? [],
-    createdAt: dto.created_at,
   };
 }
 

@@ -5,7 +5,7 @@ Celesnity là không gian làm việc dữ liệu: bạn kết nối nguồn d�
 ## 1. Đăng nhập
 
 1. Mở địa chỉ ứng dụng mà quản trị viên gửi cho bạn. Bạn sẽ thấy trang **Sign in to Celesnity**.
-2. Đăng nhập bằng tài khoản công việc mà quản trị viên đã mời (xem mục *Quản trị tổ chức* để biết cách mời).
+2. Đăng nhập bằng tài khoản công việc do tổ chức của bạn cung cấp.
 3. Nếu tổ chức bật xác thực hai lớp (MFA), nhập thêm mã từ ứng dụng xác thực trên điện thoại.
 4. Sau khi đăng nhập, ứng dụng đưa bạn tới màn hình đầu tiên mà bạn có quyền xem, thường là **Home**.
 
@@ -19,15 +19,13 @@ Thanh bên trái đưa bạn đến các phần đang dùng:
 
 - **Home**: hỏi trợ lý Minder AI bằng ngôn ngữ tự nhiên.
 - **Data**: Databases, Streaming, Plant model và Analytics.
-- **Tools**: Data workflows, Plugins để kết nối Google Drive, và Automations.
-- **Resources**: Documents.
 
-Các màn hình Query, Scripts, Skills, Guide và Administration đang tạm dừng. Đường dẫn trực tiếp đến các màn hình này cũng không mở được.
+Administration, Documents, Guide, Scripts, Data workflows và Plugins không còn thuộc không gian làm việc này. Các đường dẫn cũ đến những phần đó không còn mở được. Query và Skills cũng đang tạm dừng.
 
 ## 3. Bắt đầu từ đâu
 
 - **Người dùng nghiệp vụ và nhà phân tích**: mở **Home**, chọn phạm vi dữ liệu rồi đặt câu hỏi. Trợ lý có thể tra cứu bảng, chạy truy vấn và tạo biểu đồ.
-- **Kỹ sư dữ liệu**: mở **Databases** để tạo cơ sở dữ liệu, kết nối nguồn, quét siêu dữ liệu và xây pipeline. Dùng **Data workflows** để lên lịch công việc.
+- **Kỹ sư dữ liệu**: mở **Databases** để tạo cơ sở dữ liệu, kết nối nguồn, quét siêu dữ liệu và xây pipeline.
 
 ## 4. Đổi mật khẩu và đăng xuất
 
