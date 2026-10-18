@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { SparklesIcon, Table2Icon } from 'lucide-react';
 
@@ -293,9 +292,6 @@ export function DatabaseScreen({ controllers, database }: DatabaseScreenProps) {
                 <Button aria-pressed={assistant.open} onClick={assistant.toggle}>
                   <SparklesIcon size={17} />
                   {t('database.askAi')}
-                </Button>
-                <Button asChild variant="outline">
-                  <Link href="/sql">{t('database.openInSql')}</Link>
                 </Button>
               </>
             }

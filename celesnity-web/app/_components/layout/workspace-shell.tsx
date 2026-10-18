@@ -19,8 +19,6 @@ import { useChatSessionsStore } from '@/app/_stores/chat-sessions.store';
 import { useTutorialSessionStore } from '@/app/_stores/tutorial-session.store';
 import { useCurrentUserId } from '@/app/_providers/current-user-provider';
 import { useWorkspaceAccess } from '@/app/_providers/workspace-access-provider';
-import { TutorialEntry } from '@/app/_components/tutorials/tutorial-entry';
-import { TutorialOverlayHost } from '@/app/_components/tutorials/tutorial-overlay-host';
 import { getInjection } from '@/di/container';
 
 import { LanguageSwitcher } from './language-switcher';
@@ -138,8 +136,6 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
         >
           {children}
         </main>
-        <TutorialEntry />
-        <TutorialOverlayHost />
       </>
     );
   }
@@ -405,9 +401,6 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
 
         <main className="min-w-0 flex-1">{guardedContent}</main>
       </div>
-
-      <TutorialEntry />
-      <TutorialOverlayHost />
     </div>
   );
 }

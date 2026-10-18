@@ -590,12 +590,9 @@ export function DashboardEditorScreen({
               value={chartSearch}
               onChange={(event) => setChartSearch(event.target.value)}
             />
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-2">
               <Button asChild variant="outline">
                 <Link href="/analytics/charts/new">New question</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/sql">New SQL query</Link>
               </Button>
             </div>
             <p className="truncate text-caption text-muted-foreground">

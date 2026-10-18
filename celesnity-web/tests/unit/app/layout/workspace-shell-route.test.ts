@@ -27,9 +27,9 @@ describe('workspace feature navigation', () => {
   it('filters inaccessible items and removes empty sidebar headings', () => {
     const groups = visibleWorkspaceNavigationGroups(['HOME', 'ANALYTICS']);
     const labels = groups.flatMap((group) => group.items.map((item) => item.labelKey));
-    // `HOME` backs the chat, skills and plugins destinations, which sit in
+    // `HOME` backs the chat and Google Drive plugin setup, which sit in
     // different groups, so this also covers a group surviving with some of its items.
-    expect(labels).toEqual(['nav.chat', 'nav.analytics', 'nav.skills', 'nav.plugins']);
+    expect(labels).toEqual(['nav.chat', 'nav.analytics', 'nav.plugins']);
     expect(groups.every((group) => group.items.length > 0 || group.sections?.length)).toBe(true);
   });
 

@@ -94,12 +94,7 @@ describe('internationalization dictionaries', () => {
       {
         labelKey: 'nav.group.tools',
         items: [
-          ['nav.query', '/sql'],
-          // Top-level because no container holds it: a script reads one source
-          // and has its own workbench.
-          ['nav.scripts', '/scripts'],
           ['nav.dataWorkflows', '/data-workflows'],
-          ['nav.skills', '/skills'],
           ['nav.plugins', '/plugins'],
           ['nav.automations', '/automations'],
         ],
@@ -108,14 +103,11 @@ describe('internationalization dictionaries', () => {
         labelKey: 'nav.group.resources',
         items: [
           ['nav.documents', '/documents'],
-          ['nav.guide', '/guide'],
         ],
       },
     ]);
 
-    expect(workspaceFooterNavigation.map((item) => [item.labelKey, item.href])).toEqual([
-      ['nav.administration', '/administration'],
-    ]);
+    expect(workspaceFooterNavigation).toEqual([]);
   });
 
   it('does not offer a destination that a container already holds', () => {

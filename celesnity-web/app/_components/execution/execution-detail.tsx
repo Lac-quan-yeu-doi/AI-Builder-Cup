@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useTranslation } from '@/app/_i18n/use-translation';
 
 import {
@@ -242,11 +241,6 @@ export function ExecutionDetail({
                 <p className="m-0 text-body-sm leading-[1.5] font-semibold wrap-anywhere text-destructive">
                   {failure.headline}
                 </p>
-                {execution.errorSummary?.includes('SOURCE_ACCESS_DENIED') ? (
-                  <Link className="text-sm underline" href="/administration?tab=catalog-access">
-                    {t('executions.manageCatalogAccess')}
-                  </Link>
-                ) : null}
                 {failure.detail ? (
                   <pre className="m-0 max-h-[260px] overflow-auto rounded-lg bg-editor-canvas p-3 font-mono text-caption leading-[1.55] whitespace-pre-wrap wrap-anywhere text-destructive">
                     {failure.detail}

@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-import { workspaceFeatureForPath } from '@/app/_components/layout/route-features';
+import { isPausedWorkspaceRoute, workspaceFeatureForPath } from '@/app/_components/layout/route-features';
 
 const projectRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const workspaceRoot = join(projectRoot, 'app', '(workspace)');
@@ -78,5 +78,26 @@ describe('workspace route guards', () => {
     // `/skills` must not be matched by a hypothetical `/ski` entry, and
     // `/documents-archive` must not inherit `/documents`.
     expect(workspaceFeatureForPath('/documents-archive')).toBeUndefined();
+  });
+
+  it('pauses unrelated screens without pausing the six capability flows', () => {
+    for (const path of ['/sql', '/scripts', '/skills', '/guide', '/administration']) {
+      expect(isPausedWorkspaceRoute(path), path).toBe(true);
+      expect(isPausedWorkspaceRoute(`${path}/nested`), `${path}/nested`).toBe(true);
+    }
+    for (const path of [
+      '/chat',
+      '/catalog/databases',
+      '/streaming',
+      '/plant-model',
+      '/data-workflows',
+      '/automations',
+      '/analytics',
+      '/documents',
+      '/plugins/google-drive',
+    ]) {
+      expect(isPausedWorkspaceRoute(path), path).toBe(false);
+    }
+    expect(isPausedWorkspaceRoute('/sql-archive')).toBe(false);
   });
 });

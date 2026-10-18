@@ -11,33 +11,21 @@ Celesnity là không gian làm việc dữ liệu: bạn kết nối nguồn d�
 
 > Nếu đường dẫn bạn mở yêu cầu đăng nhập, sau khi đăng nhập xong bạn sẽ được đưa về đúng trang đó.
 
-Lần đầu vào, ứng dụng có thể mời bạn **học ứng dụng qua hướng dẫn từng bước** ("Learn the workspace as you go"). Bạn có thể làm ngay hoặc mở lại sau bằng nút **Tutorials** ở góc dưới bên phải.
+## 2. Bố cục không gian làm việc
 
-## 2. Bố cục màn hình
+Thanh bên trái đưa bạn đến các phần đang dùng:
 
-| Vùng | Ở đâu | Dùng để làm gì |
-| --- | --- | --- |
-| Thanh bên trái | Cột trái | Điều hướng giữa các module. Nút **Collapse sidebar** thu gọn thanh này. |
-| Vùng chính | Giữa | Nội dung của module đang mở. |
-| Menu tài khoản | Góc dưới trái (biểu tượng chữ cái đầu tên) | **Change password**, **Sign out**. |
-| Chuyển ngôn ngữ | Cạnh menu tài khoản: **EN / VI** | Đổi ngôn ngữ giao diện ngay lập tức, không cần tải lại. |
-| Nút **Tutorials** | Góc dưới phải | Mở danh sách hướng dẫn từng bước. |
+- **Home**: hỏi trợ lý Minder AI bằng ngôn ngữ tự nhiên.
+- **Data**: Databases, Streaming, Plant model và Analytics.
+- **Tools**: Data workflows, Plugins để kết nối Google Drive, và Automations.
+- **Resources**: Documents.
 
-Thanh bên trái gồm bốn nhóm:
-
-- **Home**: hỏi đáp với trợ lý AI (xem *Hỏi đáp với trợ lý*).
-- **Data**: Databases, Streaming, Plant model, Analytics.
-- **Tools**: Query, Scripts, Skills, Plugins, Automations.
-- **Resources**: Documents, Guide.
-- **Administration** nằm ở cuối thanh bên, chỉ hữu ích với quản trị viên.
+Các màn hình Query, Scripts, Skills, Guide và Administration đang tạm dừng. Đường dẫn trực tiếp đến các màn hình này cũng không mở được.
 
 ## 3. Bắt đầu từ đâu
 
-Tuỳ vai trò của bạn:
-
-- **Người kinh doanh, phân tích**: vào **Home**, chọn phạm vi dữ liệu ở ô "Asking about", rồi hỏi bằng ngôn ngữ tự nhiên. Trợ lý sẽ tự tra bảng, chạy truy vấn và vẽ biểu đồ.
-- **Kỹ sư dữ liệu**: vào **Databases** để tạo database, kết nối nguồn, quét metadata và xây pipeline. Sau đó dùng **Query** để kiểm tra dữ liệu.
-- **Quản trị viên**: vào **Administration** để mời thành viên, tạo nhóm và quyết định nhóm nào thấy module nào.
+- **Người dùng nghiệp vụ và nhà phân tích**: mở **Home**, chọn phạm vi dữ liệu rồi đặt câu hỏi. Trợ lý có thể tra cứu bảng, chạy truy vấn và tạo biểu đồ.
+- **Kỹ sư dữ liệu**: mở **Databases** để tạo cơ sở dữ liệu, kết nối nguồn, quét siêu dữ liệu và xây pipeline. Dùng **Data workflows** để lên lịch công việc.
 
 ## 4. Đổi mật khẩu và đăng xuất
 

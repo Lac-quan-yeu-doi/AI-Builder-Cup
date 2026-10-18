@@ -2,6 +2,22 @@
   "month": "2026-10",
   "entries": [
     {
+      "id": "2026-10-18-six-capability-workspace",
+      "date": "2026-10-18",
+      "areas": ["web"],
+      "kind": "improvement",
+      "version": "0.5.0",
+      "authors": ["Lac-quan-yeu-doi"],
+      "title": {
+        "vi": "Tập trung không gian làm việc vào sáu năng lực chính",
+        "en": "Focus the workspace on six core capabilities"
+      },
+      "summary": {
+        "vi": "Thanh điều hướng tập trung vào dữ liệu tập trung, mô hình nhà máy, trợ lý AI, bản sao số, quy trình tự động và phân tích. Các màn hình công cụ độc lập, kỹ năng, hướng dẫn và quản trị được tạm ẩn; các đường dẫn trực tiếp tới chúng cũng không còn mở được.",
+        "en": "Navigation now focuses on data centralization, the plant model, Minder AI, the digital twin, automated workflows, and analytics. Standalone tool, skill, guide, and administration screens are paused, including direct links to them."
+      }
+    },
+    {
       "id": "2026-10-01-service-identity-catalog-access",
       "date": "2026-10-01",
       "areas": ["web", "core"],
