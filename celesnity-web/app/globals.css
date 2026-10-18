@@ -111,7 +111,8 @@
   /* Their sidebar is the secondary surface, and its border is lighter than the
    * page's — the rail reads as one plane with the canvas rather than a panel
    * stuck onto it. */
-  --sidebar: #f9f9f9;
+  /* --sidebar: #f9f9f9; */
+  --sidebar: #ffffff;
   --sidebar-foreground: #0d0d0d;
   --sidebar-primary: #181818;
   --sidebar-primary-foreground: #ffffff;

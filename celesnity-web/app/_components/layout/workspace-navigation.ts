@@ -6,9 +6,9 @@ import {
   MessageSquareIcon,
   RadioTowerIcon,
   ChartNoAxesCombinedIcon,
-  ZapIcon,
+  // ZapIcon,
   FactoryIcon,
-  WorkflowIcon,
+  // WorkflowIcon,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -86,17 +86,23 @@ export const workspaceNavigationGroups: readonly WorkspaceNavigationGroup[] = [
       },
     ],
   },
+  // {
+  //   labelKey: 'nav.group.tools',
+  //   items: [
+  //     {
+  //       href: '/data-workflows',
+  //       labelKey: 'nav.dataWorkflows',
+  //       icon: WorkflowIcon,
+  //       feature: 'PIPELINES',
+  //     },
+  //     { href: '/plugins', labelKey: 'nav.plugins', icon: BlocksIcon, feature: 'HOME' },
+  //     { href: '/automations', labelKey: 'nav.automations', icon: ZapIcon, feature: 'AUTOMATIONS' },
+  //   ],
+  // },
   {
     labelKey: 'nav.group.tools',
     items: [
-      {
-        href: '/data-workflows',
-        labelKey: 'nav.dataWorkflows',
-        icon: WorkflowIcon,
-        feature: 'PIPELINES',
-      },
       { href: '/plugins', labelKey: 'nav.plugins', icon: BlocksIcon, feature: 'HOME' },
-      { href: '/automations', labelKey: 'nav.automations', icon: ZapIcon, feature: 'AUTOMATIONS' },
     ],
   },
   {

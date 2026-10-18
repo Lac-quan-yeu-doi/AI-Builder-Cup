@@ -240,7 +240,8 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           sheet's rounded corners show the rail and not the page behind it. */}
       <aside
         className={cn(
-          'dark fixed inset-y-0 left-0 z-50 w-[268px] flex-col bg-sidebar text-foreground',
+          // 'dark fixed inset-y-0 left-0 z-50 w-[268px] flex-col bg-sidebar text-foreground',
+          'fixed inset-y-0 left-0 z-50 w-[268px] flex-col bg-sidebar text-foreground',
           menuOpen ? 'flex' : 'hidden',
           'md:sticky md:top-0 md:z-auto md:flex md:h-screen md:pr-3',
           collapsed ? 'md:w-[68px]' : 'md:w-[280px]',

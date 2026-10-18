@@ -202,7 +202,7 @@ services:
   # Infrastructure: MinIO (S3-compatible object storage)
   # --------------------------------------------------------------------------
   minio:
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    image: pgsty/silo:RELEASE.2026-09-16T00-00-00Z
     restart: unless-stopped
     deploy:
       resources:
@@ -229,7 +229,7 @@ services:
       - infra
 
   minio-init:
-    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    image: pgsty/mc:RELEASE.2026-09-16T00-00-00Z
     restart: "no"
     deploy:
       resources:
@@ -799,7 +799,7 @@ services:
       IDENTITY_PLATFORM_AUTH_DOMAIN: ${IDENTITY_PLATFORM_AUTH_DOMAIN:-}
       IDENTITY_BOOTSTRAP_ADMIN_SUBJECTS: ${IDENTITY_BOOTSTRAP_ADMIN_SUBJECTS:-}
       GOOGLE_APPLICATION_CREDENTIALS: /gcloud/application_default_credentials.json
-      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost}
+      WEB_ORIGIN: http://localhost:3000
       CORE_API_URL: http://celesnity-api:3001/api/v1
       AGENT_API_URL: http://minder-runtime:8080/api/v2
       AGENT_AUTH_MODE: core-assertion
@@ -968,8 +968,6 @@ services:
         condition: service_healthy
       minder-sandbox-runner:
         condition: service_healthy
-      minder-manifest-migrate:
-        condition: service_completed_successfully
     healthcheck:
       test:
         - CMD
