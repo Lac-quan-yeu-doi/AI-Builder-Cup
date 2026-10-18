@@ -2132,6 +2132,11 @@ export const vi: Dictionary = {
   'plantModel.labelColumnHelp': 'Nội dung dễ đọc được hiển thị trong bảng thuộc tính.',
   'plantModel.resultLimit': 'Số lựa chọn tối đa',
   'plantModel.resultLimitHelp': 'Từ 1 đến 500 lựa chọn catalog không trùng lặp.',
+  'plantModel.searchNodes': 'Tìm node',
+  'plantModel.searchNodesLabel': 'Tìm node trong mô hình',
+  'plantModel.allNodeTypes': 'Tất cả loại node',
+  'plantModel.filterByNodeType': 'Lọc theo loại node',
+  'plantModel.noMatchingNodes': 'Không có node nào khớp.',
   'plantModel.filters': 'Bộ lọc',
   'plantModel.filtersHelp':
     'Điều kiện tùy chọn có thể so sánh cột catalog với giá trị cố định hoặc thuộc tính khác trên nút.',

@@ -97,6 +97,45 @@ function PreviewRows({
   );
 }
 
+/**
+ * Renders a NUMBER card's value the way its definition asks.
+ *
+ * Trino hands back `decimal(38,16)` for anything divided, so an unformatted
+ * percentage arrives as `71.4753243744207600`. The definition already carries
+ * `decimalPlaces`, a `prefix`/`suffix` and a compact flag — this reads them
+ * instead of printing the raw string, and falls back to a sane four places so a
+ * chart authored without display settings is still legible.
+ */
+function formatMeasure(
+  value: unknown,
+  display:
+    | {
+        readonly decimalPlaces?: number;
+        readonly compact?: boolean;
+        readonly prefix?: string;
+        readonly suffix?: string;
+        readonly valueFormatting?: {
+          readonly decimalPlaces?: number;
+          readonly compact?: boolean;
+          readonly prefix?: string;
+          readonly suffix?: string;
+        };
+      }
+    | undefined,
+): string {
+  if (value === null || value === undefined) return '\u2014';
+  const settings = { ...display?.valueFormatting, ...display };
+  const numeric = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(numeric)) return String(value);
+  const decimals = Math.min(settings.decimalPlaces ?? 4, 4);
+  const formatted = new Intl.NumberFormat('vi-VN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimals,
+    ...(settings.compact === true ? { notation: 'compact' as const } : {}),
+  }).format(numeric);
+  return `${settings.prefix ?? ''}${formatted}${settings.suffix ?? ''}`;
+}
+
 export function ChartRenderPreview({
   draft,
   rows,
@@ -119,9 +158,10 @@ export function ChartRenderPreview({
   );
 
   if (draft.visualizationDefinition.type === 'NUMBER') {
-    const measure = draft.visualizationDefinition.roles.measure;
+    const { roles, display } = draft.visualizationDefinition;
+    const measure = roles.measure;
     const index = draft.outputSchema.findIndex((column) => column.name === measure);
-    const value = rows[0]?.[index] ?? '\u2014';
+    const value = rows[0]?.[index];
     return (
       <div
         className={cn(
@@ -129,7 +169,7 @@ export function ChartRenderPreview({
           fill ? 'flex h-full flex-col items-center justify-center' : 'my-4',
         )}
       >
-        <p className="text-4xl font-semibold">{String(value)}</p>
+        <p className="text-4xl font-semibold tabular-nums">{formatMeasure(value, display)}</p>
         <p className="mt-2 text-sm text-muted-foreground">{measure || 'Choose a measure'}</p>
       </div>
     );
@@ -142,7 +182,11 @@ export function ChartRenderPreview({
         fill ? 'h-full min-h-0' : 'my-4 min-h-64',
       )}
     >
-      <ChartView view={view} ariaLabel={`${draft.visualizationDefinition.type} chart preview`} />
+      <ChartView
+        view={view}
+        fill={fill}
+        ariaLabel={`${draft.visualizationDefinition.type} chart preview`}
+      />
     </div>
   );
 }

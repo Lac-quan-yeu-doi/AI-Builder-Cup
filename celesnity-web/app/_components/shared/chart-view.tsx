@@ -71,9 +71,19 @@ export interface ChartViewProps {
   readonly view: ChartViewModel;
   readonly height?: number;
   readonly ariaLabel?: string;
+  /**
+   * Fill the container instead of standing at a fixed pixel height.
+   *
+   * `ResponsiveContainer` measures its parent, and this wrapper is that parent
+   * — so a fixed 320px here caps the plot no matter how tall the card around it
+   * is. A dashboard card sized to eleven grid rows then drew a 320px chart with
+   * blank space beneath it, and its category axis stayed as cramped as it was
+   * at six rows.
+   */
+  readonly fill?: boolean;
 }
 
-export function ChartView({ view, height = 320, ariaLabel }: ChartViewProps) {
+export function ChartView({ view, height = 320, ariaLabel, fill = false }: ChartViewProps) {
   const { mark, rows, series, x, y, showLegend } = view;
   const grid = x.gridlines || y.gridlines;
 
@@ -106,8 +116,8 @@ export function ChartView({ view, height = 320, ariaLabel }: ChartViewProps) {
 
   return (
     <div
-      className="min-w-0 w-full"
-      style={{ height }}
+      className={fill ? 'h-full min-h-0 min-w-0 w-full' : 'min-w-0 w-full'}
+      {...(fill ? {} : { style: { height } })}
       role="img"
       aria-label={ariaLabel ?? `${mark.toLowerCase()} chart`}
     >
@@ -152,6 +162,10 @@ export function ChartView({ view, height = 320, ariaLabel }: ChartViewProps) {
                 fill={s.color}
                 stackId={view.stacked ? 'stack' : undefined}
                 radius={[2, 2, 0, 0]}
+                /* Every other mark here is already static. A bar that regrows
+                   from zero on each data change reads as a reload rather than
+                   an update, and on a board that refreshes it never settles. */
+                isAnimationActive={false}
               />
             ))}
           </BarChart>

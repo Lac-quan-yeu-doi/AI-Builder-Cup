@@ -8,6 +8,7 @@ import { Button } from '@/app/_components/ui/button';
 import { getInjection } from '@/di/container';
 import type { PlantDashboardAssociation } from '@/src/entities/models/plant-model';
 import { DashboardFeature } from '@/app/(workspace)/analytics/dashboards/[dashboardId]/_components/dashboard-feature';
+import { isLiveDemoSite } from '@/app/(workspace)/analytics/dashboards/[dashboardId]/_components/live-demo-jitter';
 import { PlantTopologyOverview } from './plant-topology-overview';
 import { usePlantWorkspace } from './plant-workspace-context';
 
@@ -111,7 +112,10 @@ export function PlantOverviewFeature({ siteId }: { readonly siteId: string }) {
           </div>
         </div>
         {selected ? (
-          <DashboardFeature dashboardId={selected.dashboardId} />
+          <DashboardFeature
+            dashboardId={selected.dashboardId}
+            liveDemo={isLiveDemoSite(site.code)}
+          />
         ) : (
           <div className="grid min-h-52 place-items-center rounded-lg border border-dashed text-center">
             <div>

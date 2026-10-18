@@ -1,0 +1,9 @@
+{
+  "name": "aibc-mock-data",
+  "private": true,
+  "type": "module",
+  "description": "Demo Data 1 and 2: deterministic source data and the seed scripts that build the demos in Celesnity.",
+  "dependencies": {
+    "pg": "8.13.1"
+  }
+}
