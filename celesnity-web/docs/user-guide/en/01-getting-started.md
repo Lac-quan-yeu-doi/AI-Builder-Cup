@@ -11,6 +11,8 @@ Celesnity is a data workspace: you connect data sources, build pipelines, ask an
 
 > If the link you opened required a sign-in, you are returned to that exact page once you are in.
 
+> **Local development:** when the app runs in local development mode there is no sign-in page. Opening any link signs you in as the organization owner and takes you straight to that page.
+
 ## 2. The layout
 
 | Area | Where | What it is for |

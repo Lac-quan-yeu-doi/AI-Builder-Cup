@@ -9,6 +9,13 @@ export function proxy(request: NextRequest) {
     }
     return NextResponse.next();
   }
+  const returnTo = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  // Local development has no login screen: sign in as the owner and come back.
+  if (process.env.CELESNITY_AUTH_MODE === 'local-development') {
+    const signIn = new URL('/api/auth/local-session', request.url);
+    signIn.searchParams.set('returnTo', returnTo);
+    return NextResponse.redirect(signIn);
+  }
   const login = new URL('/login', request.url);
   login.searchParams.set('returnTo', request.nextUrl.pathname);
   return NextResponse.redirect(login);

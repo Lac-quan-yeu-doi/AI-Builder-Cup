@@ -11,6 +11,8 @@ Celesnity là không gian làm việc dữ liệu: bạn kết nối nguồn d�
 
 > Nếu đường dẫn bạn mở yêu cầu đăng nhập, sau khi đăng nhập xong bạn sẽ được đưa về đúng trang đó.
 
+> **Phát triển cục bộ:** khi ứng dụng chạy ở chế độ phát triển cục bộ thì không có trang đăng nhập. Mở bất kỳ đường dẫn nào cũng tự đăng nhập với vai trò chủ sở hữu tổ chức và đưa bạn thẳng tới trang đó.
+
 ## 2. Bố cục không gian làm việc
 
 Thanh bên trái đưa bạn đến các phần đang dùng:

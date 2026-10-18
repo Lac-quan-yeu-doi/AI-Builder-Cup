@@ -2,6 +2,26 @@
   "month": "2026-10",
   "entries": [
     {
+      "id": "2026-10-18-local-sign-in-skipped",
+      "date": "2026-10-18",
+      "areas": [
+        "web"
+      ],
+      "kind": "improvement",
+      "version": "0.5.0",
+      "authors": [
+        "icjayson"
+      ],
+      "title": {
+        "en": "Local development opens straight into the workspace",
+        "vi": "Môi trường phát triển cục bộ mở thẳng vào không gian làm việc"
+      },
+      "summary": {
+        "en": "When Celesnity runs in local development mode, there is no sign-in page any more: opening any link signs you in as the organization owner and takes you to that page. This also ends the \"Sign-in could not be completed\" error that appeared when the app was opened from an address other than the configured one. Real deployments still show the sign-in page.",
+        "vi": "Khi Celesnity chạy ở chế độ phát triển cục bộ, không còn trang đăng nhập: mở bất kỳ đường dẫn nào cũng tự đăng nhập với vai trò chủ sở hữu tổ chức và đưa bạn tới đúng trang đó. Lỗi \"Sign-in could not be completed\" khi mở ứng dụng từ một địa chỉ khác với địa chỉ đã cấu hình cũng không còn. Các bản triển khai thật vẫn hiển thị trang đăng nhập."
+      }
+    },
+    {
       "id": "2026-10-18-six-capability-workspace",
       "date": "2026-10-18",
       "areas": [
