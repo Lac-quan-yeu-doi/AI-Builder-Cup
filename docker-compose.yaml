@@ -799,7 +799,9 @@ services:
       IDENTITY_PLATFORM_AUTH_DOMAIN: ${IDENTITY_PLATFORM_AUTH_DOMAIN:-}
       IDENTITY_BOOTSTRAP_ADMIN_SUBJECTS: ${IDENTITY_BOOTSTRAP_ADMIN_SUBJECTS:-}
       GOOGLE_APPLICATION_CREDENTIALS: /gcloud/application_default_credentials.json
-      WEB_ORIGIN: http://localhost:3000
+      # Allowed Origin(s) for the web app's own CSRF checks: the public origin
+      # served by nginx plus the direct dev port.
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost},http://localhost:3000
       CORE_API_URL: http://celesnity-api:3001/api/v1
       AGENT_API_URL: http://minder-runtime:8080/api/v2
       AGENT_AUTH_MODE: core-assertion
