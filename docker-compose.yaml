@@ -1041,6 +1041,11 @@ services:
     # Bubblewrap needs enabled only for this isolated runner.
     security_opt:
       - seccomp:./minder-agent/sandbox-runner/seccomp.json
+      # Docker's default AppArmor profile (Ubuntu/Debian hosts) denies the
+      # mount calls Bubblewrap makes ("bwrap: Failed to make / slave"). The
+      # runner stays isolated by network_mode none, the seccomp profile above
+      # and its non-root user. No-op on hosts without AppArmor (Docker Desktop).
+      - apparmor:unconfined
     healthcheck:
       test:
         - CMD
